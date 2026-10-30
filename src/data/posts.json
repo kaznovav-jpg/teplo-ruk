@@ -1,0 +1,407 @@
+[
+ {
+  "id": "g1",
+  "board": "wip",
+  "title": "오늘 완성한 뜨개 베스트",
+  "tag": "뜨개",
+  "author": "하늘실",
+  "likes": 28,
+  "body": "어제부터 뜬 베스트가 드디어 마무리됐어요. 단추만 달면 끝!",
+  "tags": [
+   "뜨개"
+  ],
+  "thumb": "https://picsum.photos/seed/g1/600/750",
+  "images": [
+   "https://picsum.photos/seed/g1/600/750",
+   "https://picsum.photos/seed/g1b/600/750"
+  ],
+  "thread": [
+   {
+    "id": "g1c1",
+    "author": "하늘실",
+    "text": "정말 멋져요! 다음 작품도 기대할게요.",
+    "parent": null,
+    "date": "2026.10.18"
+   },
+   {
+    "id": "g1c2",
+    "author": "하늘실",
+    "text": "감사합니다 :)",
+    "parent": "g1c1",
+    "date": "2026.10.18"
+   }
+  ],
+  "comments": 2,
+  "date": "2026.10.20"
+ },
+ {
+  "id": "g2",
+  "board": "qa",
+  "title": "재봉틀 실 끊김, 해결법 아시나요?",
+  "tag": "질문",
+  "author": "소소",
+  "likes": 9,
+  "body": "박음질 중에 윗실이 자꾸 끊어져요. 장력 문제일까요?",
+  "tags": [
+   "질문"
+  ],
+  "thumb": "https://picsum.photos/seed/g2/400/400",
+  "images": [],
+  "thread": [
+   {
+    "id": "g2c1",
+    "author": "소소",
+    "text": "정말 멋져요! 다음 작품도 기대할게요.",
+    "parent": null,
+    "date": "2026.10.18"
+   },
+   {
+    "id": "g2c2",
+    "author": "소소",
+    "text": "감사합니다 :)",
+    "parent": "g2c1",
+    "date": "2026.10.18"
+   }
+  ],
+  "comments": 2,
+  "date": "2026.10.19"
+ },
+ {
+  "id": "g3",
+  "board": "wip",
+  "title": "펠트 브로치 첫 작품",
+  "tag": "펠트",
+  "author": "봄바람",
+  "likes": 21,
+  "body": "양모를 찌르는 게 은근 중독이에요. 눈 위치를 고민 중입니다.",
+  "tags": [
+   "펠트"
+  ],
+  "thumb": "https://picsum.photos/seed/g3/600/900",
+  "images": [
+   "https://picsum.photos/seed/g3/600/900",
+   "https://picsum.photos/seed/g3b/600/900"
+  ],
+  "thread": [
+   {
+    "id": "g3c1",
+    "author": "봄바람",
+    "text": "정말 멋져요! 다음 작품도 기대할게요.",
+    "parent": null,
+    "date": "2026.10.18"
+   },
+   {
+    "id": "g3c2",
+    "author": "봄바람",
+    "text": "감사합니다 :)",
+    "parent": "g3c1",
+    "date": "2026.10.18"
+   }
+  ],
+  "comments": 2,
+  "date": "2026.10.18"
+ },
+ {
+  "id": "g4",
+  "board": "qa",
+  "title": "가을 가방 원단 추천 부탁드려요",
+  "tag": "질문",
+  "author": "하늘실",
+  "likes": 12,
+  "body": "토트백에 쓸 원단을 찾고 있어요. 린넨과 캔버스 중 어떤 게 좋을까요?",
+  "tags": [
+   "질문"
+  ],
+  "thumb": "https://picsum.photos/seed/g4/400/400",
+  "images": [],
+  "thread": [
+   {
+    "id": "g4c1",
+    "author": "하늘실",
+    "text": "정말 멋져요! 다음 작품도 기대할게요.",
+    "parent": null,
+    "date": "2026.10.18"
+   },
+   {
+    "id": "g4c2",
+    "author": "하늘실",
+    "text": "감사합니다 :)",
+    "parent": "g4c1",
+    "date": "2026.10.18"
+   }
+  ],
+  "comments": 2,
+  "date": "2026.10.17"
+ },
+ {
+  "id": "g5",
+  "board": "wip",
+  "title": "마크라메 매듭 진행 중",
+  "tag": "마크라메",
+  "author": "소소",
+  "likes": 17,
+  "body": "벽걸이를 절반쯤 엮었어요. 매듭 간격이 조금 들쭉날쭉하네요.",
+  "tags": [
+   "마크라메"
+  ],
+  "thumb": "https://picsum.photos/seed/g5/600/750",
+  "images": [
+   "https://picsum.photos/seed/g5/600/750",
+   "https://picsum.photos/seed/g5b/600/750"
+  ],
+  "thread": [
+   {
+    "id": "g5c1",
+    "author": "소소",
+    "text": "정말 멋져요! 다음 작품도 기대할게요.",
+    "parent": null,
+    "date": "2026.10.18"
+   },
+   {
+    "id": "g5c2",
+    "author": "소소",
+    "text": "감사합니다 :)",
+    "parent": "g5c1",
+    "date": "2026.10.18"
+   }
+  ],
+  "comments": 2,
+  "date": "2026.10.16"
+ },
+ {
+  "id": "g6",
+  "board": "free",
+  "title": "린넨 원피스 패턴 공유",
+  "tag": "정보",
+  "author": "봄바람",
+  "likes": 15,
+  "body": "예전에 그려 둔 기본 원피스 패턴이에요. 필요하신 분은 댓글 주세요.",
+  "tags": [
+   "정보"
+  ],
+  "thumb": "https://picsum.photos/seed/g6/400/400",
+  "images": [],
+  "thread": [
+   {
+    "id": "g6c1",
+    "author": "봄바람",
+    "text": "정말 멋져요! 다음 작품도 기대할게요.",
+    "parent": null,
+    "date": "2026.10.18"
+   },
+   {
+    "id": "g6c2",
+    "author": "봄바람",
+    "text": "감사합니다 :)",
+    "parent": "g6c1",
+    "date": "2026.10.18"
+   }
+  ],
+  "comments": 2,
+  "date": "2026.10.15"
+ },
+ {
+  "id": "g7",
+  "board": "show",
+  "title": "데코파주 트레이 완성!",
+  "tag": "자랑",
+  "author": "하늘실",
+  "likes": 24,
+  "body": "마감재를 세 번 발랐더니 윤이 나요. 선물할 거예요.",
+  "tags": [
+   "자랑"
+  ],
+  "thumb": "https://picsum.photos/seed/g7/600/640",
+  "images": [
+   "https://picsum.photos/seed/g7/600/640",
+   "https://picsum.photos/seed/g7b/600/640"
+  ],
+  "thread": [
+   {
+    "id": "g7c1",
+    "author": "하늘실",
+    "text": "정말 멋져요! 다음 작품도 기대할게요.",
+    "parent": null,
+    "date": "2026.10.18"
+   },
+   {
+    "id": "g7c2",
+    "author": "하늘실",
+    "text": "감사합니다 :)",
+    "parent": "g7c1",
+    "date": "2026.10.18"
+   }
+  ],
+  "comments": 2,
+  "date": "2026.10.14"
+ },
+ {
+  "id": "g8",
+  "board": "show",
+  "title": "이번 주 모임에서 만든 파우치",
+  "tag": "자랑",
+  "author": "소소",
+  "likes": 11,
+  "body": "재봉 소모임에서 만든 파우치예요. 지퍼 다는 게 제일 어려웠어요.",
+  "tags": [
+   "자랑"
+  ],
+  "thumb": "https://picsum.photos/seed/g8/600/800",
+  "images": [
+   "https://picsum.photos/seed/g8/600/800",
+   "https://picsum.photos/seed/g8b/600/800"
+  ],
+  "thread": [
+   {
+    "id": "g8c1",
+    "author": "소소",
+    "text": "정말 멋져요! 다음 작품도 기대할게요.",
+    "parent": null,
+    "date": "2026.10.18"
+   },
+   {
+    "id": "g8c2",
+    "author": "소소",
+    "text": "감사합니다 :)",
+    "parent": "g8c1",
+    "date": "2026.10.18"
+   }
+  ],
+  "comments": 2,
+  "date": "2026.10.13"
+ },
+ {
+  "id": "g9",
+  "board": "wip",
+  "title": "코바늘 수세미 대량 생산 중",
+  "tag": "뜨개",
+  "author": "봄바람",
+  "likes": 8,
+  "body": "선물용으로 열 개째 뜨는 중입니다.",
+  "tags": [
+   "뜨개"
+  ],
+  "thumb": "https://picsum.photos/seed/g9/600/750",
+  "images": [
+   "https://picsum.photos/seed/g9/600/750",
+   "https://picsum.photos/seed/g9b/600/750"
+  ],
+  "thread": [
+   {
+    "id": "g9c1",
+    "author": "봄바람",
+    "text": "정말 멋져요! 다음 작품도 기대할게요.",
+    "parent": null,
+    "date": "2026.10.18"
+   },
+   {
+    "id": "g9c2",
+    "author": "봄바람",
+    "text": "감사합니다 :)",
+    "parent": "g9c1",
+    "date": "2026.10.18"
+   }
+  ],
+  "comments": 2,
+  "date": "2026.10.12"
+ },
+ {
+  "id": "g10",
+  "board": "show",
+  "title": "양모펠트 룸슈즈 완성",
+  "tag": "자랑",
+  "author": "하늘실",
+  "likes": 19,
+  "body": "발이 포근해요. 한 켤레 더 만들 예정!",
+  "tags": [
+   "자랑"
+  ],
+  "thumb": "https://picsum.photos/seed/g10/600/850",
+  "images": [
+   "https://picsum.photos/seed/g10/600/850",
+   "https://picsum.photos/seed/g10b/600/850"
+  ],
+  "thread": [
+   {
+    "id": "g10c1",
+    "author": "하늘실",
+    "text": "정말 멋져요! 다음 작품도 기대할게요.",
+    "parent": null,
+    "date": "2026.10.18"
+   },
+   {
+    "id": "g10c2",
+    "author": "하늘실",
+    "text": "감사합니다 :)",
+    "parent": "g10c1",
+    "date": "2026.10.18"
+   }
+  ],
+  "comments": 2,
+  "date": "2026.10.11"
+ },
+ {
+  "id": "g11",
+  "board": "free",
+  "title": "작업 공간 정리 팁 나눠요",
+  "tag": "정보",
+  "author": "소소",
+  "likes": 6,
+  "body": "작은 책상에서 작업하는 분들, 도구 정리 어떻게 하세요?",
+  "tags": [
+   "정보"
+  ],
+  "thumb": "https://picsum.photos/seed/g11/400/400",
+  "images": [],
+  "thread": [
+   {
+    "id": "g11c1",
+    "author": "소소",
+    "text": "정말 멋져요! 다음 작품도 기대할게요.",
+    "parent": null,
+    "date": "2026.10.18"
+   },
+   {
+    "id": "g11c2",
+    "author": "소소",
+    "text": "감사합니다 :)",
+    "parent": "g11c1",
+    "date": "2026.10.18"
+   }
+  ],
+  "comments": 2,
+  "date": "2026.10.10"
+ },
+ {
+  "id": "g12",
+  "board": "free",
+  "title": "겨울맞이 뜨개 계획",
+  "tag": "일상",
+  "author": "봄바람",
+  "likes": 4,
+  "body": "올겨울 뜨고 싶은 것들을 적어 봐요.",
+  "tags": [
+   "일상"
+  ],
+  "thumb": "https://picsum.photos/seed/g12/400/400",
+  "images": [],
+  "thread": [
+   {
+    "id": "g12c1",
+    "author": "봄바람",
+    "text": "정말 멋져요! 다음 작품도 기대할게요.",
+    "parent": null,
+    "date": "2026.10.18"
+   },
+   {
+    "id": "g12c2",
+    "author": "봄바람",
+    "text": "감사합니다 :)",
+    "parent": "g12c1",
+    "date": "2026.10.18"
+   }
+  ],
+  "comments": 2,
+  "date": "2026.10.09"
+ }
+]
