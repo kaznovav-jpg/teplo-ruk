@@ -131,7 +131,6 @@ setS({ ...EMPTY, ...pickState(d) })
   }
   const uploadImages = async (urls) => {
     const u = UR.current
-    const phone = user?.phone || u?.phone || ''
     if (!F.isFirebase || !u) return urls
     return Promise.all(urls.map(async (d, i) => {
       const r = F.ref(F.storage, `posts/${u.uid}/${Date.now()}_${i}.jpg`)
@@ -193,8 +192,9 @@ setS({ ...EMPTY, ...pickState(d) })
   if (SR.current.reservations.some((x) => x.id === id)) return
 
   const u = UR.current
-  const at = new Date().toISOString()
-
+const phone = u?.phone || ''
+const at = new Date().toISOString()
+      
   upd((s) => ({
     ...s,
     reservations: [...s.reservations, { id, at }]
@@ -212,7 +212,7 @@ setS({ ...EMPTY, ...pickState(d) })
     eventId: id,
     name: u.name || '',
 email: u.email || '',
-phone: u.phone || '',
+phone: phone,
 at
   })
     .catch((e) => {
