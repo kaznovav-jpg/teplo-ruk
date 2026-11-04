@@ -236,14 +236,11 @@ cancelRes: (id) => {
       `${u.uid}_${encodeURIComponent(id)}`
     )
 
-    F.getDoc(ref)
-      .then((snap) => {
-        if (snap.exists()) return F.deleteDoc(ref)
-      })
-      .catch((e) => {
-        console.error('Reservation delete error:', e)
-        toast('신청 취소에 실패했어요. 다시 시도해 주세요')
-      })
+  F.deleteDoc(ref)
+  .catch((e) => {
+    console.error('Reservation delete error:', e)
+    toast('신청 취소에 실패했어요. 다시 시도해 주세요')
+  })
   }
 },
 
