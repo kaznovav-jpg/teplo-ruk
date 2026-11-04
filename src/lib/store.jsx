@@ -197,32 +197,26 @@ setS({ ...EMPTY, ...pickState(d) })
     reservations: [...s.reservations, { id, at }]
   }))
 
-  if (u && F.isFirebase) {
-    const ref = F.doc(
-      F.db,
-      'reservations',
-      `${u.uid}_${encodeURIComponent(id)}`
-    )
+ if (u && F.isFirebase) {
+  const ref = F.doc(
+    F.db,
+    'reservations',
+    `${u.uid}_${encodeURIComponent(id)}`
+  )
 
-    F.getDoc(ref)
-      .then((snap) => {
-        if (!snap.exists()) {
-          return F.setDoc(ref, {
-            uid: u.uid,
-            eventId: id,
-            name: u.name || '',
-            email: u.email || '',
-            at
-          })
-        }
-      })
-      .catch((e) => {
-        console.error('Reservation save error:', e)
-        toast('신청 저장에 실패했어요. 다시 시도해 주세요')
-      })
-  }
+  F.setDoc(ref, {
+    uid: u.uid,
+    eventId: id,
+    name: u.name || '',
+    email: u.email || '',
+    at
+  })
+    .catch((e) => {
+      console.error('Reservation save error:', e)
+      toast('신청 저장에 실패했어요. 다시 시도해 주세요')
+    })
+}
 },
-
 cancelRes: (id) => {
   const u = UR.current
 
