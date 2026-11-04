@@ -93,7 +93,24 @@ setS({ ...EMPTY, ...pickState(d) })
     else { const k = 'hm_orders_' + sk(u), l = [o, ...rd(k, [])]; wr(k, l); if (u) setOrders(l) }
     wr('hm_last', o)
   }
+  
+  // 관리자: 전체 수업 신청 목록
+  useEffect(() => {
+    if (!user || !isAdmin || !F.isFirebase) {
+      setAdminReservations([])
+      return
+    }
 
+    return F.onSnapshot(
+      F.collection(F.db, 'reservations'),
+      (s) => {
+        setAdminReservations(
+          s.docs.map((d) => ({ ...d.data(), id: d.id }))
+        )
+      },
+      (e) => console.error('Admin reservations error:', e)
+    )
+  }, [user, isAdmin])
   // 커뮤니티 글
   useEffect(() => {
     if (F.isFirebase) {
