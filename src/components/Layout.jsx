@@ -30,7 +30,8 @@ export default function Layout() {
         <div className="wrap">
           <Link className="logo" to="/">손길의 온기</Link>
           <ul className="nav" aria-label="메인 메뉴">
-            {MENU.map((m, i) => <li key={m[0]}><Link to={m[1]}>{m[0]}</Link>{i === 0 && <div className="sub">{sub}</div>}</li>)}
+           {MENU.map((m, i) => <li key={m[0]}><Link to={m[1]}>{m[0]}</Link>{i === 0 && <div className="sub">{sub}</div>}</li>)}
+{isAdmin && <li><Link to="/admin">관리자 페이지</Link></li>}
           </ul>
           <div className="tools">
             <button className="ibtn" aria-label="검색" onClick={() => setSearch(!search)}>🔍</button>
