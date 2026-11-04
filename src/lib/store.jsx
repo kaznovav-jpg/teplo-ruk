@@ -208,8 +208,9 @@ setS({ ...EMPTY, ...pickState(d) })
     uid: u.uid,
     eventId: id,
     name: u.name || '',
-    email: u.email || '',
-    at
+email: u.email || '',
+phone: u.phone || '',
+at
   })
     .catch((e) => {
       console.error('Reservation save error:', e)
