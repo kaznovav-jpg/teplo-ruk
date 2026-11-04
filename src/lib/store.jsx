@@ -61,7 +61,9 @@ try {
 }
 
 setIsAdmin(admin)
-setUser({ uid: fu.uid, ...pickProfile(d) })
+const profile = { uid: fu.uid, ...pickProfile(d) }
+UR.current = profile
+setUser(profile)
 setS({ ...EMPTY, ...pickState(d) })
       })
     }
