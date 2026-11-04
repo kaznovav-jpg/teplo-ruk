@@ -5,6 +5,7 @@ import { Category, Product, Cart, Checkout, Complete } from './pages/Shop.jsx'
 import { Classes, ClassDetail, Learn, Artists, Artist, Schedule } from './pages/Learn.jsx'
 import { Articles, Article, Community, Post, Write } from './pages/Community.jsx'
 import MyPage from './pages/MyPage.jsx'
+import Admin from './pages/Admin.jsx'
 import { Sitemap, Info, NotFound } from './pages/Misc.jsx'
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="community/write" element={<Write />} />
         <Route path="community/:id" element={<Post />} />
         <Route path="mypage" element={<MyPage />} />
+        <Route path="admin" element={<Admin />} />
         <Route path="sitemap" element={<Sitemap />} />
         <Route path="info" element={<Info />} />
         <Route path="*" element={<NotFound />} />
