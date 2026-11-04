@@ -246,7 +246,7 @@ cancelRes: (id) => {
       })
   }
 },
-    cancelRes: (id) => upd((s) => ({ ...s, reservations: s.reservations.filter((x) => x.id !== id) })),
+
     saveOrder, addPost, uploadImages, signup, login, loginGoogle, logout, resetPw, updateUser,
   }
   return <Ctx.Provider value={api}>{children}{msg && <div className="toast" role="status">{msg}</div>}</Ctx.Provider>
