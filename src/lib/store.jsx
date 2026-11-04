@@ -172,7 +172,7 @@ setS({ ...EMPTY, ...pickState(d) })
   }
 
   const api = {
-   user, isAdmin, S, orders, posts, toast, isFirebase: F.isFirebase,
+   user, isAdmin, S, orders, posts, adminReservations, toast, isFirebase: F.isFirebase,
     cartCount: S.cart.reduce((a, b) => a + b.qty, 0),
     addCart: (it) => upd((s) => {
       const c = [...s.cart], f = c.find((x) => x.pid === it.pid && x.color === it.color && x.size === it.size)
