@@ -168,7 +168,68 @@ setS({ ...EMPTY, ...pickState(d) })
     enroll: (id) => { if (!SR.current.enrolled.some((x) => x.id === id)) upd((s) => ({ ...s, enrolled: [...s.enrolled, { id, at: new Date().toISOString() }] })) },
     toggleDone: (cid, i) => upd((s) => { const a = s.progress[cid] || []; return { ...s, progress: { ...s.progress, [cid]: a.includes(i) ? a.filter((x) => x !== i) : [...a, i] } } }),
     setNote: (cid, t) => upd((s) => ({ ...s, notes: { ...s.notes, [cid]: t } })),
-    reserve: (id) => { if (!SR.current.reservations.some((x) => x.id === id)) upd((s) => ({ ...s, reservations: [...s.reservations, { id, at: new Date().toISOString() }] })) },
+    reserve: (id) => {
+  if (SR.current.reservations.some((x) => x.id === id)) return
+
+  const u = UR.current
+  const at = new Date().toISOString()
+
+  upd((s) => ({
+    ...s,
+    reservations: [...s.reservations, { id, at }]
+  }))
+
+  if (u && F.isFirebase) {
+    const ref = F.doc(
+      F.db,
+      'reservations',
+      `${u.uid}_${encodeURIComponent(id)}`
+    )
+
+    F.getDoc(ref)
+      .then((snap) => {
+        if (!snap.exists()) {
+          return F.setDoc(ref, {
+            uid: u.uid,
+            eventId: id,
+            name: u.name || '',
+            email: u.email || '',
+            at
+          })
+        }
+      })
+      .catch((e) => {
+        console.error('Reservation save error:', e)
+        toast('신청 저장에 실패했어요. 다시 시도해 주세요')
+      })
+  }
+},
+
+cancelRes: (id) => {
+  const u = UR.current
+
+  upd((s) => ({
+    ...s,
+    reservations: s.reservations.filter((x) => x.id !== id)
+  }))
+
+  if (u && F.isFirebase) {
+    const ref = F.doc(
+      F.db,
+      'reservations',
+      `${u.uid}_${encodeURIComponent(id)}`
+    )
+
+    F.getDoc(ref)
+      .then((snap) => {
+        if (snap.exists()) return F.deleteDoc(ref)
+      })
+      .catch((e) => {
+        console.error('Reservation delete error:', e)
+        toast('신청 취소에 실패했어요. 다시 시도해 주세요')
+      })
+  }
+},
     cancelRes: (id) => upd((s) => ({ ...s, reservations: s.reservations.filter((x) => x.id !== id) })),
     saveOrder, addPost, uploadImages, signup, login, loginGoogle, logout, resetPw, updateUser,
   }
