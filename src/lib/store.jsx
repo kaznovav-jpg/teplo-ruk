@@ -28,6 +28,7 @@ export function AppProvider({ children }) {
   const [orders, setOrders] = useState([])
   const [posts, setPosts] = useState([])
  const [adminReservations, setAdminReservations] = useState([])
+  const [adminEvents, setAdminEvents] = useState([])
   const [msg, setMsg] = useState('')
   const SR = useRef(S), UR = useRef(user), busy = useRef(false), tm = useRef(0)
   SR.current = S; UR.current = user
@@ -114,6 +115,20 @@ setS({ ...EMPTY, ...pickState(d) })
       (e) => console.error('Admin reservations error:', e)
     )
   }, [user, isAdmin])
+   // Расписание занятий из Firebase
+  useEffect(() => {
+    if (!F.isFirebase) return
+
+    return F.onSnapshot(
+      F.collection(F.db, 'events'),
+      (s) => {
+        setAdminEvents(
+          s.docs.map((d) => ({ ...d.data(), id: d.id }))
+        )
+      },
+      (e) => console.error('Admin events error:', e)
+    )
+  }, []) 
   // 커뮤니티 글
   useEffect(() => {
     if (F.isFirebase) {
