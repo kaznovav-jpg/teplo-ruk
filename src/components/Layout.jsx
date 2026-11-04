@@ -6,7 +6,7 @@ import { CATS } from '../lib/util.js'
 const MENU = [['공예 종류', '/category?c=all'], ['클래스', '/classes'], ['작가 작품', '/artists'], ['일정·시간표', '/schedule'], ['아티클·블로그', '/articles'], ['포토 포럼·커뮤니티', '/community'], ['사이트 안내', '/sitemap'], ['마이페이지', '/mypage']]
 
 export default function Layout() {
-  const { user, cartCount, logout, toast, isFirebase } = useApp()
+  const { user, cartCount, logout, toast, isFirebase, isAdmin } = useApp()
   const nav = useNavigate(), { pathname } = useLocation()
   const [notice, setNotice] = useState(true), [open, setOpen] = useState(false), [search, setSearch] = useState(false)
   const [kw, setKw] = useState(''), [scrolled, setScrolled] = useState(false), [top, setTop] = useState(false)
