@@ -36,6 +36,7 @@ export default function Admin() {
                 <th>수업</th>
                 <th>이름</th>
                 <th>이메일</th>
+                <th>연락처</th>
                 <th>신청일</th>
               </tr>
             </thead>
@@ -48,6 +49,7 @@ export default function Admin() {
                     <td>{event?.title || r.eventId}</td>
                     <td>{r.name || '-'}</td>
                     <td>{r.email || '-'}</td>
+                    <td>{r.phone || '-'}</td>
                     <td>
                       {r.at ? new Date(r.at).toLocaleString() : '-'}
                     </td>
