@@ -26,6 +26,7 @@ export function AppProvider({ children }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [S, setS] = useState(() => ({ ...EMPTY, ...rd('hm_guest', {}) }))
   const [orders, setOrders] = useState([])
+  const [posts, setPosts] = useState([])
  const [adminReservations, setAdminReservations] = useState([])
   const [msg, setMsg] = useState('')
   const SR = useRef(S), UR = useRef(user), busy = useRef(false), tm = useRef(0)
