@@ -46,7 +46,8 @@ export default function Layout() {
       </header>
       <nav className={'drawer' + (open ? ' on' : '')} aria-label="모바일 메뉴">
         <button className="ibtn" aria-label="메뉴 닫기" style={{ marginLeft: 'auto', display: 'flex' }} onClick={() => setOpen(false)}>✕</button>
-        {MENU.map((m, i) => <div key={m[0]}><Link to={m[1]}>{m[0]}</Link>{i === 0 && <div className="s">{sub}</div>}</div>)}
+       {MENU.map((m, i) => <div key={m[0]}><Link to={m[1]}>{m[0]}</Link>{i === 0 && <div className="s">{sub}</div>}</div>)}
+{isAdmin && <div><Link to="/admin">관리자 페이지</Link></div>}
       </nav>
       {!isFirebase && <div className="muted" style={{ textAlign: 'center', padding: '6px 12px', background: 'var(--sub)' }}>로컬 모드: Firebase가 연결되지 않아 이 브라우저에만 저장돼요.</div>}
       <main id="main" tabIndex={-1}><Outlet /></main>
