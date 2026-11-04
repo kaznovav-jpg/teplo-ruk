@@ -23,6 +23,7 @@ const uidOf = (u) => u.uid || u.email
 
 export function AppProvider({ children }) {
   const [user, setUser] = useState(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [S, setS] = useState(() => ({ ...EMPTY, ...rd('hm_guest', {}) }))
   const [orders, setOrders] = useState([])
   const [posts, setPosts] = useState([])
@@ -37,7 +38,12 @@ export function AppProvider({ children }) {
     if (F.isFirebase) {
       return F.onAuthStateChanged(F.auth, async (fu) => {
         if (busy.current) return
-        if (!fu) { setUser(null); setS({ ...EMPTY, ...rd('hm_guest', {}) }); return }
+        if (!fu) {
+  setUser(null)
+  setIsAdmin(false)
+  setS({ ...EMPTY, ...rd('hm_guest', {}) })
+  return
+}
         const ref = F.doc(F.db, 'users', fu.uid)
         let d = null
         try { const snap = await F.getDoc(ref); d = snap.exists() ? snap.data() : null } catch (e) { console.error(e) }
@@ -45,7 +51,17 @@ export function AppProvider({ children }) {
           d = { name: fu.displayName || (fu.email || '').split('@')[0], email: fu.email, points: 1000, coupons: [WELCOME], ...EMPTY, ...rd('hm_guest', {}) }
           try { await F.setDoc(ref, d) } catch (e) { console.error(e) }
         }
-        setUser({ uid: fu.uid, ...pickProfile(d) }); setS({ ...EMPTY, ...pickState(d) })
+      let admin = false
+try {
+  const adminDoc = await F.getDoc(F.doc(F.db, 'admins', fu.uid))
+  admin = adminDoc.exists()
+} catch (e) {
+  console.error('Admin check error:', e)
+}
+
+setIsAdmin(admin)
+setUser({ uid: fu.uid, ...pickProfile(d) })
+setS({ ...EMPTY, ...pickState(d) })
       })
     }
     const u = rd('hm_user', null)
@@ -139,7 +155,7 @@ export function AppProvider({ children }) {
   }
 
   const api = {
-    user, S, orders, posts, toast, isFirebase: F.isFirebase,
+   user, isAdmin, S, orders, posts, toast, isFirebase: F.isFirebase,
     cartCount: S.cart.reduce((a, b) => a + b.qty, 0),
     addCart: (it) => upd((s) => {
       const c = [...s.cart], f = c.find((x) => x.pid === it.pid && x.color === it.color && x.size === it.size)
