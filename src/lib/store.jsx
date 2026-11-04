@@ -131,6 +131,7 @@ setS({ ...EMPTY, ...pickState(d) })
   }
   const uploadImages = async (urls) => {
     const u = UR.current
+    const phone = user?.phone || u?.phone || ''
     if (!F.isFirebase || !u) return urls
     return Promise.all(urls.map(async (d, i) => {
       const r = F.ref(F.storage, `posts/${u.uid}/${Date.now()}_${i}.jpg`)
