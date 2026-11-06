@@ -123,7 +123,7 @@ export default function Admin() {
     )
   }
 
-  const events = adminEvents.length ? adminEvents : D.extras.events || []
+  const events = adminEvents
   return (
     <main className="page">
       <h1>관리자 페이지</h1>
