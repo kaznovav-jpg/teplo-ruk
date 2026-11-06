@@ -14,6 +14,7 @@ export default function Admin() {
   cap: 8,
   online: false
 })
+  const [editingEventId, setEditingEventId] = useState(null)
  const addEvent = async () => {
   if (!eventForm.ymd || !eventForm.time || !eventForm.title) {
     alert('날짜, 시간, 수업명을 입력해 주세요.')
