@@ -178,7 +178,7 @@ export function Schedule() {
   const list = events.filter((e) => (!ty || e.type === ty) && e.ymd.startsWith(pre))
   const shift = (d) => setYm(({ y, m }) => { m += d; return m < 0 ? { y: y - 1, m: 11 } : m > 11 ? { y: y + 1, m: 0 } : { y, m } })
   const first = new Date(y, m, 1).getDay(), days = new Date(y, m + 1, 0).getDate()
-  const ev = D.extras.events.find((e) => e.id === open)
+  const ev = events.find((e) => e.id === open)
   return (
     <div className="wrap">
       <Crumb items={['일정·시간표']} />
