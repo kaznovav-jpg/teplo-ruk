@@ -102,6 +102,17 @@ export default function Admin() {
 
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
+    const deleteEvent = async (event) => {
+    if (!window.confirm(`Удалить занятие "${event.title}"?`)) return
+
+    try {
+      await F.deleteDoc(F.doc(F.db, 'events', event.id))
+      alert('수업 일정이 삭제되었습니다.')
+    } catch (error) {
+      console.error('Event delete error:', error)
+      alert('삭제에 실패했습니다.')
+    }
+  }
 
   if (!user || !isAdmin) {
     return (
@@ -209,11 +220,18 @@ export default function Admin() {
       <p>{event.ymd} · {event.time}</p>
       <p>{event.place || '-' } · 모집 {event.cap}명</p>
 
-      <button
+           <button
         className="btn"
         onClick={() => editEvent(event)}
       >
         수정
+      </button>
+
+      <button
+        className="btn ghost"
+        onClick={() => deleteEvent(event)}
+      >
+        삭제
       </button>
     </div>
   ))}
