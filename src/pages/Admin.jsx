@@ -264,7 +264,12 @@ export default function Admin() {
 
                 return (
                   <tr key={r.id}>
-                    <td>{event?.title || r.eventId}</td>
+                   <td>
+  {r.eventTitle ||
+    event?.title ||
+    D.extras.events.find((e) => e.id === r.eventId)?.title ||
+    r.eventId}
+</td>
                     <td>{r.name || '-'}</td>
                     <td>{r.email || '-'}</td>
                     <td>{r.phone || '-'}</td>
