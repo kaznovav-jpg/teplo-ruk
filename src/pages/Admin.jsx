@@ -4,7 +4,7 @@ import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 
 export default function Admin() {
- const { user, isAdmin, adminReservations, adminEvents, isFirebase } = useApp()
+  const { user, isAdmin, adminReservations, adminEvents, isFirebase } = useApp()
 
   if (!user || !isAdmin) {
     return (
@@ -15,8 +15,7 @@ export default function Admin() {
     )
   }
 
-  const events = D.extras.events || []
-
+  const events = adminEvents.length ? adminEvents : D.extras.events || []
   return (
     <main className="page">
       <h1>관리자 페이지</h1>
