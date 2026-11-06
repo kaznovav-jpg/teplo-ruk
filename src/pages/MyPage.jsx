@@ -50,7 +50,7 @@ const stepOf = (o) => { const h = (Date.now() - o.at) / 36e5; return h < 1 ? 0 :
 export default function MyPage() {
   useTitle('마이페이지')
   const [sp, setSp] = useSearchParams()
-  const { user, S, orders, posts, cancelRes, logout, updateUser, toast, cartCount } = useApp()
+  const { user, S, orders, posts, cancelRes, logout, updateUser, toast, cartCount, adminEvents } = useApp()
   const myc = useMyComments(user)
   let tab = sp.get('tab') || ''
   const go = (t) => setSp({ tab: t })
