@@ -66,6 +66,60 @@ export default function Admin() {
   return (
     <main className="page">
       <h1>관리자 페이지</h1>
+      <h2>수업 일정 관리</h2>
+
+<div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
+  <label>
+    날짜
+    <input
+      type="date"
+      value={eventForm.ymd}
+      onChange={(e) => setEventForm({ ...eventForm, ymd: e.target.value })}
+    />
+  </label>
+
+  <label>
+    시간
+    <input
+      type="text"
+      placeholder="14:00-16:00"
+      value={eventForm.time}
+      onChange={(e) => setEventForm({ ...eventForm, time: e.target.value })}
+    />
+  </label>
+
+  <label>
+    수업명
+    <input
+      type="text"
+      value={eventForm.title}
+      onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
+    />
+  </label>
+
+  <label>
+    장소
+    <input
+      type="text"
+      value={eventForm.place}
+      onChange={(e) => setEventForm({ ...eventForm, place: e.target.value })}
+    />
+  </label>
+
+  <label>
+    모집 인원
+    <input
+      type="number"
+      min="1"
+      value={eventForm.cap}
+      onChange={(e) => setEventForm({ ...eventForm, cap: e.target.value })}
+    />
+  </label>
+
+  <button className="btn" onClick={addEvent}>
+    일정 저장
+  </button>
+</div>
       <h2>수업 신청 목록</h2>
 
       {!isFirebase && (
