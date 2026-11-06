@@ -171,7 +171,8 @@ function EventModal({ e, onClose }) {
 
 export function Schedule() {
   useTitle('일정·시간표')
-  const { S } = useApp()
+  const { S, adminEvents } = useApp()
+  const events = adminEvents.length ? adminEvents : D.extras.events
   const [view, setView] = useState(() => (innerWidth < 768 ? 'list' : 'cal')), [ty, setTy] = useState(''), [ym, setYm] = useState({ y: 2026, m: 9 }), [open, setOpen] = useState(null)
   const { y, m } = ym, pre = `${y}-${pad(m + 1)}`
   const list = D.extras.events.filter((e) => (!ty || e.type === ty) && e.ymd.startsWith(pre))
