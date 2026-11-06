@@ -14,6 +14,44 @@ export default function Admin() {
   cap: 8,
   online: false
 })
+ const addEvent = async () => {
+  if (!eventForm.ymd || !eventForm.time || !eventForm.title) {
+    alert('날짜, 시간, 수업명을 입력해 주세요.')
+    return
+  }
+
+  if (!isFirebase) {
+    alert('Firebase 연결이 필요합니다.')
+    return
+  }
+
+ const [year, month, day] = eventForm.ymd.split('-')
+
+  try {
+    await F.addDoc(F.collection(F.db, 'events'), {
+      ...eventForm,
+      date: `${month}/${day}`,
+      cap: Number(eventForm.cap),
+      joined: 0,
+      cls: ''
+    })
+
+    setEventForm({
+      ymd: '',
+      time: '',
+      type: '수업',
+      title: '',
+      place: '',
+      cap: 8,
+      online: false
+    })
+
+    alert('수업이 저장되었습니다.')
+  } catch (error) {
+    console.error('Event save error:', error)
+    alert('저장에 실패했습니다.')
+  }
+} 
 
   if (!user || !isAdmin) {
     return (
