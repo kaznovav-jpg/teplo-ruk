@@ -87,6 +87,21 @@ export default function Admin() {
     alert('수정에 실패했습니다.')
   }
 }
+  const editEvent = (event) => {
+  setEditingEventId(event.id)
+
+  setEventForm({
+    ymd: event.ymd || '',
+    time: event.time || '',
+    type: event.type || '수업',
+    title: event.title || '',
+    place: event.place || '',
+    cap: event.cap || 8,
+    online: event.online || false
+  })
+
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
   if (!user || !isAdmin) {
     return (
