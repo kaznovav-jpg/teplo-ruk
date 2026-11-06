@@ -5,6 +5,15 @@ import * as F from '../lib/firebase.js'
 
 export default function Admin() {
   const { user, isAdmin, adminReservations, adminEvents, isFirebase } = useApp()
+  const [eventForm, setEventForm] = useState({
+  ymd: '',
+  time: '',
+  type: '수업',
+  title: '',
+  place: '',
+  cap: 8,
+  online: false
+})
 
   if (!user || !isAdmin) {
     return (
