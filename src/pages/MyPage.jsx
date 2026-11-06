@@ -72,15 +72,36 @@ export default function MyPage() {
         <p style={{ marginTop: 6 }}><b>{won(o.total)}</b> <span className="muted">· {o.pay} · {o.addr}</span></p>
       </div>)) : <p className="empty">주문 내역이 없어요.<br /><Link className="more" to="/category?c=all">쇼핑하러 가기</Link></p>,
     class: <>
-      <h2 style={{ fontSize: '1.2rem', marginBottom: 10 }}>수강 중인 클래스</h2>
-      {S.enrolled.length ? S.enrolled.map((x) => { const c = D.classes.find((k) => k.id === x.id), p = Math.round(((S.progress[x.id] || []).length / c.lessons.length) * 100)
-        return <div className="box" key={x.id}><p><b>{c.title}</b> <span className="muted">{p}% 진행</span></p><div className="prog"><i style={{ width: p + '%' }} /></div><Link className="btn ghost" to={`/classes/${c.id}/learn`}>이어서 학습</Link></div> })
-        : <p className="muted">아직 수강 중인 클래스가 없어요. <Link className="more" to="/classes">클래스 보기</Link></p>}
-      <h2 style={{ fontSize: '1.2rem', margin: '22px 0 10px' }}>내 일정 예약</h2>
-      {S.reservations.length ? S.reservations.map((r) => { const e = D.extras.events.find((k) => k.id === r.id)
-        return <div className="box" key={r.id}><p><span className="badge line">{e.type}</span> <b>{e.title}</b></p><p className="muted">{e.ymd.replace(/-/g, '.')} {e.time} · {e.online ? '온라인' : e.place}</p><button className="btn ghost" onClick={() => { cancelRes(e.id); toast('예약을 취소했어요') }}>예약 취소</button></div> })
-        : <p className="muted">예약한 일정이 없어요. <Link className="more" to="/schedule">일정 보기</Link></p>}
-    </>,
+  <h2 style={{ fontSize: '1.2rem', marginBottom: 10 }}>수강 중인 클래스</h2>
+  {S.enrolled.length ? S.enrolled.map((x) => {
+    const c = D.classes.find((k) => k.id === x.id)
+    if (!c) return null
+    const p = Math.round(((S.progress[x.id] || []).length / c.lessons.length) * 100)
+
+    return <div className="box" key={x.id}>
+      <p><b>{c.title}</b> <span className="muted">{p}% 진행</span></p>
+      <div className="prog"><i style={{ width: p + '%' }} /></div>
+      <Link className="btn ghost" to={`/classes/${c.id}/learn`}>이어서 학습</Link>
+    </div>
+  }) : <p className="muted">아직 수강 중인 클래스가 없어요. <Link className="more" to="/classes">클래스 보기</Link></p>}
+
+  <h2 style={{ fontSize: '1.2rem', margin: '22px 0 10px' }}>내 일정 예약</h2>
+  {S.reservations.length ? S.reservations.map((r) => {
+    const e = adminEvents.find((k) => k.id === r.id)
+      || D.extras.events.find((k) => k.id === r.id)
+
+    return <div className="box" key={r.id}>
+      {e ? <>
+        <p><span className="badge line">{e.type}</span> <b>{e.title}</b></p>
+        <p className="muted">{e.ymd.replace(/-/g, '.')} {e.time} · {e.online ? '온라인' : e.place}</p>
+      </> : <p><b>{r.title || '예약한 수업'}</b></p>}
+      <button className="btn ghost" onClick={() => {
+        cancelRes(r.id)
+        toast('예약을 취소했어요')
+      }}>예약 취소</button>
+    </div>
+  }) : <p className="muted">예약한 일정이 없어요. <Link className="more" to="/schedule">일정 보기</Link></p>}
+</>,
     fav: <>
       <h2 style={{ fontSize: '1.2rem', marginBottom: 10 }}>상품</h2>
       <div className="grid g4">{wish.filter((i) => i[0] === 'p').map((i) => <ProductCard key={i} p={D.products.find((p) => p.id === i)} D={D} />)}{!wish.some((i) => i[0] === 'p') && <p className="muted">찜한 상품이 없어요.</p>}</div>
