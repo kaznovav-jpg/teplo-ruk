@@ -170,6 +170,31 @@ export default function Admin() {
     일정 저장
   </button>
 </div>
+      <h2>등록된 수업 일정</h2>
+
+<div style={{ display: 'grid', gap: 10, marginBottom: 30 }}>
+  {events.map((event) => (
+    <div
+      key={event.id}
+      style={{
+        padding: 12,
+        border: '1px solid #ddd',
+        borderRadius: 8
+      }}
+    >
+      <strong>{event.title}</strong>
+      <p>{event.ymd} · {event.time}</p>
+      <p>{event.place || '-' } · 모집 {event.cap}명</p>
+
+      <button
+        className="btn"
+        onClick={() => editEvent(event)}
+      >
+        수정
+      </button>
+    </div>
+  ))}
+</div>
       <h2>수업 신청 목록</h2>
 
       {!isFirebase && (
