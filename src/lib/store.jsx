@@ -203,38 +203,41 @@ setS({ ...EMPTY, ...pickState(d) })
     enroll: (id) => { if (!SR.current.enrolled.some((x) => x.id === id)) upd((s) => ({ ...s, enrolled: [...s.enrolled, { id, at: new Date().toISOString() }] })) },
     toggleDone: (cid, i) => upd((s) => { const a = s.progress[cid] || []; return { ...s, progress: { ...s.progress, [cid]: a.includes(i) ? a.filter((x) => x !== i) : [...a, i] } } }),
     setNote: (cid, t) => upd((s) => ({ ...s, notes: { ...s.notes, [cid]: t } })),
-    reserve: (id) => {
+   reserve: (id) => {
   if (SR.current.reservations.some((x) => x.id === id)) return
 
   const u = UR.current
-const phone = u?.phone || ''
-const at = new Date().toISOString()
-      
+  const phone = u?.phone || ''
+  const at = new Date().toISOString()
+  const event = adminEvents.find((e) => e.id === id)
+  const eventTitle = event?.title || ''
+
   upd((s) => ({
     ...s,
-    reservations: [...s.reservations, { id, at }]
+    reservations: [...s.reservations, { id, at, title: eventTitle }]
   }))
 
- if (u && F.isFirebase) {
-  const ref = F.doc(
-    F.db,
-    'reservations',
-    `${u.uid}_${encodeURIComponent(id)}`
-  )
+  if (u && F.isFirebase) {
+    const ref = F.doc(
+      F.db,
+      'reservations',
+      `${u.uid}_${encodeURIComponent(id)}`
+    )
 
-  F.setDoc(ref, {
-    uid: u.uid,
-    eventId: id,
-    name: u.name || '',
-email: u.email || '',
-phone: phone,
-at
-  })
-    .catch((e) => {
-      console.error('Reservation save error:', e)
-      toast('신청 저장에 실패했어요. 다시 시도해 주세요')
+    F.setDoc(ref, {
+      uid: u.uid,
+      eventId: id,
+      eventTitle,
+      name: u.name || '',
+      email: u.email || '',
+      phone,
+      at
     })
-}
+      .catch((e) => {
+        console.error('Reservation save error:', e)
+        toast('신청 저장에 실패했어요. 다시 시도해 주세요')
+      })
+  }
 },
 cancelRes: (id) => {
   const u = UR.current
