@@ -166,9 +166,32 @@ export default function Admin() {
     />
   </label>
 
-  <button className="btn" onClick={addEvent}>
-    일정 저장
+ <button
+  className="btn"
+  onClick={editingEventId ? updateEvent : addEvent}
+>
+  {editingEventId ? '수정 완료' : '일정 저장'}
+</button>
+
+{editingEventId && (
+  <button
+    className="btn ghost"
+    onClick={() => {
+      setEditingEventId(null)
+      setEventForm({
+        ymd: '',
+        time: '',
+        type: '수업',
+        title: '',
+        place: '',
+        cap: 8,
+        online: false
+      })
+    }}
+  >
+    취소
   </button>
+)}
 </div>
       <h2>등록된 수업 일정</h2>
 
