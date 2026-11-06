@@ -4,7 +4,7 @@ import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 
 export default function Admin() {
-  const { user, isAdmin, adminReservations, isFirebase } = useApp()
+ const { user, isAdmin, adminReservations, adminEvents, isFirebase } = useApp()
 
   if (!user || !isAdmin) {
     return (
