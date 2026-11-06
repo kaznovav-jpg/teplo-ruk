@@ -53,6 +53,40 @@ export default function Admin() {
     alert('저장에 실패했습니다.')
   }
 } 
+  const updateEvent = async () => {
+  if (!editingEventId) return
+
+  if (!eventForm.ymd || !eventForm.time || !eventForm.title) {
+    alert('날짜, 시간, 수업명을 입력해 주세요.')
+    return
+  }
+
+  try {
+    const [year, month, day] = eventForm.ymd.split('-')
+
+    await F.setDoc(F.doc(F.db, 'events', editingEventId), {
+      ...eventForm,
+      date: `${month}/${day}`,
+      cap: Number(eventForm.cap)
+    }, { merge: true })
+
+    setEditingEventId(null)
+    setEventForm({
+      ymd: '',
+      time: '',
+      type: '수업',
+      title: '',
+      place: '',
+      cap: 8,
+      online: false
+    })
+
+    alert('수업 일정이 수정되었습니다.')
+  } catch (error) {
+    console.error('Event update error:', error)
+    alert('수정에 실패했습니다.')
+  }
+}
 
   if (!user || !isAdmin) {
     return (
