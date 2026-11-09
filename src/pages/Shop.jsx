@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { D } from '../lib/data.js'
 import { useApp, lastOrder } from '../lib/store.jsx'
+import { useLanguage } from '../lib/language.jsx'
 import { CATS, COLORS, FREE_SHIP, SHIP, won, artistName } from '../lib/util.js'
 import useTitle from '../lib/useTitle.js'
 import { Img, Crumb, Heart, ProductCard } from '../components/Cards.jsx'
@@ -67,9 +68,11 @@ export function Category() {
 }
 
 export function Product() {
-    const { id } = useParams(), nav = useNavigate(), { addCart, toast, products } = useApp()
+  const { lang } = useLanguage()
+  const { id } = useParams(), nav = useNavigate(), { addCart, toast, products } = useApp()
   const p = products.find((x) => x.id === id) || products[0]
-  useTitle(p.name)
+  const productName = lang === 'ru' ? (p.nameRu || p.name) : p.name
+  useTitle(productName)
   const [img, setImg] = useState(0), [color, setColor] = useState(p.colors[0]), [size, setSize] = useState(p.sizes[0]), [qty, setQty] = useState(1), [zoom, setZoom] = useState(false), [tab, setTab] = useState('i')
   useEffect(() => { setImg(0); setColor(p.colors[0]); setSize(p.sizes[0]); setQty(1) }, [p.id])
   useEffect(() => { if (!zoom) return; const k = (e) => e.key === 'Escape' && setZoom(false); addEventListener('keydown', k); return () => removeEventListener('keydown', k) }, [zoom])
@@ -95,7 +98,7 @@ export function Product() {
         </div>
         <div>
           <Link className="muted" to={`/artists/${p.artist}`}>{artistName(D, p.artist)} 작가</Link>
-          <h1 style={{ fontSize: '1.7rem', margin: '4px 0' }}>{p.name}</h1>
+          <h1 style={{ fontSize: '1.7rem', margin: '4px 0' }}>{productName}</h1>
           <p>{p.badges.map((b) => <span key={b} className="badge">{b}</span>)}</p>
           <p className="pr serif" style={{ fontSize: '1.5rem', margin: '10px 0' }}>{won(p.price)}</p>
           <p>{p.desc}</p>
@@ -146,7 +149,8 @@ function Summary({ s, sh, t, children, sticky }) {
 }
 
 export function Cart() {
-  useTitle('장바구니')
+  const { lang } = useLanguage()
+  useTitle(lang === 'ru' ? 'Корзина' : '장바구니')
   const { setQty, removeCart } = useApp(), { L, s, sh, t } = useLines()
   return (
     <div className="wrap sec">
@@ -156,7 +160,7 @@ export function Cart() {
           <div>{L.map((x) => (
             <div className="item" key={x.i}>
               <Link to={`/product/${x.pid}`}><Img src={x.p.images[0]} alt={x.p.name} seed={x.pid} /></Link>
-              <div><p className="nm"><b>{x.p.name}</b></p><p className="muted">{x.color} / {x.size}</p>
+              <div><p className="nm"><b>{lang === 'ru' ? (x.p.nameRu || x.p.name) : x.p.name}</b></p><p className="muted">{x.color} / {x.size}</p>
                 <div className="qty" style={{ marginTop: 6 }}><button aria-label="수량 감소" onClick={() => setQty(x.i, x.qty - 1)}>−</button><span>{x.qty}</span><button aria-label="수량 증가" onClick={() => setQty(x.i, x.qty + 1)}>+</button></div></div>
               <div style={{ textAlign: 'right' }}><p><b>{won(x.p.price * x.qty)}</b></p><button className="ibtn" aria-label="삭제" onClick={() => removeCart(x.i)}>삭제</button></div>
             </div>))}
