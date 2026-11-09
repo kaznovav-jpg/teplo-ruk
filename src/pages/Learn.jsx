@@ -219,8 +219,12 @@ const isFull = (event) =>
           <li key={e.id} style={{ padding: '10px 0', flexWrap: 'wrap' }}>
             <span className="chip">{e.date}</span><span className="badge line">{e.type}</span>
             <span style={{ flex: 1, minWidth: 160 }}><b>{e.title}</b><br /><span className="muted">{e.time} · {e.online ? '온라인' : e.place}</span></span>
-            {S.reservations.some((r) => r.id === e.id) && <span className="badge free">신청 완료</span>}
-            <button className="btn ghost" onClick={() => setOpen(e.id)}>자세히</button>
+            <span className="badge line">
+  {getJoined(e.id)}/{e.cap}명
+</span>
+{isFull(e) && <span className="badge line">마감</span>}
+{S.reservations.some((r) => r.id === e.id) && <span className="badge free">신청 완료</span>}
+<button className="btn ghost" onClick={() => setOpen(e.id)}>자세히</button>
           </li>))}
         </ul>
       ) : <p className="empty">이 달에는 일정이 없어요.</p>}
