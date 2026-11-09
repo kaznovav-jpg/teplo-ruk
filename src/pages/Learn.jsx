@@ -148,11 +148,11 @@ export function Artist() {
 }
 
 const pad = (n) => String(n).padStart(2, '0')
-function EventModal({ e, onClose }) {
-  const { S, reserve, cancelRes, toast, adminReservations } = useApp()
+function EventModal({ e, joined, onClose }) {
+  const { S, reserve, cancelRes, toast } = useApp()
 
   const r = S.reservations.some((x) => x.id === e.id)
-  const j = adminReservations.filter((x) => x.eventId === e.id).length
+  const j = joined
   const full = j >= Number(e.cap || 0) && !r
   useEffect(() => { const k = (ev) => ev.key === 'Escape' && onClose(); addEventListener('keydown', k); return () => removeEventListener('keydown', k) }, [onClose])
   return (
@@ -202,8 +202,7 @@ useEffect(() => {
   const first = new Date(y, m, 1).getDay(), days = new Date(y, m + 1, 0).getDate()
   const ev = events.find((e) => e.id === open)
   const getJoined = (eventId) =>
-  adminReservations.filter((r) => r.eventId === eventId).length
-
+  Number(reservationCounts[eventId] || 0)
 const isFull = (event) =>
   getJoined(event.id) >= Number(event.cap || 0)
   return (
@@ -243,7 +242,7 @@ const isFull = (event) =>
         </ul>
       ) : <p className="empty">이 달에는 일정이 없어요.</p>}
       <div style={{ height: 40 }} />
-      {ev && <EventModal e={ev} onClose={() => setOpen(null)} />}
+      {ev && <EventModal e={ev} joined={getJoined(ev.id)} onClose={() => setOpen(null)} />}
     </div>
   )
 }
