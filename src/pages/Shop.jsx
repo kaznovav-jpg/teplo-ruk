@@ -122,9 +122,16 @@ export function Product() {
 }
 
 const useLines = () => {
-  const { S } = useApp()
-  const L = S.cart.map((it, i) => ({ ...it, i, p: D.products.find((x) => x.id === it.pid) })).filter((x) => x.p)
-  const s = L.reduce((a, x) => a + x.p.price * x.qty, 0), sh = s && s < FREE_SHIP ? SHIP : 0
+  const { S, products } = useApp()
+  const L = S.cart.map((it, i) => ({
+    ...it,
+    i,
+    p: products.find((x) => x.id === it.pid)
+  })).filter((x) => x.p)
+
+  const s = L.reduce((a, x) => a + x.p.price * x.qty, 0)
+  const sh = s && s < FREE_SHIP ? SHIP : 0
+
   return { L, s, sh, t: s + sh }
 }
 function Summary({ s, sh, t, children, sticky }) {
