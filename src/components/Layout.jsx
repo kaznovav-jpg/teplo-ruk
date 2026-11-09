@@ -48,10 +48,12 @@ export default function Layout() {
   return (
     <>
       <a className="skip" href="#main">본문으로 건너뛰기</a>
-      {notice && <div className="notice">3만 원 이상 무료배송 · 신규 가입 시 첫 구매 쿠폰 증정<button aria-label="공지 닫기" onClick={() => setNotice(false)}>✕</button></div>}
+      {notice && <div className="notice">{lang === 'ru'
+  ? 'Бесплатная доставка от 30 000 вон · Купон на первую покупку для новых участников'
+  : '3만 원 이상 무료배송 · 신규 가입 시 첫 구매 쿠폰 증정'}<button aria-label="공지 닫기" onClick={() => setNotice(false)}>✕</button></div>}
       <header className={'hdr' + (scrolled ? ' scrolled' : '')}>
         <div className="wrap">
-          <Link className="logo" to="/">손길의 온기</Link>
+          <Link className="logo" to="/">{lang === 'ru' ? 'Тепло Рук' : '손길의 온기'}</Link>
           <ul className="nav" aria-label="메인 메뉴">
            {MENU.map((m, i) => <li key={m[0]}><Link to={m[1]}>{m[0]}</Link>{i === 0 && <div className="sub">{sub}</div>}</li>)}
 {isAdmin && <li><Link to="/admin">{lang === 'ru' ? 'Панель администратора' : '관리자 페이지'}</Link></li>}
@@ -60,13 +62,15 @@ export default function Layout() {
             <button className="ibtn" onClick={() => changeLanguage('ko')}>한국어</button>
             <button className="ibtn" onClick={() => changeLanguage('ru')}>Русский</button>
             <button className="ibtn" aria-label="검색" onClick={() => setSearch(!search)}>🔍</button>
-            <button className="ibtn" onClick={authBtn}>{user ? '로그아웃' : '로그인'}</button>
+            <button className="ibtn" onClick={authBtn}>{user
+  ? (lang === 'ru' ? 'Выйти' : '로그아웃')
+  : (lang === 'ru' ? 'Войти' : '로그인')}</button>
             <Link className="ibtn" to="/cart" aria-label="장바구니">🛍<span className="cnt">{cartCount}</span></Link>
             <button className="ibtn hamb" aria-label="메뉴 열기" onClick={() => setOpen(true)}>☰</button>
           </div>
         </div>
         <form className={'search' + (search ? ' on' : '')} role="search" onSubmit={doSearch}>
-          <input type="search" value={kw} onChange={(e) => setKw(e.target.value)} placeholder="상품을 검색해 보세요" aria-label="상품 검색" />
+          <input type="search" value={kw} onChange={(e) => setKw(e.target.value)} placeholder={lang === 'ru' ? 'Поиск товаров' : '상품을 검색해 보세요'} aria-label="상품 검색" />
         </form>
       </header>
       <nav className={'drawer' + (open ? ' on' : '')} aria-label="모바일 메뉴">
