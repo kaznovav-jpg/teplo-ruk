@@ -95,10 +95,10 @@ export default function MyPage() {
         <p><span className="badge line">{e.type}</span> <b>{e.title}</b></p>
         <p className="muted">{e.ymd.replace(/-/g, '.')} {e.time} · {e.online ? '온라인' : e.place}</p>
       </> : <p><b>{r.title || '예약한 수업'}</b></p>}
-      <button className="btn ghost" onClick={() => {
-        cancelRes(r.id)
-        toast('예약을 취소했어요')
-      }}>예약 취소</button>
+     <button className="btn ghost" onClick={async () => {
+  const ok = await cancelRes(r.id)
+  if (ok) toast('예약을 취소했어요')
+}}>예약 취소</button>
     </div>
   }) : <p className="muted">예약한 일정이 없어요. <Link className="more" to="/schedule">일정 보기</Link></p>}
 </>,
