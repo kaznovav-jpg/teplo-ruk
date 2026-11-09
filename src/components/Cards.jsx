@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 import { useLanguage } from '../lib/language.jsx'
 import { useApp } from '../lib/store.jsx'
 import { won, ph, artistName } from '../lib/util.js'
-import { useLanguage } from '../lib/language.jsx'
 
 export function Img({ src, alt, seed = 'x', w = 600, h = 750, ...rest }) {
   return <img src={src} alt={alt} loading="lazy" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = ph(seed, w, h) }} {...rest} />
