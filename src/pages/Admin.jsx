@@ -612,6 +612,51 @@ const deleteArticle = async (article) => {
         ))}
       </div>
 
+      <h2>Список статей</h2>
+
+<div style={{ display: 'grid', gap: 12, marginBottom: 30 }}>
+  {articles.map((article) => (
+    <div
+      key={article.id}
+      style={{
+        padding: 12,
+        border: '1px solid #ddd',
+        borderRadius: 8
+      }}
+    >
+      {article.thumb && (
+        <img
+          src={article.thumb}
+          alt={article.title}
+          style={{
+            width: 100,
+            height: 100,
+            objectFit: 'cover',
+            borderRadius: 8
+          }}
+        />
+      )}
+
+      <strong>{article.title}</strong>
+      <p>{article.titleRu || ''}</p>
+      <p>{article.tag} · {article.date}</p>
+
+      <button
+        className="btn"
+        onClick={() => editArticle(article)}
+      >
+        Редактировать
+      </button>
+
+      <button
+        className="btn ghost"
+        onClick={() => deleteArticle(article)}
+      >
+        Удалить
+      </button>
+    </div>
+  ))}
+</div>
       <h2>수업 일정 관리</h2>
 
 <div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
