@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useApp } from '../lib/store.jsx'
 import { won, ph, artistName } from '../lib/util.js'
+import { useLanguage } from '../lib/language.jsx'
 
 export function Img({ src, alt, seed = 'x', w = 600, h = 750, ...rest }) {
   return <img src={src} alt={alt} loading="lazy" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = ph(seed, w, h) }} {...rest} />
@@ -31,6 +32,9 @@ export function FollowBtn({ a }) {
 export const followers = (a, S) => (a.followers + (S.follows.includes(a.id) ? 1 : 0)).toLocaleString('ko-KR')
 
 export function ProductCard({ p, D }) {
+  const { lang } = useLanguage()
+  const name = lang === 'ru' ? (p.nameRu || p.name) : p.name
+
   return (
     <article className="card">
       <Link to={`/product/${p.id}`}>
@@ -40,7 +44,7 @@ export function ProductCard({ p, D }) {
         </div>
       </Link>
       <div className="bd">{p.badges.map((b) => <span key={b} className="badge">{b}</span>)}</div>
-      <Link to={`/product/${p.id}`}><p className="ar">{artistName(D, p.artist)}</p><p className="nm">{p.name}</p><p className="pr">{won(p.price)}</p></Link>
+      <Link to={`/product/${p.id}`}><p className="ar">{artistName(D, p.artist)}</p><p className="nm">{name}</p><p className="pr">{won(p.price)}</p></Link>
       <Heart id={p.id} label={p.name} />
     </article>
   )
