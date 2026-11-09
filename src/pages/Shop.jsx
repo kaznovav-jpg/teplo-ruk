@@ -103,7 +103,7 @@ const p = {
   }
   return (
     <div className="wrap">
-      <Crumb items={[<Link to={`/category?c=${p.cat}`}>{CATS.find((c) => c[0] === p.cat)[1]}</Link>, p.name]} />
+      <Crumb items={[<Link to={`/category?c=${p.cat}`}>{CATS.find((c) => c[0] === p.cat)?.[1] || 'Товары'}</Link>, p.name]} />
       <div className="pd">
         <div>
           <div className="main-img" role="button" tabIndex={0} aria-label="이미지 확대" onClick={() => setZoom(true)} onKeyDown={(e) => e.key === 'Enter' && setZoom(true)}>
