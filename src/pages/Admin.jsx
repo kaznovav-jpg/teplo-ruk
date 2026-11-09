@@ -38,7 +38,12 @@ const [editingProductId, setEditingProductId] = useState(null)
   excerpt: '',
   excerptRu: '',
   thumb: '',
-  body: [['', '']],
+  body: [{
+  heading: '',
+  text: '',
+  headingRu: '',
+  textRu: ''
+}],
   published: true
 })
 const [editingArticleId, setEditingArticleId] = useState(null)
@@ -144,7 +149,12 @@ const data = {
       excerpt: '',
       excerptRu: '',
       thumb: '',
-      body: [['', '']],
+      body: [{
+  heading: '',
+  text: '',
+  headingRu: '',
+  textRu: ''
+}],
       published: true
     })
     setEditingArticleId(null)
@@ -601,7 +611,12 @@ const deleteArticle = async (article) => {
           excerpt: '',
           excerptRu: '',
           thumb: '',
-          body: [['', '']],
+          body: [{
+  heading: '',
+  text: '',
+  headingRu: '',
+  textRu: ''
+}],
           published: true
         })
       }}
