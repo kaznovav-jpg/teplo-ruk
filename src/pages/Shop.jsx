@@ -67,8 +67,8 @@ export function Category() {
 }
 
 export function Product() {
-  const { id } = useParams(), nav = useNavigate(), { addCart, toast } = useApp()
-  const p = D.products.find((x) => x.id === id) || D.products[0]
+    const { id } = useParams(), nav = useNavigate(), { addCart, toast, products } = useApp()
+  const p = products.find((x) => x.id === id) || products[0]
   useTitle(p.name)
   const [img, setImg] = useState(0), [color, setColor] = useState(p.colors[0]), [size, setSize] = useState(p.sizes[0]), [qty, setQty] = useState(1), [zoom, setZoom] = useState(false), [tab, setTab] = useState('i')
   useEffect(() => { setImg(0); setColor(p.colors[0]); setSize(p.sizes[0]); setQty(1) }, [p.id])
