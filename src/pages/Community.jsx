@@ -11,15 +11,23 @@ import Comments from '../components/Comments.jsx'
 const share = (toast) => { try { navigator.clipboard.writeText(location.href).then(() => toast('링크를 복사했어요'), () => toast('공유 링크를 복사하지 못했어요')) } catch { toast('공유 링크를 복사하지 못했어요') } }
 
 export function Articles() {
-  useTitle('아티클·블로그')
+  const { lang } = useLanguage()
+  const pageTitle = lang === 'ru' ? 'Статьи и блог' : '아티클·블로그'
+  useTitle(pageTitle)
   const [sp] = useSearchParams()
   const { articles } = useApp()
 const [cat, setCat] = useState(sp.get('cat') || ''), [kw, setKw] = useState('')
-  const l = articles.filter((a) => (!cat || a.tag === cat) && (!kw || a.title.includes(kw) || a.excerpt.includes(kw)))
+  const l = articles.filter((a) => {
+    const title = lang === 'ru' ? (a.titleRu || a.title) : a.title
+    const excerpt = lang === 'ru' ? (a.excerptRu || a.excerpt) : a.excerpt
+    return (!cat || a.tag === cat) &&
+      (!kw || title?.toLowerCase().includes(kw.toLowerCase()) ||
+        excerpt?.toLowerCase().includes(kw.toLowerCase()))
+  })
   return (
     <div className="wrap">
-      <Crumb items={['아티클·블로그']} />
-      <h1 style={{ fontSize: '1.8rem', marginBottom: 14 }}>아티클·블로그</h1>
+      <Crumb items={[pageTitle]} />
+      <h1 style={{ fontSize: '1.8rem', marginBottom: 14 }}>{pageTitle}</h1>
       <div className="bar">
         <div className="tabs" role="tablist" style={{ margin: 0, flex: 1, overflowX: 'auto' }}>{['', '정보', '트렌드', '리뷰'].map((t) => <button key={t} role="tab" className={t === cat ? 'on' : ''} onClick={() => setCat(t)}>{t || '전체'}</button>)}</div>
         <input className="field" type="search" placeholder="아티클 검색" aria-label="아티클 검색" value={kw} onChange={(e) => setKw(e.target.value.trim())} />
