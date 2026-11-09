@@ -70,12 +70,26 @@ export function Category() {
 export function Product() {
   const { lang } = useLanguage()
   const { id } = useParams(), nav = useNavigate(), { addCart, toast, products } = useApp()
-  const p = products.find((x) => x.id === id) || products[0]
+  const originalProduct = products.find((x) => x.id === id) || products[0]
+
+const p = {
+  ...originalProduct,
+  images: Array.isArray(originalProduct.images) ? originalProduct.images : [],
+  colors: Array.isArray(originalProduct.colors) ? originalProduct.colors : [],
+  sizes: Array.isArray(originalProduct.sizes) ? originalProduct.sizes : [],
+  badges: Array.isArray(originalProduct.badges) ? originalProduct.badges : [],
+  sizeTable: Array.isArray(originalProduct.sizeTable) ? originalProduct.sizeTable : []
+}
   const productName = lang === 'ru' ? (p.nameRu || p.name) : p.name
   const productDesc = lang === 'ru' ? (p.descRu || p.desc) : p.desc
   useTitle(productName)
-  const [img, setImg] = useState(0), [color, setColor] = useState(p.colors[0]), [size, setSize] = useState(p.sizes[0]), [qty, setQty] = useState(1), [zoom, setZoom] = useState(false), [tab, setTab] = useState('i')
-  useEffect(() => { setImg(0); setColor(p.colors[0]); setSize(p.sizes[0]); setQty(1) }, [p.id])
+  const [img, setImg] = useState(0), [color, setColor] = useState(p.colors[0] || ''), [size, setSize] = useState(p.sizes[0] || ''), [qty, setQty] = useState(1), [zoom, setZoom] = useState(false), [tab, setTab] = useState('i')
+  useEffect(() => {
+  setImg(0)
+  setColor(p.colors[0] || '')
+  setSize(p.sizes[0] || '')
+  setQty(1)
+}, [p.id])
   useEffect(() => { if (!zoom) return; const k = (e) => e.key === 'Escape' && setZoom(false); addEventListener('keydown', k); return () => removeEventListener('keydown', k) }, [zoom])
   const add = () => addCart({ pid: p.id, color, size, qty })
   const related = products.filter((x) => x.id !== p.id && (x.cat === p.cat || x.artist === p.artist)).slice(0, 4)
