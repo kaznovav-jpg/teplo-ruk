@@ -30,8 +30,8 @@ const [cat, setCat] = useState(sp.get('cat') || ''), [kw, setKw] = useState('')
 }
 
 export function Article() {
-  const { id } = useParams(), { toast } = useApp()
-  const a = D.articles.find((x) => x.id === id) || D.articles[0]
+  const { id } = useParams(), { toast, articles } = useApp()
+  const a = articles.find((x) => x.id === id) || articles[0]
   useTitle(a.title)
   return (
     <div className="wrap">
@@ -49,7 +49,7 @@ export function Article() {
         <div className="grid g4" style={{ marginTop: 12, gridTemplateColumns: 'repeat(2,1fr)' }}>{a.related.map((pid) => <ProductCard key={pid} p={D.products.find((p) => p.id === pid)} D={D} />)}</div>
         <div className="mt"><Comments id={a.id} sample={a.thread} /></div>
         <h2 className="mt" style={{ fontSize: '1.3rem' }}>관련 글</h2>
-        <div className="grid g3" style={{ marginTop: 12, gridTemplateColumns: 'repeat(2,1fr)' }}>{D.articles.filter((x) => x.id !== a.id).slice(0, 2).map((x) => <ArticleCard key={x.id} a={x} />)}</div>
+        <div className="grid g3" style={{ marginTop: 12, gridTemplateColumns: 'repeat(2,1fr)' }}>{articles.filter((x) => x.id !== a.id).slice(0, 2).map((x) => <ArticleCard key={x.id} a={x} />)}</div>
       </div>
       <div style={{ height: 48 }} />
     </div>
