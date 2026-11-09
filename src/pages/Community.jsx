@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { D } from '../lib/data.js'
 import { useApp } from '../lib/store.jsx'
+import { useLanguage } from '../lib/language.jsx'
 import { BOARDS, isPhoto, dFmt, shrink } from '../lib/util.js'
 import useTitle from '../lib/useTitle.js'
 import { Crumb, Img, ArticleCard, ProductCard, Heart } from '../components/Cards.jsx'
@@ -31,12 +32,16 @@ const [cat, setCat] = useState(sp.get('cat') || ''), [kw, setKw] = useState('')
 
 export function Article() {
   const { id } = useParams(), { toast, articles } = useApp()
+  const { lang } = useLanguage()
   const a = articles.find((x) => x.id === id) || articles[0]
   const body = (a.body || []).map((s) => ({
   heading: Array.isArray(s) ? s[0] : s.heading,
   text: Array.isArray(s) ? s[1] : s.text
 }))
-  useTitle(a.title)
+  const title = lang === 'ru' ? (a.titleRu || a.title) : a.title
+const excerpt = lang === 'ru' ? (a.excerptRu || a.excerpt) : a.excerpt
+
+useTitle(title)
   return (
     <div className="wrap">
       <Crumb items={[<Link to="/articles">아티클·블로그</Link>, a.title]} />
