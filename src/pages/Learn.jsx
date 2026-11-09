@@ -182,8 +182,19 @@ function EventModal({ e, onClose }) {
 
 export function Schedule() {
   useTitle('일정·시간표')
- const { S, adminEvents, adminReservations } = useApp()
-  const events = adminEvents
+const { S, adminEvents } = useApp()
+const events = adminEvents
+const [reservationCounts, setReservationCounts] = useState({})
+
+useEffect(() => {
+  fetch('/api/reserve')
+    .then((response) => {
+      if (!response.ok) throw new Error('Ошибка загрузки')
+      return response.json()
+    })
+    .then((data) => setReservationCounts(data.counts || {}))
+    .catch((error) => console.error('Reservation counts error:', error))
+}, [])
   const [view, setView] = useState(() => (innerWidth < 768 ? 'list' : 'cal')), [ty, setTy] = useState(''), [ym, setYm] = useState({ y: 2026, m: 9 }), [open, setOpen] = useState(null)
   const { y, m } = ym, pre = `${y}-${pad(m + 1)}`
   const list = events.filter((e) => (!ty || e.type === ty) && e.ymd.startsWith(pre))
