@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react'
 import * as F from './firebase'
+import { D } from './data.js'
 
 /*
  * 앱 전역 상태. Firebase 설정이 있으면 Auth + Firestore + Storage를, 없으면 브라우저 저장(로컬 모드)을 씁니다.
@@ -29,6 +30,7 @@ export function AppProvider({ children }) {
   const [posts, setPosts] = useState([])
  const [adminReservations, setAdminReservations] = useState([])
   const [adminEvents, setAdminEvents] = useState([])
+ const [products, setProducts] = useState(D.products)
   const [msg, setMsg] = useState('')
   const SR = useRef(S), UR = useRef(user), busy = useRef(false), tm = useRef(0)
   SR.current = S; UR.current = user
@@ -190,7 +192,7 @@ setS({ ...EMPTY, ...pickState(d) })
   }
 
   const api = {
-   user, isAdmin, S, orders, posts, adminReservations, adminEvents, toast, isFirebase: F.isFirebase,
+   user, isAdmin, S, orders, posts, adminReservations, adminEvents, products, toast, isFirebase: F.isFirebase,
     cartCount: S.cart.reduce((a, b) => a + b.qty, 0),
     addCart: (it) => upd((s) => {
       const c = [...s.cart], f = c.find((x) => x.pid === it.pid && x.color === it.color && x.size === it.size)
