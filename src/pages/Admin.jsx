@@ -198,7 +198,26 @@ const data = {
     excerpt: article.excerpt || '',
     excerptRu: article.excerptRu || '',
     thumb: article.thumb || '',
-    body: article.body?.length ? article.body : [['', '']],
+    body: article.body?.length
+  ? article.body.map((s) => Array.isArray(s)
+      ? {
+          heading: s[0] || '',
+          text: s[1] || '',
+          headingRu: '',
+          textRu: ''
+        }
+      : {
+          heading: s.heading || '',
+          text: s.text || '',
+          headingRu: s.headingRu || '',
+          textRu: s.textRu || ''
+        })
+  : [{
+      heading: '',
+      text: '',
+      headingRu: '',
+      textRu: ''
+    }],
     published: article.published !== false
   })
 
