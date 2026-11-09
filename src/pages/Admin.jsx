@@ -47,6 +47,36 @@ const [editingProductId, setEditingProductId] = useState(null)
   published: true
 })
 const [editingArticleId, setEditingArticleId] = useState(null)
+  const uploadImage = async (file) => {
+  if (!file) return ''
+
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('upload_preset', 'teplo_ruk_upload')
+
+  try {
+    const response = await fetch(
+      'https://api.cloudinary.com/v1_1/sfnfmwiv/image/upload',
+      {
+        method: 'POST',
+        body: formData
+      }
+    )
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      throw new Error(result.error?.message || 'Upload failed')
+    }
+
+    alert('Фотография успешно загружена!')
+    return result.secure_url
+  } catch (error) {
+    console.error('Image upload error:', error)
+    alert('Не удалось загрузить фотографию: ' + error.message)
+    return ''
+  }
+}
   const saveProduct = async () => {
   if (!productForm.name || !productForm.nameRu || !productForm.price) {
     alert('Введите название на двух языках и цену.')
