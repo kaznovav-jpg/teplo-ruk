@@ -31,6 +31,7 @@ export function AppProvider({ children }) {
  const [adminReservations, setAdminReservations] = useState([])
   const [adminEvents, setAdminEvents] = useState([])
  const [products, setProducts] = useState(D.products)
+  const [articles, setArticles] = useState(D.articles)
   const [msg, setMsg] = useState('')
   const SR = useRef(S), UR = useRef(user), busy = useRef(false), tm = useRef(0)
   SR.current = S; UR.current = user
