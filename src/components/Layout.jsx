@@ -9,6 +9,7 @@ const MENU = [['공예 종류', '/category?c=all'], ['클래스', '/classes'], [
 export default function Layout() {
   const { user, cartCount, logout, toast, isFirebase, isAdmin } = useApp()
     const { lang, changeLanguage } = useLanguage()
+  console.log('Текущий язык сайта:', lang)
   const nav = useNavigate(), { pathname } = useLocation()
   const [notice, setNotice] = useState(true), [open, setOpen] = useState(false), [search, setSearch] = useState(false)
   const [kw, setKw] = useState(''), [scrolled, setScrolled] = useState(false), [top, setTop] = useState(false)
