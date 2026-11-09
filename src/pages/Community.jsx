@@ -61,8 +61,26 @@ useTitle(title)
         <p className="muted" style={{ margin: 0 }}>{a.tag} · {a.date}</p>
         <h1 style={{ fontSize: '1.9rem', margin: '6px 0 14px' }}>{title}</h1>
         <div className="thumb wide"><Img src={a.thumb} alt={`${a.title} 대표 이미지`} seed={a.id} h={400} loading="eager" /></div>
-        {excerpt && <p className="lead">{excerpt}</p>}
-        <nav className="lead" aria-label="목차" style={{ marginTop: 20 }}><b>목차</b>
+                {excerpt && <p className="lead">{excerpt}</p>}
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 12,
+          marginTop: 20
+        }}>
+          {(a.images?.length ? a.images.slice(1) : []).map((url, i) => (
+            <Img
+              key={i}
+              src={url}
+              alt={`${title} — ${i + 2}`}
+              seed={`${a.id}-${i}`}
+              h={260}
+            />
+          ))}
+        </div>
+
+        <nav className="lead" aria-label="목차" style={{ marginTop: 20 }}>
           <ol style={{ marginTop: 6 }}>{body.map((s, i) => <li key={i}><button className="btn ghost" style={{ border: 0, justifyContent: 'flex-start' }} onClick={() => document.getElementById('sec' + i)?.scrollIntoView({ behavior: 'smooth' })}>{i + 1}. {s.heading}</button></li>)}</ol>
         </nav>
        {body.map((s, i) => <div key={i}><h2 id={'sec' + i} style={{ fontSize: '1.3rem', marginTop: 26 }}>{s.heading}</h2><p>{s.text}</p></div>)}
