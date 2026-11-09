@@ -18,9 +18,10 @@ function Group({ title, items, sel, onFlip }) {
 
 export function Category() {
   const [sp] = useSearchParams(), c = sp.get('c') || 'all', s = sp.get('s') || ''
+    const { products } = useApp()
   const name = c === 'all' ? '전체 상품' : CATS.find((x) => x[0] === c)?.[1] || '전체 상품'
   useTitle(name)
-  const base = useMemo(() => D.products.filter((p) => (c === 'all' || p.cat === c) && (!s || p.name.includes(s))), [c, s])
+  const base = useMemo(() => products.filter((p) => (c === 'all' || p.cat === c) && (!s || p.name.includes(s))), [c, s])
   const [f, setF] = useState({ pr: [], m: [], c: [], a: [] }), [onlyNew, setNew] = useState(false), [inStock, setStock] = useState(false), [sort, setSort] = useState('pop'), [sheet, setSheet] = useState(false)
   useEffect(() => { setF({ pr: [], m: [], c: [], a: [] }); setNew(false); setStock(false) }, [c, s])
   const flip = (k) => (v) => setF((o) => ({ ...o, [k]: o[k].includes(v) ? o[k].filter((x) => x !== v) : [...o[k], v] }))
