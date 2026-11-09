@@ -74,7 +74,7 @@ export function Product() {
   useEffect(() => { setImg(0); setColor(p.colors[0]); setSize(p.sizes[0]); setQty(1) }, [p.id])
   useEffect(() => { if (!zoom) return; const k = (e) => e.key === 'Escape' && setZoom(false); addEventListener('keydown', k); return () => removeEventListener('keydown', k) }, [zoom])
   const add = () => addCart({ pid: p.id, color, size, qty })
-  const related = D.products.filter((x) => x.id !== p.id && (x.cat === p.cat || x.artist === p.artist)).slice(0, 4)
+  const related = products.filter((x) => x.id !== p.id && (x.cat === p.cat || x.artist === p.artist)).slice(0, 4)
   const T = {
     i: <><table><tbody><tr><th>소재</th><td>{p.material}</td></tr><tr><th>세탁법</th><td>{p.care}</td></tr></tbody></table>
       <h3 style={{ margin: '20px 0 8px' }}>사이즈표</h3>
