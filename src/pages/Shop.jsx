@@ -72,6 +72,7 @@ export function Product() {
   const { id } = useParams(), nav = useNavigate(), { addCart, toast, products } = useApp()
   const p = products.find((x) => x.id === id) || products[0]
   const productName = lang === 'ru' ? (p.nameRu || p.name) : p.name
+  const productDesc = lang === 'ru' ? (p.descRu || p.desc) : p.desc
   useTitle(productName)
   const [img, setImg] = useState(0), [color, setColor] = useState(p.colors[0]), [size, setSize] = useState(p.sizes[0]), [qty, setQty] = useState(1), [zoom, setZoom] = useState(false), [tab, setTab] = useState('i')
   useEffect(() => { setImg(0); setColor(p.colors[0]); setSize(p.sizes[0]); setQty(1) }, [p.id])
@@ -101,7 +102,7 @@ export function Product() {
           <h1 style={{ fontSize: '1.7rem', margin: '4px 0' }}>{productName}</h1>
           <p>{p.badges.map((b) => <span key={b} className="badge">{b}</span>)}</p>
           <p className="pr serif" style={{ fontSize: '1.5rem', margin: '10px 0' }}>{won(p.price)}</p>
-          <p>{p.desc}</p>
+          <p>{productDesc}</p>
           <div className="opt"><b>색상: {color}</b>
             <div className="sw">{p.colors.map((c) => <button key={c} className={c === color ? 'on' : ''} style={{ background: COLORS[c] }} aria-label={c} onClick={() => setColor(c)} />)}</div></div>
           <div className="opt"><b>사이즈</b><select className="field" aria-label="사이즈" value={size} onChange={(e) => setSize(e.target.value)}>{p.sizes.map((s) => <option key={s}>{s}</option>)}</select></div>
