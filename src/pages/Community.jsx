@@ -34,9 +34,13 @@ export function Article() {
   const { id } = useParams(), { toast, articles } = useApp()
   const { lang } = useLanguage()
   const a = articles.find((x) => x.id === id) || articles[0]
-  const body = (a.body || []).map((s) => ({
-  heading: Array.isArray(s) ? s[0] : s.heading,
-  text: Array.isArray(s) ? s[1] : s.text
+const body = (a.body || []).map((s) => ({
+  heading: lang === 'ru'
+    ? (s.headingRu || s.heading || (Array.isArray(s) ? s[0] : ''))
+    : (s.heading || (Array.isArray(s) ? s[0] : '')),
+  text: lang === 'ru'
+    ? (s.textRu || s.text || (Array.isArray(s) ? s[1] : ''))
+    : (s.text || (Array.isArray(s) ? s[1] : ''))
 }))
   const title = lang === 'ru' ? (a.titleRu || a.title) : a.title
 const excerpt = lang === 'ru' ? (a.excerptRu || a.excerpt) : a.excerpt
@@ -44,11 +48,12 @@ const excerpt = lang === 'ru' ? (a.excerptRu || a.excerpt) : a.excerpt
 useTitle(title)
   return (
     <div className="wrap">
-      <Crumb items={[<Link to="/articles">아티클·블로그</Link>, a.title]} />
+      <Crumb items={[<Link to="/articles">아티클·블로그</Link>, title]} />
       <div className="art">
         <p className="muted" style={{ margin: 0 }}>{a.tag} · {a.date}</p>
-        <h1 style={{ fontSize: '1.9rem', margin: '6px 0 14px' }}>{a.title}</h1>
+        <h1 style={{ fontSize: '1.9rem', margin: '6px 0 14px' }}>{title}</h1>
         <div className="thumb wide"><Img src={a.thumb} alt={`${a.title} 대표 이미지`} seed={a.id} h={400} loading="eager" /></div>
+        {excerpt && <p className="lead">{excerpt}</p>}
         <nav className="lead" aria-label="목차" style={{ marginTop: 20 }}><b>목차</b>
           <ol style={{ marginTop: 6 }}>{body.map((s, i) => <li key={i}><button className="btn ghost" style={{ border: 0, justifyContent: 'flex-start' }} onClick={() => document.getElementById('sec' + i)?.scrollIntoView({ behavior: 'smooth' })}>{i + 1}. {s.heading}</button></li>)}</ol>
         </nav>
