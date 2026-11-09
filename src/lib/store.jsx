@@ -146,6 +146,20 @@ setS({ ...EMPTY, ...pickState(d) })
     (e) => console.error('Products error:', e)
   )
 }, [])
+  useEffect(() => {
+  if (!F.isFirebase) return
+  return F.onSnapshot(
+    F.collection(F.db, 'articles'),
+    (s) => {
+      if (!s.empty) {
+        setArticles(s.docs.map((d) => ({ ...d.data(), id: d.id })))
+      } else {
+        setArticles(D.articles)
+      }
+    },
+    (e) => console.error('Articles error:', e)
+  )
+}, [])
   // 커뮤니티 글
   useEffect(() => {
     if (F.isFirebase) {
