@@ -577,36 +577,24 @@ const deleteArticle = async (article) => {
 ))}
 >
   + Добавить раздел
+<button
+  type="button"
+  className="btn ghost"
+  onClick={() => setArticleForm({
+    ...articleForm,
+    body: [
+      ...articleForm.body,
+      {
+        heading: '',
+        text: '',
+        headingRu: '',
+        textRu: ''
+      }
+    ]
+  })}
+>
+  + Добавить раздел
 </button>
-  <button className="btn" onClick={saveArticle}>
-    {editingArticleId ? 'Сохранить статью' : 'Добавить статью'}
-  </button>
-
-  {editingArticleId && (
-    <button
-      className="btn ghost"
-      onClick={() => {
-        setEditingArticleId(null)
-        setArticleForm({
-          title: '',
-          titleRu: '',
-          tag: '정보',
-          date: new Date().toISOString().slice(0, 10),
-          excerpt: '',
-          excerptRu: '',
-          thumb: '',
-          body: [{
-  heading: '',
-  text: '',
-  headingRu: '',
-  textRu: ''
-}],
-          published: true
-        })
-      }}
-    >
-      Отмена
-    </button>
   )}
 </div>
       <h2>Список товаров</h2>
