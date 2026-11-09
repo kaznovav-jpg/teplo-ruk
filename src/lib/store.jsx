@@ -203,62 +203,78 @@ setS({ ...EMPTY, ...pickState(d) })
     enroll: (id) => { if (!SR.current.enrolled.some((x) => x.id === id)) upd((s) => ({ ...s, enrolled: [...s.enrolled, { id, at: new Date().toISOString() }] })) },
     toggleDone: (cid, i) => upd((s) => { const a = s.progress[cid] || []; return { ...s, progress: { ...s.progress, [cid]: a.includes(i) ? a.filter((x) => x !== i) : [...a, i] } } }),
     setNote: (cid, t) => upd((s) => ({ ...s, notes: { ...s.notes, [cid]: t } })),
-   reserve: (id) => {
-  if (SR.current.reservations.some((x) => x.id === id)) return
+
+reserve: async (id) => {
+  if (SR.current.reservations.some((x) => x.id === id)) return false
 
   const u = UR.current
-  const phone = u?.phone || ''
-  const at = new Date().toISOString()
   const event = adminEvents.find((e) => e.id === id)
   const eventTitle = event?.title || ''
 
-  upd((s) => ({
-    ...s,
-    reservations: [...s.reservations, { id, at, title: eventTitle }]
-  }))
+  try {
+    if (u && F.isFirebase) {
+      const token = await F.auth.currentUser.getIdToken()
 
-  if (u && F.isFirebase) {
-    const ref = F.doc(
-      F.db,
-      'reservations',
-      `${u.uid}_${encodeURIComponent(id)}`
-    )
-
-    F.setDoc(ref, {
-      uid: u.uid,
-      eventId: id,
-      eventTitle,
-      name: u.name || '',
-      email: u.email || '',
-      phone,
-      at
-    })
-      .catch((e) => {
-        console.error('Reservation save error:', e)
-        toast('신청 저장에 실패했어요. 다시 시도해 주세요')
+      const response = await fetch('/api/reserve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ eventId: id, action: 'reserve' })
       })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Ошибка записи')
+    }
+
+    upd((s) => ({
+      ...s,
+      reservations: [...s.reservations, {
+        id,
+        at: new Date().toISOString(),
+        title: eventTitle
+      }]
+    }))
+
+    return true
+  } catch (e) {
+    console.error('Reservation error:', e)
+    toast(e.message || 'Не удалось записаться')
+    return false
   }
 },
-cancelRes: (id) => {
+
+cancelRes: async (id) => {
   const u = UR.current
 
-  upd((s) => ({
-    ...s,
-    reservations: s.reservations.filter((x) => x.id !== id)
-  }))
+  try {
+    if (u && F.isFirebase) {
+      const token = await F.auth.currentUser.getIdToken()
 
-  if (u && F.isFirebase) {
-    const ref = F.doc(
-      F.db,
-      'reservations',
-      `${u.uid}_${encodeURIComponent(id)}`
-    )
+      const response = await fetch('/api/reserve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ eventId: id, action: 'cancel' })
+      })
 
-  F.deleteDoc(ref)
-  .catch((e) => {
-    console.error('Reservation delete error:', e)
-    toast('신청 취소에 실패했어요. 다시 시도해 주세요')
-  })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Ошибка отмены')
+    }
+
+    upd((s) => ({
+      ...s,
+      reservations: s.reservations.filter((x) => x.id !== id)
+    }))
+
+    return true
+  } catch (e) {
+    console.error('Reservation cancel error:', e)
+    toast(e.message || 'Не удалось отменить запись')
+    return false
   }
 },
 
