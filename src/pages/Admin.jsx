@@ -443,6 +443,129 @@ const deleteArticle = async (article) => {
         )}
             </div>
 
+      <h2>Управление статьями</h2>
+
+<div style={{ display: 'grid', gap: 10, marginBottom: 30 }}>
+  <label>
+    Название статьи (한국어)
+    <input
+      className="field"
+      value={articleForm.title}
+      onChange={(e) => setArticleForm({ ...articleForm, title: e.target.value })}
+    />
+  </label>
+
+  <label>
+    Название статьи (Русский)
+    <input
+      className="field"
+      value={articleForm.titleRu}
+      onChange={(e) => setArticleForm({ ...articleForm, titleRu: e.target.value })}
+    />
+  </label>
+
+  <label>
+    Категория
+    <select
+      className="field"
+      value={articleForm.tag}
+      onChange={(e) => setArticleForm({ ...articleForm, tag: e.target.value })}
+    >
+      <option value="정보">Информация</option>
+      <option value="트렌드">Тренды</option>
+      <option value="리뷰">Обзоры</option>
+    </select>
+  </label>
+
+  <label>
+    Дата публикации
+    <input
+      className="field"
+      type="date"
+      value={articleForm.date}
+      onChange={(e) => setArticleForm({ ...articleForm, date: e.target.value })}
+    />
+  </label>
+
+  <label>
+    Краткое описание (한국어)
+    <textarea
+      className="field"
+      value={articleForm.excerpt}
+      onChange={(e) => setArticleForm({ ...articleForm, excerpt: e.target.value })}
+    />
+  </label>
+
+  <label>
+    Краткое описание (Русский)
+    <textarea
+      className="field"
+      value={articleForm.excerptRu}
+      onChange={(e) => setArticleForm({ ...articleForm, excerptRu: e.target.value })}
+    />
+  </label>
+
+  <label>
+    Ссылка на фотографию
+    <input
+      className="field"
+      value={articleForm.thumb}
+      onChange={(e) => setArticleForm({ ...articleForm, thumb: e.target.value })}
+      placeholder="https://..."
+    />
+  </label>
+
+  <label>
+    Заголовок раздела статьи
+    <input
+      className="field"
+      value={articleForm.body[0][0]}
+      onChange={(e) => setArticleForm({
+        ...articleForm,
+        body: [[e.target.value, articleForm.body[0][1]]]
+      })}
+    />
+  </label>
+
+  <label>
+    Текст статьи
+    <textarea
+      className="field"
+      rows={6}
+      value={articleForm.body[0][1]}
+      onChange={(e) => setArticleForm({
+        ...articleForm,
+        body: [[articleForm.body[0][0], e.target.value]]
+      })}
+    />
+  </label>
+
+  <button className="btn" onClick={saveArticle}>
+    {editingArticleId ? 'Сохранить статью' : 'Добавить статью'}
+  </button>
+
+  {editingArticleId && (
+    <button
+      className="btn ghost"
+      onClick={() => {
+        setEditingArticleId(null)
+        setArticleForm({
+          title: '',
+          titleRu: '',
+          tag: '정보',
+          date: new Date().toISOString().slice(0, 10),
+          excerpt: '',
+          excerptRu: '',
+          thumb: '',
+          body: [['', '']],
+          published: true
+        })
+      }}
+    >
+      Отмена
+    </button>
+  )}
+</div>
       <h2>Список товаров</h2>
 
       <div style={{ display: 'grid', gap: 12, marginBottom: 30 }}>
