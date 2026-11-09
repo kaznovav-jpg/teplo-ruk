@@ -620,6 +620,13 @@ const deleteArticle = async (article) => {
   + Добавить раздел
 </button>
   )}
+  <button
+  type="button"
+  className="btn"
+  onClick={saveArticle}
+>
+  {editingArticleId ? 'Сохранить изменения' : 'Добавить статью'}
+</button>
 </div>
       <h2>Список товаров</h2>
 
