@@ -429,35 +429,78 @@ const deleteArticle = async (article) => {
             <option value="clothes">Одежда</option>
           </select>
         </label>
-                <label>
-  Ссылка на фотографию товара
+               <label>
+  Фотографии товара
+
   <input
     type="url"
+    className="field"
     value={productForm.images[0] || ''}
-    onChange={(e) => setProductForm({
-      ...productForm,
-      images: [e.target.value]
-    })}
-    placeholder="https://..."
+    onChange={(e) => setProductForm((prev) => ({
+      ...prev,
+      images: [e.target.value, ...(prev.images || []).slice(1)]
+    }))}
+    placeholder="Ссылка на первую фотографию"
   />
 
-  <span>Или выберите фотографию с компьютера:</span>
+  <span>Или выберите несколько фотографий с компьютера:</span>
+
   <input
     type="file"
+    className="field"
     accept="image/png,image/jpeg,image/webp"
+    multiple
     onChange={async (e) => {
-      const file = e.target.files?.[0]
-      if (!file) return
+      const files = Array.from(e.target.files || [])
+      if (!files.length) return
 
-      const url = await uploadImage(file)
-      if (url) {
-        setProductForm((prev) => ({
-          ...prev,
-          images: [url]
-        }))
-      }
+      const urls = await Promise.all(
+        files.map((file) => uploadImage(file))
+      )
+
+      setProductForm((prev) => ({
+        ...prev,
+        images: [
+          ...(prev.images || []).filter(Boolean),
+          ...urls.filter(Boolean)
+        ]
+      }))
+
+      e.target.value = ''
     }}
   />
+
+  <div style={{
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 12
+  }}>
+    {(productForm.images || []).filter(Boolean).map((url, index) => (
+      <div key={index} style={{ position: 'relative' }}>
+        <img
+          src={url}
+          alt=""
+          style={{
+            width: 90,
+            height: 90,
+            objectFit: 'cover',
+            borderRadius: 8
+          }}
+        />
+
+        <button
+          type="button"
+          onClick={() => setProductForm((prev) => ({
+            ...prev,
+            images: prev.images.filter((_, i) => i !== index)
+          }))}
+        >
+          ×
+        </button>
+      </div>
+    ))}
+  </div>
 </label>
                 <label>
           Описание товара (한국어)
