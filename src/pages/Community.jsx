@@ -32,6 +32,10 @@ const [cat, setCat] = useState(sp.get('cat') || ''), [kw, setKw] = useState('')
 export function Article() {
   const { id } = useParams(), { toast, articles } = useApp()
   const a = articles.find((x) => x.id === id) || articles[0]
+  const body = (a.body || []).map((s) => ({
+  heading: Array.isArray(s) ? s[0] : s.heading,
+  text: Array.isArray(s) ? s[1] : s.text
+}))
   useTitle(a.title)
   return (
     <div className="wrap">
@@ -41,9 +45,9 @@ export function Article() {
         <h1 style={{ fontSize: '1.9rem', margin: '6px 0 14px' }}>{a.title}</h1>
         <div className="thumb wide"><Img src={a.thumb} alt={`${a.title} 대표 이미지`} seed={a.id} h={400} loading="eager" /></div>
         <nav className="lead" aria-label="목차" style={{ marginTop: 20 }}><b>목차</b>
-          <ol style={{ marginTop: 6 }}>{a.body.map((s, i) => <li key={i}><button className="btn ghost" style={{ border: 0, justifyContent: 'flex-start' }} onClick={() => document.getElementById('sec' + i)?.scrollIntoView({ behavior: 'smooth' })}>{i + 1}. {s[0]}</button></li>)}</ol>
+          <ol style={{ marginTop: 6 }}>{body.map((s, i) => <li key={i}><button className="btn ghost" style={{ border: 0, justifyContent: 'flex-start' }} onClick={() => document.getElementById('sec' + i)?.scrollIntoView({ behavior: 'smooth' })}>{i + 1}. {s.heading}</button></li>)}</ol>
         </nav>
-        {a.body.map((s, i) => <div key={i}><h2 id={'sec' + i} style={{ fontSize: '1.3rem', marginTop: 26 }}>{s[0]}</h2><p>{s[1]}</p></div>)}
+       {body.map((s, i) => <div key={i}><h2 id={'sec' + i} style={{ fontSize: '1.3rem', marginTop: 26 }}>{s.heading}</h2><p>{s.text}</p></div>)}
         <div className="acts"><button className="btn ghost" onClick={() => share(toast)}>공유하기</button><Heart id={a.id} text /></div>
         <h2 className="mt" style={{ fontSize: '1.3rem' }}>관련 상품</h2>
         <div className="grid g4" style={{ marginTop: 12, gridTemplateColumns: 'repeat(2,1fr)' }}>{a.related.map((pid) => <ProductCard key={pid} p={D.products.find((p) => p.id === pid)} D={D} />)}</div>
