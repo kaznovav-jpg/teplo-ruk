@@ -115,15 +115,17 @@ const [editingArticleId, setEditingArticleId] = useState(null)
     return
   }
 
-  const data = {
-    ...articleForm,
-    body: articleForm.body
-  .filter((s) => s[0] || s[1])
-  .map((s) => ({ heading: s[0], text: s[1] })),
-    related: [],
-    thread: [],
-    published: articleForm.published !== false
-  }
+  const { body, ...articleFields } = articleForm
+
+const data = {
+  ...articleFields,
+  body: body
+    .filter((s) => s[0] || s[1])
+    .map((s) => ({ heading: s[0], text: s[1] })),
+  related: [],
+  thread: [],
+  published: articleForm.published !== false
+}
 
   try {
     if (editingArticleId) {
