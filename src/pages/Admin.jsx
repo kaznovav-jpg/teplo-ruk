@@ -47,10 +47,10 @@ const [editingProductId, setEditingProductId] = useState(null)
     images: productForm.images.filter(Boolean),
     colors: productForm.colors.filter(Boolean),
     sizes: productForm.sizes.filter(Boolean),
-    artist: 'a1',
+        artist: 'a1',
     badges: [],
     soldOut: false,
-    published: true
+    published: productForm.published !== false
   }
 
   try {
