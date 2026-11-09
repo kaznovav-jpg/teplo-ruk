@@ -38,6 +38,7 @@ const [editingProductId, setEditingProductId] = useState(null)
   excerpt: '',
   excerptRu: '',
   thumb: '',
+  images: [],  
   body: [{
   heading: '',
   text: '',
@@ -228,6 +229,7 @@ const data = {
     excerpt: article.excerpt || '',
     excerptRu: article.excerptRu || '',
     thumb: article.thumb || '',
+    images: article.images || (article.thumb ? [article.thumb] : []),
     body: article.body?.length
   ? article.body.map((s) => Array.isArray(s)
       ? {
