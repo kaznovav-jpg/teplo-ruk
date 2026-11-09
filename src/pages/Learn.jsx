@@ -187,6 +187,11 @@ export function Schedule() {
   const shift = (d) => setYm(({ y, m }) => { m += d; return m < 0 ? { y: y - 1, m: 11 } : m > 11 ? { y: y + 1, m: 0 } : { y, m } })
   const first = new Date(y, m, 1).getDay(), days = new Date(y, m + 1, 0).getDate()
   const ev = events.find((e) => e.id === open)
+  const getJoined = (eventId) =>
+  adminReservations.filter((r) => r.eventId === eventId).length
+
+const isFull = (event) =>
+  getJoined(event.id) >= Number(event.cap || 0)
   return (
     <div className="wrap">
       <Crumb items={['일정·시간표']} />
