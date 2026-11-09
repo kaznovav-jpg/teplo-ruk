@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../lib/store.jsx'
+import { useLanguage } from '../lib/language.jsx'
 import { CATS } from '../lib/util.js'
 
 const MENU = [['공예 종류', '/category?c=all'], ['클래스', '/classes'], ['작가 작품', '/artists'], ['일정·시간표', '/schedule'], ['아티클·블로그', '/articles'], ['포토 포럼·커뮤니티', '/community'], ['사이트 안내', '/sitemap'], ['마이페이지', '/mypage']]
 
 export default function Layout() {
   const { user, cartCount, logout, toast, isFirebase, isAdmin } = useApp()
+    const { lang, changeLanguage } = useLanguage()
   const nav = useNavigate(), { pathname } = useLocation()
   const [notice, setNotice] = useState(true), [open, setOpen] = useState(false), [search, setSearch] = useState(false)
   const [kw, setKw] = useState(''), [scrolled, setScrolled] = useState(false), [top, setTop] = useState(false)
@@ -34,6 +36,8 @@ export default function Layout() {
 {isAdmin && <li><Link to="/admin">관리자 페이지</Link></li>}
           </ul>
           <div className="tools">
+            <button className="ibtn" onClick={() => changeLanguage('ko')}>한국어</button>
+            <button className="ibtn" onClick={() => changeLanguage('ru')}>Русский</button>
             <button className="ibtn" aria-label="검색" onClick={() => setSearch(!search)}>🔍</button>
             <button className="ibtn" onClick={authBtn}>{user ? '로그아웃' : '로그인'}</button>
             <Link className="ibtn" to="/cart" aria-label="장바구니">🛍<span className="cnt">{cartCount}</span></Link>
