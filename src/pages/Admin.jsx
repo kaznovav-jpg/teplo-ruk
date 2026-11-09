@@ -394,17 +394,35 @@ const deleteArticle = async (article) => {
           </select>
         </label>
                 <label>
-          Ссылка на фотографию товара
-          <input
-            type="url"
-            value={productForm.images[0] || ''}
-            onChange={(e) => setProductForm({
-              ...productForm,
-              images: [e.target.value]
-            })}
-            placeholder="https://..."
-          />
-        </label>
+  Ссылка на фотографию товара
+  <input
+    type="url"
+    value={productForm.images[0] || ''}
+    onChange={(e) => setProductForm({
+      ...productForm,
+      images: [e.target.value]
+    })}
+    placeholder="https://..."
+  />
+
+  <span>Или выберите фотографию с компьютера:</span>
+  <input
+    type="file"
+    accept="image/png,image/jpeg,image/webp"
+    onChange={async (e) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+
+      const url = await uploadImage(file)
+      if (url) {
+        setProductForm((prev) => ({
+          ...prev,
+          images: [url]
+        }))
+      }
+    }}
+  />
+</label>
                 <label>
           Описание товара (한국어)
           <textarea
