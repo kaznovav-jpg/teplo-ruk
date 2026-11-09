@@ -117,7 +117,9 @@ const [editingArticleId, setEditingArticleId] = useState(null)
 
   const data = {
     ...articleForm,
-    body: articleForm.body.filter((s) => s[0] || s[1]),
+    body: articleForm.body
+  .filter((s) => s[0] || s[1])
+  .map((s) => ({ heading: s[0], text: s[1] })),
     related: [],
     thread: [],
     published: articleForm.published !== false
