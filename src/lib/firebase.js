@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, updateProfile } from 'firebase/auth'
 import { getFirestore, doc, getDoc, getDocs, setDoc, collection, addDoc, query, where, orderBy, limit, onSnapshot, deleteDoc } from 'firebase/firestore'
-import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage'
+import { getStorage, ref, uploadString, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 
 const env = import.meta.env
 const cfg = {
@@ -15,4 +15,4 @@ export const auth = app ? getAuth(app) : null
 export const db = app ? getFirestore(app) : null
 export const storage = app ? getStorage(app) : null
 export { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, updateProfile,
-doc, getDoc,getDocs, setDoc, collection, addDoc, query, where, orderBy, limit, onSnapshot, deleteDoc, ref, uploadString, getDownloadURL }
+doc, getDoc,getDocs, setDoc, collection, addDoc, query, where, orderBy, limit, onSnapshot, deleteDoc, ref, uploadString, uploadBytes, getDownloadURL, deleteObject
