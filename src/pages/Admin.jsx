@@ -594,35 +594,76 @@ const deleteArticle = async (article) => {
   </label>
 
   <label>
-  Ссылка на фотографию
-  <input
-    className="field"
-    value={articleForm.thumb}
-    onChange={(e) => setArticleForm({
-      ...articleForm,
-      thumb: e.target.value
-    })}
-    placeholder="https://..."
-  />
+  Фотографии статьи
 
-  <span>Или выберите фотографию с компьютера:</span>
   <input
     className="field"
     type="file"
     accept="image/png,image/jpeg,image/webp"
+    multiple
     onChange={async (e) => {
-      const file = e.target.files?.[0]
-      if (!file) return
+      const files = Array.from(e.target.files || [])
+      if (!files.length) return
 
-      const url = await uploadImage(file)
-      if (url) {
-        setArticleForm((prev) => ({
+      const urls = await Promise.all(
+        files.map((file) => uploadImage(file))
+      )
+
+      setArticleForm((prev) => {
+        const images = [
+          ...(prev.images || (prev.thumb ? [prev.thumb] : [])),
+          ...urls.filter(Boolean)
+        ]
+
+        return {
           ...prev,
-          thumb: url
-        }))
-      }
+          images,
+          thumb: images[0] || ''
+        }
+      })
+
+      e.target.value = ''
     }}
   />
+
+  <div style={{
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 12
+  }}>
+    {(articleForm.images || (articleForm.thumb ? [articleForm.thumb] : [])).map((url, index) => (
+      <div key={index} style={{ position: 'relative' }}>
+        <img
+          src={url}
+          alt=""
+          style={{
+            width: 90,
+            height: 90,
+            objectFit: 'cover',
+            borderRadius: 8
+          }}
+        />
+
+        <button
+          type="button"
+          onClick={() => {
+            setArticleForm((prev) => {
+              const images = (prev.images || []).filter((_, i) => i !== index)
+
+              return {
+                ...prev,
+                images,
+                thumb: images[0] || ''
+              }
+            })
+          }}
+        >
+          ×
+        </button>
+      </div>
+    ))}
+  </div>
 </label>
 
   {articleForm.body.map((section, index) => (
