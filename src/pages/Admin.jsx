@@ -562,14 +562,36 @@ const deleteArticle = async (article) => {
   </label>
 
   <label>
-    Ссылка на фотографию
-    <input
-      className="field"
-      value={articleForm.thumb}
-      onChange={(e) => setArticleForm({ ...articleForm, thumb: e.target.value })}
-      placeholder="https://..."
-    />
-  </label>
+  Ссылка на фотографию
+  <input
+    className="field"
+    value={articleForm.thumb}
+    onChange={(e) => setArticleForm({
+      ...articleForm,
+      thumb: e.target.value
+    })}
+    placeholder="https://..."
+  />
+
+  <span>Или выберите фотографию с компьютера:</span>
+  <input
+    className="field"
+    type="file"
+    accept="image/png,image/jpeg,image/webp"
+    onChange={async (e) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+
+      const url = await uploadImage(file)
+      if (url) {
+        setArticleForm((prev) => ({
+          ...prev,
+          thumb: url
+        }))
+      }
+    }}
+  />
+</label>
 
   {articleForm.body.map((section, index) => (
   <div key={index} style={{ border: '1px solid #ddd', borderRadius: 8, padding: 12, display: 'grid', gap: 10 }}>
