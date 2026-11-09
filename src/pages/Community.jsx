@@ -12,8 +12,9 @@ const share = (toast) => { try { navigator.clipboard.writeText(location.href).th
 export function Articles() {
   useTitle('아티클·블로그')
   const [sp] = useSearchParams()
-  const [cat, setCat] = useState(sp.get('cat') || ''), [kw, setKw] = useState('')
-  const l = D.articles.filter((a) => (!cat || a.tag === cat) && (!kw || a.title.includes(kw) || a.excerpt.includes(kw)))
+  const { articles } = useApp()
+const [cat, setCat] = useState(sp.get('cat') || ''), [kw, setKw] = useState('')
+  const l = articles.filter((a) => (!cat || a.tag === cat) && (!kw || a.title.includes(kw) || a.excerpt.includes(kw)))
   return (
     <div className="wrap">
       <Crumb items={['아티클·블로그']} />
