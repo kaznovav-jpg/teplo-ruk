@@ -520,7 +520,71 @@ const deleteArticle = async (article) => {
   </label>
 
   <label>
-    Заголовок раздела статьи
+    {articleForm.body.map((section, index) => (
+  <div
+    key={index}
+    style={{
+      border: '1px solid #ddd',
+      borderRadius: 8,
+      padding: 12,
+      display: 'grid',
+      gap: 10
+    }}
+  >
+    <strong>Раздел {index + 1}</strong>
+
+    <label>
+      Заголовок раздела
+      <input
+        className="field"
+        value={section[0]}
+        onChange={(e) => {
+          const body = [...articleForm.body]
+          body[index] = [e.target.value, section[1]]
+          setArticleForm({ ...articleForm, body })
+        }}
+      />
+    </label>
+
+    <label>
+      Текст раздела
+      <textarea
+        className="field"
+        rows={6}
+        value={section[1]}
+        onChange={(e) => {
+          const body = [...articleForm.body]
+          body[index] = [section[0], e.target.value]
+          setArticleForm({ ...articleForm, body })
+        }}
+      />
+    </label>
+
+    {articleForm.body.length > 1 && (
+      <button
+        type="button"
+        className="btn ghost"
+        onClick={() => {
+          const body = articleForm.body.filter((_, i) => i !== index)
+          setArticleForm({ ...articleForm, body })
+        }}
+      >
+        Удалить раздел
+      </button>
+    )}
+  </div>
+))}
+
+<button
+  type="button"
+  className="btn ghost"
+  onClick={() => setArticleForm({
+    ...articleForm,
+    body: [...articleForm.body, ['', '']]
+  })}
+>
+  + Добавить раздел
+</button>
     <input
       className="field"
       value={articleForm.body[0][0]}
@@ -532,7 +596,71 @@ const deleteArticle = async (article) => {
   </label>
 
   <label>
-    Текст статьи
+    {articleForm.body.map((section, index) => (
+  <div
+    key={index}
+    style={{
+      border: '1px solid #ddd',
+      borderRadius: 8,
+      padding: 12,
+      display: 'grid',
+      gap: 10
+    }}
+  >
+    <strong>Раздел {index + 1}</strong>
+
+    <label>
+      Заголовок раздела
+      <input
+        className="field"
+        value={section[0]}
+        onChange={(e) => {
+          const body = [...articleForm.body]
+          body[index] = [e.target.value, section[1]]
+          setArticleForm({ ...articleForm, body })
+        }}
+      />
+    </label>
+
+    <label>
+      Текст раздела
+      <textarea
+        className="field"
+        rows={6}
+        value={section[1]}
+        onChange={(e) => {
+          const body = [...articleForm.body]
+          body[index] = [section[0], e.target.value]
+          setArticleForm({ ...articleForm, body })
+        }}
+      />
+    </label>
+
+    {articleForm.body.length > 1 && (
+      <button
+        type="button"
+        className="btn ghost"
+        onClick={() => {
+          const body = articleForm.body.filter((_, i) => i !== index)
+          setArticleForm({ ...articleForm, body })
+        }}
+      >
+        Удалить раздел
+      </button>
+    )}
+  </div>
+))}
+
+<button
+  type="button"
+  className="btn ghost"
+  onClick={() => setArticleForm({
+    ...articleForm,
+    body: [...articleForm.body, ['', '']]
+  })}
+>
+  + Добавить раздел
+</button>
     <textarea
       className="field"
       rows={6}
