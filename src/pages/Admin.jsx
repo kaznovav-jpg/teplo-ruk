@@ -104,6 +104,51 @@ const [editingArticleId, setEditingArticleId] = useState(null)
     alert('Не удалось удалить товар.')
   }
 }
+  const saveArticle = async () => {
+  if (!articleForm.title || !articleForm.titleRu) {
+    alert('Введите название статьи на двух языках.')
+    return
+  }
+
+  if (!isFirebase) {
+    alert('Firebase 연결이 필요합니다.')
+    return
+  }
+
+  const data = {
+    ...articleForm,
+    body: articleForm.body.filter((s) => s[0] || s[1]),
+    related: [],
+    thread: [],
+    published: articleForm.published !== false
+  }
+
+  try {
+    if (editingArticleId) {
+      await F.setDoc(F.doc(F.db, 'articles', editingArticleId), data, { merge: true })
+      alert('Статья обновлена.')
+    } else {
+      await F.addDoc(F.collection(F.db, 'articles'), data)
+      alert('Новая статья добавлена.')
+    }
+
+    setArticleForm({
+      title: '',
+      titleRu: '',
+      tag: '정보',
+      date: new Date().toISOString().slice(0, 10),
+      excerpt: '',
+      excerptRu: '',
+      thumb: '',
+      body: [['', '']],
+      published: true
+    })
+    setEditingArticleId(null)
+  } catch (error) {
+    console.error('Article save error:', error)
+    alert('Не удалось сохранить статью.')
+  }
+}
   const editProduct = (product) => {
   setEditingProductId(product.id)
 
