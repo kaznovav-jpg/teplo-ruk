@@ -130,7 +130,21 @@ setS({ ...EMPTY, ...pickState(d) })
       },
       (e) => console.error('Admin events error:', e)
     )
-  }, []) 
+  }, [])
+  useEffect(() => {
+  if (!F.isFirebase) return
+  return F.onSnapshot(
+    F.collection(F.db, 'products'),
+    (s) => {
+      if (!s.empty) {
+        setProducts(s.docs.map((d) => ({ ...d.data(), id: d.id })))
+      } else {
+        setProducts(D.products)
+      }
+    },
+    (e) => console.error('Products error:', e)
+  )
+}, [])
   // 커뮤니티 글
   useEffect(() => {
     if (F.isFirebase) {
