@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
+import { LanguageProvider } from './lib/language.jsx'
 import Layout from './components/Layout.jsx'
 import Home from './pages/Home.jsx'
 import { Category, Product, Cart, Checkout, Complete } from './pages/Shop.jsx'
@@ -9,8 +10,9 @@ import Admin from './pages/Admin.jsx'
 import { Sitemap, Info, NotFound } from './pages/Misc.jsx'
 
 export default function App() {
-  return (
-    <Routes>
+return (
+    <LanguageProvider>
+      <Routes>
       <Route element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="category" element={<Category />} />
@@ -35,6 +37,7 @@ export default function App() {
         <Route path="info" element={<Info />} />
         <Route path="*" element={<NotFound />} />
       </Route>
-    </Routes>
+        </Routes>
+    </LanguageProvider>
   )
 }
