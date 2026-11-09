@@ -155,6 +155,10 @@ const [editingArticleId, setEditingArticleId] = useState(null)
 
 const data = {
   ...articleFields,
+  thumb: articleForm.images?.[0] || articleForm.thumb || '',
+  images: articleForm.images?.length
+    ? articleForm.images
+    : (articleForm.thumb ? [articleForm.thumb] : []),
   body: body
   .filter((s) => s.heading || s.text || s.headingRu || s.textRu)
   .map((s) => ({
