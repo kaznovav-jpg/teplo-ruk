@@ -30,6 +30,18 @@ export default function Admin() {
 })
 
 const [editingProductId, setEditingProductId] = useState(null)
+  const [articleForm, setArticleForm] = useState({
+  title: '',
+  titleRu: '',
+  tag: '정보',
+  date: new Date().toISOString().slice(0, 10),
+  excerpt: '',
+  excerptRu: '',
+  thumb: '',
+  body: [['', '']],
+  published: true
+})
+const [editingArticleId, setEditingArticleId] = useState(null)
   const saveProduct = async () => {
   if (!productForm.name || !productForm.nameRu || !productForm.price) {
     alert('Введите название на двух языках и цену.')
