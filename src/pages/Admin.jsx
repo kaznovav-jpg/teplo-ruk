@@ -4,7 +4,7 @@ import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 
 export default function Admin() {
-  const { user, isAdmin, adminReservations, adminEvents, isFirebase } = useApp()
+  const { user, isAdmin, adminReservations, adminEvents, products, isFirebase } = useApp()
   const [eventForm, setEventForm] = useState({
   ymd: '',
   time: '',
@@ -15,6 +15,102 @@ export default function Admin() {
   online: false
 })
   const [editingEventId, setEditingEventId] = useState(null)
+  const [productForm, setProductForm] = useState({
+  name: '',
+  nameRu: '',
+  price: '',
+  cat: 'bag',
+  images: [''],
+  desc: '',
+  descRu: '',
+  material: '',
+  colors: [''],
+  sizes: [''],
+  published: true
+})
+
+const [editingProductId, setEditingProductId] = useState(null)
+  const saveProduct = async () => {
+  if (!productForm.name || !productForm.nameRu || !productForm.price) {
+    alert('Введите название на двух языках и цену.')
+    return
+  }
+
+  if (!isFirebase) {
+    alert('Firebase 연결이 필요합니다.')
+    return
+  }
+
+  const data = {
+    ...productForm,
+    price: Number(productForm.price),
+    images: productForm.images.filter(Boolean),
+    colors: productForm.colors.filter(Boolean),
+    sizes: productForm.sizes.filter(Boolean),
+    artist: 'a1',
+    badges: [],
+    soldOut: false,
+    published: true
+  }
+
+  try {
+    if (editingProductId) {
+      await F.setDoc(F.doc(F.db, 'products', editingProductId), data, { merge: true })
+      alert('Товар обновлён.')
+    } else {
+      await F.addDoc(F.collection(F.db, 'products'), data)
+      alert('Новый товар добавлен.')
+    }
+
+    setProductForm({
+      name: '',
+      nameRu: '',
+      price: '',
+      cat: 'bag',
+      images: [''],
+      desc: '',
+      descRu: '',
+      material: '',
+      colors: [''],
+      sizes: [''],
+      published: true
+    })
+    setEditingProductId(null)
+  } catch (error) {
+    console.error('Product save error:', error)
+    alert('Не удалось сохранить товар.')
+  }
+}
+  const deleteProduct = async (product) => {
+  if (!window.confirm(`Удалить товар "${product.name}"?`)) return
+
+  try {
+    await F.deleteDoc(F.doc(F.db, 'products', product.id))
+    alert('Товар удалён.')
+  } catch (error) {
+    console.error('Product delete error:', error)
+    alert('Не удалось удалить товар.')
+  }
+}
+  const editProduct = (product) => {
+  setEditingProductId(product.id)
+
+  setProductForm({
+    name: product.name || '',
+    nameRu: product.nameRu || '',
+    price: product.price || '',
+    cat: product.cat || 'bag',
+    images: product.images?.length ? product.images : [''],
+    desc: product.desc || '',
+    descRu: product.descRu || '',
+    material: product.material || '',
+    colors: product.colors?.length ? product.colors : [''],
+    sizes: product.sizes?.length ? product.sizes : [''],
+    published: product.published !== false
+  })
+
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
  const addEvent = async () => {
   if (!eventForm.ymd || !eventForm.time || !eventForm.title) {
     alert('날짜, 시간, 수업명을 입력해 주세요.')
