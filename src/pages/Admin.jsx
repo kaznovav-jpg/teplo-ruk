@@ -168,6 +168,35 @@ const [editingArticleId, setEditingArticleId] = useState(null)
 
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
+  const editArticle = (article) => {
+  setEditingArticleId(article.id)
+
+  setArticleForm({
+    title: article.title || '',
+    titleRu: article.titleRu || '',
+    tag: article.tag || '정보',
+    date: article.date || '',
+    excerpt: article.excerpt || '',
+    excerptRu: article.excerptRu || '',
+    thumb: article.thumb || '',
+    body: article.body?.length ? article.body : [['', '']],
+    published: article.published !== false
+  })
+
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const deleteArticle = async (article) => {
+  if (!window.confirm(`Удалить статью "${article.title}"?`)) return
+
+  try {
+    await F.deleteDoc(F.doc(F.db, 'articles', article.id))
+    alert('Статья удалена.')
+  } catch (error) {
+    console.error('Article delete error:', error)
+    alert('Не удалось удалить статью.')
+  }
+}
  const addEvent = async () => {
   if (!eventForm.ymd || !eventForm.time || !eventForm.title) {
     alert('날짜, 시간, 수업명을 입력해 주세요.')
