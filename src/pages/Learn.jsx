@@ -161,7 +161,15 @@ function EventModal({ e, onClose }) {
         <p><b>정원</b> {j}/{e.cap}명</p>
         {e.cls && <p><Link className="more" to={`/classes/${e.cls}`}>관련 클래스 보기</Link></p>}
         <div className="acts" style={{ marginTop: 16 }}>
-          <button className={'btn' + (r ? ' ghost' : '')} disabled={full} autoFocus onClick={() => { if (r) { cancelRes(e.id); toast('신청을 취소했어요') } else { reserve(e.id); toast('신청이 완료되었어요') } }}>{r ? '신청 취소' : full ? '마감되었어요' : '신청하기'}</button>
+          <button className={'btn' + (r ? ' ghost' : '')} disabled={full} autoFocus onClick={async () => {
+  if (r) {
+    const ok = await cancelRes(e.id)
+    if (ok) toast('신청을 취소했어요')
+  } else {
+    const ok = await reserve(e.id)
+    if (ok) toast('신청이 완료되었어요')
+  }
+}}>{r ? '신청 취소' : full ? '마감되었어요' : '신청하기'}</button>
           <button className="btn ghost" onClick={onClose}>닫기</button>
         </div>
       </div>
