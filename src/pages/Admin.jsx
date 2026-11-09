@@ -519,8 +519,7 @@ const deleteArticle = async (article) => {
     />
   </label>
 
-  <label>
-    {articleForm.body.map((section, index) => (
+  {articleForm.body.map((section, index) => (
   <div
     key={index}
     style={{
@@ -585,93 +584,6 @@ const deleteArticle = async (article) => {
 >
   + Добавить раздел
 </button>
-    <input
-      className="field"
-      value={articleForm.body[0][0]}
-      onChange={(e) => setArticleForm({
-        ...articleForm,
-        body: [[e.target.value, articleForm.body[0][1]]]
-      })}
-    />
-  </label>
-
-  <label>
-    {articleForm.body.map((section, index) => (
-  <div
-    key={index}
-    style={{
-      border: '1px solid #ddd',
-      borderRadius: 8,
-      padding: 12,
-      display: 'grid',
-      gap: 10
-    }}
-  >
-    <strong>Раздел {index + 1}</strong>
-
-    <label>
-      Заголовок раздела
-      <input
-        className="field"
-        value={section[0]}
-        onChange={(e) => {
-          const body = [...articleForm.body]
-          body[index] = [e.target.value, section[1]]
-          setArticleForm({ ...articleForm, body })
-        }}
-      />
-    </label>
-
-    <label>
-      Текст раздела
-      <textarea
-        className="field"
-        rows={6}
-        value={section[1]}
-        onChange={(e) => {
-          const body = [...articleForm.body]
-          body[index] = [section[0], e.target.value]
-          setArticleForm({ ...articleForm, body })
-        }}
-      />
-    </label>
-
-    {articleForm.body.length > 1 && (
-      <button
-        type="button"
-        className="btn ghost"
-        onClick={() => {
-          const body = articleForm.body.filter((_, i) => i !== index)
-          setArticleForm({ ...articleForm, body })
-        }}
-      >
-        Удалить раздел
-      </button>
-    )}
-  </div>
-))}
-
-<button
-  type="button"
-  className="btn ghost"
-  onClick={() => setArticleForm({
-    ...articleForm,
-    body: [...articleForm.body, ['', '']]
-  })}
->
-  + Добавить раздел
-</button>
-    <textarea
-      className="field"
-      rows={6}
-      value={articleForm.body[0][1]}
-      onChange={(e) => setArticleForm({
-        ...articleForm,
-        body: [[articleForm.body[0][0], e.target.value]]
-      })}
-    />
-  </label>
-
   <button className="btn" onClick={saveArticle}>
     {editingArticleId ? 'Сохранить статью' : 'Добавить статью'}
   </button>
