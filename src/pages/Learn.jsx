@@ -179,7 +179,7 @@ function EventModal({ e, onClose }) {
 
 export function Schedule() {
   useTitle('일정·시간표')
-  const { S, adminEvents, adminReservations } = useApp()
+  const { S, reserve, cancelRes, toast, adminReservations } = useApp()
   const events = adminEvents
   const [view, setView] = useState(() => (innerWidth < 768 ? 'list' : 'cal')), [ty, setTy] = useState(''), [ym, setYm] = useState({ y: 2026, m: 9 }), [open, setOpen] = useState(null)
   const { y, m } = ym, pre = `${y}-${pad(m + 1)}`
