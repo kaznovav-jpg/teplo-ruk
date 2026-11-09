@@ -12,6 +12,25 @@ const app = getApps().length
 const db = getFirestore(app)
 
 export default async function handler(req, res) {
+  if (req.method === 'GET') {
+    try {
+      const snapshot = await db.collection('reservations').get()
+      const counts = {}
+
+      snapshot.forEach((doc) => {
+        const eventId = doc.data().eventId
+        if (eventId) {
+          counts[eventId] = (counts[eventId] || 0) + 1
+        }
+      })
+
+      return res.status(200).json({ counts })
+    } catch (error) {
+      console.error('Event counts error:', error)
+      return res.status(500).json({ error: 'Ошибка сервера' })
+    }
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
