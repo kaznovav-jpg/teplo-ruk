@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useLanguage } from '../lib/language.jsx'
 import { useApp } from '../lib/store.jsx'
 import { won, ph, artistName } from '../lib/util.js'
 import { useLanguage } from '../lib/language.jsx'
@@ -67,12 +68,19 @@ export function ClassCard({ c, D }) {
 }
 
 export function ArticleCard({ a }) {
+  const { lang } = useLanguage()
+  const title = lang === 'ru' ? (a.titleRu || a.title) : a.title
+  const excerpt = lang === 'ru' ? (a.excerptRu || a.excerpt) : a.excerpt
+
   return (
     <article className="card">
       <Link to={`/articles/${a.id}`}>
-        <div className="thumb wide"><Img src={a.thumb} alt={`${a.title} 썸네일`} seed={a.id} h={400} /></div>
+        <div className="thumb wide">
+          <Img src={a.thumb} alt={title} seed={a.id} h={400} />
+        </div>
         <p className="ar" style={{ marginTop: 10 }}>{a.tag} · {a.date}</p>
-        <p className="nm serif">{a.title}</p><p className="muted">{a.excerpt}</p>
+        <p className="nm serif">{title}</p>
+        <p className="muted">{excerpt}</p>
       </Link>
     </article>
   )
