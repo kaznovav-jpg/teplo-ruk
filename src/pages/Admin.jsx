@@ -220,9 +220,189 @@ const [editingProductId, setEditingProductId] = useState(null)
   }
 
   const events = adminEvents
+    const updateProductField = (field, value) => {
+    setProductForm((prev) => ({ ...prev, [field]: value }))
+  }
   return (
     <main className="page">
       <h1>관리자 페이지</h1>
+            <h2>Управление товарами</h2>
+
+      <div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
+        <label>
+          Название товара (한국어)
+          <input
+            value={productForm.name}
+            onChange={(e) => updateProductField('name', e.target.value)}
+            placeholder="상품명"
+          />
+        </label>
+
+        <label>
+          Название товара (русский)
+          <input
+            value={productForm.nameRu}
+            onChange={(e) => updateProductField('nameRu', e.target.value)}
+            placeholder="Название товара"
+          />
+        </label>
+
+        <label>
+          Цена (₩)
+          <input
+            type="number"
+            value={productForm.price}
+            onChange={(e) => updateProductField('price', e.target.value)}
+            placeholder="100000"
+          />
+        </label>
+
+        <label>
+          Категория
+          <select
+            value={productForm.cat}
+            onChange={(e) => updateProductField('cat', e.target.value)}
+          >
+            <option value="bag">Сумки</option>
+            <option value="home">Для дома</option>
+            <option value="accessory">Аксессуары</option>
+            <option value="clothes">Одежда</option>
+          </select>
+        </label>
+                <label>
+          Ссылка на фотографию товара
+          <input
+            type="url"
+            value={productForm.images[0] || ''}
+            onChange={(e) => setProductForm({
+              ...productForm,
+              images: [e.target.value]
+            })}
+            placeholder="https://..."
+          />
+        </label>
+                <label>
+          Описание товара (한국어)
+          <textarea
+            value={productForm.desc}
+            onChange={(e) => updateProductField('desc', e.target.value)}
+            placeholder="상품 설명"
+          />
+        </label>
+
+        <label>
+          Описание товара (русский)
+          <textarea
+            value={productForm.descRu}
+            onChange={(e) => updateProductField('descRu', e.target.value)}
+            placeholder="Описание товара"
+          />
+        </label>
+                <label>
+          Материал
+          <input
+            value={productForm.material}
+            onChange={(e) => updateProductField('material', e.target.value)}
+            placeholder="면, 린넨, 울 등"
+          />
+        </label>
+                <label>
+          Цвета (перечисли через запятую)
+          <input
+            value={productForm.colors.join(', ')}
+            onChange={(e) => setProductForm({
+              ...productForm,
+              colors: e.target.value.split(',').map((x) => x.trim())
+            })}
+            placeholder="Бежевый, белый, коричневый"
+          />
+        </label>
+                <label>
+          Размеры (через запятую)
+          <input
+            value={productForm.sizes.join(', ')}
+            onChange={(e) => setProductForm({
+              ...productForm,
+              sizes: e.target.value.split(',').map((x) => x.trim())
+            })}
+            placeholder="S, M, L или 20×15 см"
+          />
+        </label>
+                <button className="btn" onClick={saveProduct}>
+          {editingProductId ? 'Сохранить изменения' : 'Добавить товар'}
+        </button>
+
+        {editingProductId && (
+          <button
+            className="btn ghost"
+            onClick={() => {
+              setEditingProductId(null)
+              setProductForm({
+                name: '',
+                nameRu: '',
+                price: '',
+                cat: 'bag',
+                images: [''],
+                desc: '',
+                descRu: '',
+                material: '',
+                colors: [''],
+                sizes: [''],
+                published: true
+              })
+            }}
+          >
+            Отмена
+          </button>
+        )}
+            </div>
+
+      <h2>Список товаров</h2>
+
+      <div style={{ display: 'grid', gap: 12, marginBottom: 30 }}>
+        {products.map((product) => (
+          <div
+            key={product.id}
+            style={{
+              padding: 12,
+              border: '1px solid #ddd',
+              borderRadius: 8
+            }}
+          >
+            {product.images?.[0] && (
+              <img
+                src={product.images[0]}
+                alt={product.name}
+                style={{
+                  width: 100,
+                  height: 100,
+                  objectFit: 'cover',
+                  borderRadius: 8
+                }}
+              />
+            )}
+
+            <strong>{product.name}</strong>
+            <p>{product.nameRu || ''}</p>
+            <p>{Number(product.price || 0).toLocaleString()} ₩</p>
+
+            <button
+              className="btn"
+              onClick={() => editProduct(product)}
+            >
+              Редактировать
+            </button>
+
+            <button
+              className="btn ghost"
+              onClick={() => deleteProduct(product)}
+            >
+              Удалить
+            </button>
+          </div>
+        ))}
+      </div>
+
       <h2>수업 일정 관리</h2>
 
 <div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
