@@ -173,7 +173,8 @@ export function Cart() {
 }
 
 export function Checkout() {
-  useTitle('주문서')
+  const { lang } = useLanguage()
+  useTitle(lang === 'ru' ? 'Оформление заказа' : '주문서')
   const nav = useNavigate(), { saveOrder, clearCart, toast } = useApp(), { L, s, sh, t } = useLines()
   if (!L.length) return <div className="wrap empty"><p>주문할 상품이 없어요.</p><Link className="btn" to="/category?c=all">상품 보러 가기</Link></div>
   const field = (n, l, type = 'text', req = true) => <label>{l}<input className="field" name={n} type={type} required={req} /></label>
@@ -181,7 +182,7 @@ export function Checkout() {
     e.preventDefault()
     const d = Object.fromEntries(new FormData(e.target))
     try {
-      await saveOrder({ no: 'HM' + Date.now().toString().slice(-8), date: new Date().toLocaleDateString('ko-KR'), items: L.map((x) => ({ name: x.p.name, opt: `${x.color}/${x.size}`, qty: x.qty, price: x.p.price })), total: t, ...d })
+      await saveOrder({ no: 'HM' + Date.now().toString().slice(-8), date: new Date().toLocaleDateString('ko-KR'), items: L.map((x) => ({ name: lang === 'ru' ? (x.p.nameRu || x.p.name) : x.p.name, opt: `${x.color}/${x.size}`, qty: x.qty, price: x.p.price })), total: t, ...d })
       clearCart(); nav('/order-complete')
     } catch (err) { console.error(err); toast('주문을 저장하지 못했어요. 다시 시도해 주세요') }
   }
