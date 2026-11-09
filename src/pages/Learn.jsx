@@ -150,7 +150,9 @@ export function Artist() {
 const pad = (n) => String(n).padStart(2, '0')
 function EventModal({ e, onClose }) {
   const { S, reserve, cancelRes, toast } = useApp()
-  const r = S.reservations.some((x) => x.id === e.id), j = e.joined + (r ? 1 : 0), full = j >= e.cap && !r
+  const r = S.reservations.some((x) => x.id === e.id)
+const j = adminReservations.filter((x) => x.eventId === e.id).length
+const full = j >= Number(e.cap || 0) && !r
   useEffect(() => { const k = (ev) => ev.key === 'Escape' && onClose(); addEventListener('keydown', k); return () => removeEventListener('keydown', k) }, [onClose])
   return (
     <div className="modal" onClick={(ev) => ev.target === ev.currentTarget && onClose()}>
