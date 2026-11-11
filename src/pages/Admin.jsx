@@ -392,47 +392,50 @@ const deleteArticle = async (article) => {
 
       <div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
         <label>
-          Название товара (한국어)
-          <input
-            value={productForm.name}
-            onChange={(e) => updateProductField('name', e.target.value)}
-            placeholder="상품명"
-          />
-        </label>
+         
+<label>
+  {lang === 'ru' ? 'Название товара (한국어)' : '상품명 (한국어)'}
+  <input
+    value={productForm.name}
+    onChange={(e) => updateProductField('name', e.target.value)}
+    placeholder="상품명"
+  />
+</label>
 
-        <label>
-          Название товара (русский)
-          <input
-            value={productForm.nameRu}
-            onChange={(e) => updateProductField('nameRu', e.target.value)}
-            placeholder="Название товара"
-          />
-        </label>
+<label>
+  {lang === 'ru' ? 'Название товара (русский)' : '상품명 (러시아어)'}
+  <input
+    value={productForm.nameRu}
+    onChange={(e) => updateProductField('nameRu', e.target.value)}
+    placeholder="Название товара"
+  />
+</label>
 
-        <label>
-          Цена (₩)
-          <input
-            type="number"
-            value={productForm.price}
-            onChange={(e) => updateProductField('price', e.target.value)}
-            placeholder="100000"
-          />
-        </label>
+<label>
+  {lang === 'ru' ? 'Цена (₩)' : '가격 (₩)'}
+  <input
+    type="number"
+    value={productForm.price}
+    onChange={(e) => updateProductField('price', e.target.value)}
+    placeholder="100000"
+  />
+</label>
 
-        <label>
-          Категория
-          <select
-            value={productForm.cat}
-            onChange={(e) => updateProductField('cat', e.target.value)}
-          >
-            <option value="bag">Сумки</option>
-            <option value="home">Для дома</option>
-            <option value="accessory">Аксессуары</option>
-            <option value="clothes">Одежда</option>
-          </select>
-        </label>
-               <label>
-  Фотографии товара
+<label>
+  {lang === 'ru' ? 'Категория' : '카테고리'}
+  <select
+    value={productForm.cat}
+    onChange={(e) => updateProductField('cat', e.target.value)}
+  >
+    <option value="bag">{lang === 'ru' ? 'Сумки' : '가방'}</option>
+    <option value="home">{lang === 'ru' ? 'Для дома' : '홈 인테리어'}</option>
+    <option value="accessory">{lang === 'ru' ? 'Аксессуары' : '액세서리'}</option>
+    <option value="clothes">{lang === 'ru' ? 'Одежда' : '의류'}</option>
+  </select>
+</label>
+
+<label>
+  {lang === 'ru' ? 'Фотографии товара' : '상품 사진'}
 
   <input
     type="url"
@@ -442,10 +445,12 @@ const deleteArticle = async (article) => {
       ...prev,
       images: [e.target.value, ...(prev.images || []).slice(1)]
     }))}
-    placeholder="Ссылка на первую фотографию"
+    placeholder={lang === 'ru' ? 'Ссылка на первую фотографию' : '첫 번째 사진 URL'}
   />
 
-  <span>Или выберите несколько фотографий с компьютера:</span>
+  <span>
+    {lang === 'ru' ? 'Или выберите несколько фотографий с компьютера:' : '또는 컴퓨터에서 사진 여러 장 선택:'}
+  </span>
 
   <input
     type="file"
@@ -504,56 +509,64 @@ const deleteArticle = async (article) => {
     ))}
   </div>
 </label>
-                <label>
-          Описание товара (한국어)
-          <textarea
-            value={productForm.desc}
-            onChange={(e) => updateProductField('desc', e.target.value)}
-            placeholder="상품 설명"
-          />
-        </label>
 
-        <label>
-          Описание товара (русский)
-          <textarea
-            value={productForm.descRu}
-            onChange={(e) => updateProductField('descRu', e.target.value)}
-            placeholder="Описание товара"
-          />
-        </label>
-                <label>
-          Материал
-          <input
-            value={productForm.material}
-            onChange={(e) => updateProductField('material', e.target.value)}
-            placeholder="면, 린넨, 울 등"
-          />
-        </label>
-                <label>
-          Цвета (перечисли через запятую)
-          <input
-            value={productForm.colors.join(', ')}
-            onChange={(e) => setProductForm({
-              ...productForm,
-              colors: e.target.value.split(',').map((x) => x.trim())
-            })}
-            placeholder="Бежевый, белый, коричневый"
-          />
-        </label>
-                <label>
-          Размеры (через запятую)
-          <input
-            value={productForm.sizes.join(', ')}
-            onChange={(e) => setProductForm({
-              ...productForm,
-              sizes: e.target.value.split(',').map((x) => x.trim())
-            })}
-            placeholder="S, M, L или 20×15 см"
-          />
-        </label>
-                <button className="btn" onClick={saveProduct}>
-          {editingProductId ? 'Сохранить изменения' : 'Добавить товар'}
-        </button>
+<label>
+  {lang === 'ru' ? 'Описание товара (한국어)' : '상품 설명 (한국어)'}
+  <textarea
+    value={productForm.desc}
+    onChange={(e) => updateProductField('desc', e.target.value)}
+    placeholder="상품 설명"
+  />
+</label>
+
+<label>
+  {lang === 'ru' ? 'Описание товара (русский)' : '상품 설명 (러시아어)'}
+  <textarea
+    value={productForm.descRu}
+    onChange={(e) => updateProductField('descRu', e.target.value)}
+    placeholder="Описание товара"
+  />
+</label>
+
+<label>
+  {lang === 'ru' ? 'Материал' : '소재'}
+  <input
+    value={productForm.material}
+    onChange={(e) => updateProductField('material', e.target.value)}
+    placeholder="면, 린넨, 울 등"
+  />
+</label>
+
+<label>
+  {lang === 'ru' ? 'Цвета (перечислите через запятую)' : '색상 (쉼표로 구분)'}
+  <input
+    value={productForm.colors.join(', ')}
+    onChange={(e) => setProductForm({
+      ...productForm,
+      colors: e.target.value.split(',').map((x) => x.trim())
+    })}
+    placeholder={lang === 'ru' ? 'Бежевый, белый, коричневый' : '베이지, 흰색, 갈색'}
+  />
+</label>
+
+<label>
+  {lang === 'ru' ? 'Размеры (через запятую)' : '사이즈 (쉼표로 구분)'}
+  <input
+    value={productForm.sizes.join(', ')}
+    onChange={(e) => setProductForm({
+      ...productForm,
+      sizes: e.target.value.split(',').map((x) => x.trim())
+    })}
+    placeholder="S, M, L 또는 20×15 см"
+  />
+</label>
+
+<button className="btn" onClick={saveProduct}>
+  {editingProductId
+    ? (lang === 'ru' ? 'Сохранить изменения' : '수정 사항 저장')
+    : (lang === 'ru' ? 'Добавить товар' : '상품 추가')}
+</button>
+
 
         {editingProductId && (
           <button
