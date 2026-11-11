@@ -224,3 +224,10 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
     white-space: nowrap;
   }
 }
+/* Keep language buttons on one line */
+.tools .ibtn:nth-child(1),
+.tools .ibtn:nth-child(2) {
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 0 8px;
+}
