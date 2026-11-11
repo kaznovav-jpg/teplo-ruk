@@ -1065,5 +1065,9 @@ const deleteArticle = async (article) => {
         })}
       </tbody>
     </table>
-  </div>
+   </div>
 )}
+
+</main>
+  )
+}
