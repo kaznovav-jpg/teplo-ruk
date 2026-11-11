@@ -6,7 +6,21 @@ export const FREE_SHIP = 30000
 export const SHIP = 3000
 export const won = (n) => n.toLocaleString('ko-KR') + '원'
 export const dFmt = (iso) => new Date(iso).toLocaleDateString('ko-KR')
-export const artistName = (D, id) => D.artists.find((a) => a.id === id)?.name || ''
+export const artistName = (D, id, lang = 'ko') => {
+  const artist = D.artists.find((a) => a.id === id)
+  if (!artist) return ''
+
+  if (lang === 'ru') {
+    return {
+      a1: 'Со Ха',
+      a2: 'Он Гёль',
+      a3: 'Мори',
+      a4: 'Дамсоль'
+    }[id] || artist.name
+  }
+
+  return artist.name
+}
 
 // 이미지를 불러오지 못할 때 보여줄 내장 플레이스홀더(SVG)
 export function ph(seed, w = 600, h = 750) {
