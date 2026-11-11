@@ -958,7 +958,7 @@ const deleteArticle = async (article) => {
   </button>
 )}
 </div>
-      <h2>등록된 수업 일정</h2>
+      <h2>{lang === 'ru' ? 'Запланированные занятия' : '등록된 수업 일정'}</h2>
 
 <div style={{ display: 'grid', gap: 10, marginBottom: 30 }}>
   {events.map((event) => (
