@@ -20,6 +20,7 @@ function Group({ title, items, sel, onFlip }) {
 export function Category() {
   const [sp] = useSearchParams(), c = sp.get('c') || 'all', s = sp.get('s') || ''
     const { products } = useApp()
+const { lang } = useLanguage()
   const name = c === 'all' ? '전체 상품' : CATS.find((x) => x[0] === c)?.[1] || '전체 상품'
   useTitle(name)
   const base = useMemo(() => products.filter((p) => (c === 'all' || p.cat === c) && (!s || p.name.includes(s))), [c, s])
