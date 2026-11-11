@@ -881,11 +881,12 @@ const deleteArticle = async (article) => {
     </div>
   ))}
 </div>
-      <h2>{lang === 'ru' ? 'Управление расписанием занятий' : '수업 일정 관리'}</h2>
+    
+<h2>{lang === 'ru' ? 'Управление расписанием занятий' : '수업 일정 관리'}</h2>
 
 <div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
   <label>
-    날짜
+    {lang === 'ru' ? 'Дата' : '날짜'}
     <input
       type="date"
       value={eventForm.ymd}
@@ -894,7 +895,7 @@ const deleteArticle = async (article) => {
   </label>
 
   <label>
-    시간
+    {lang === 'ru' ? 'Время' : '시간'}
     <input
       type="text"
       placeholder="14:00-16:00"
@@ -904,7 +905,7 @@ const deleteArticle = async (article) => {
   </label>
 
   <label>
-    수업명
+    {lang === 'ru' ? 'Название занятия' : '수업명'}
     <input
       type="text"
       value={eventForm.title}
@@ -913,7 +914,7 @@ const deleteArticle = async (article) => {
   </label>
 
   <label>
-    장소
+    {lang === 'ru' ? 'Место проведения' : '장소'}
     <input
       type="text"
       value={eventForm.place}
@@ -922,7 +923,7 @@ const deleteArticle = async (article) => {
   </label>
 
   <label>
-    모집 인원
+    {lang === 'ru' ? 'Количество мест' : '모집 인원'}
     <input
       type="number"
       min="1"
@@ -931,34 +932,38 @@ const deleteArticle = async (article) => {
     />
   </label>
 
- <button
-  className="btn"
-  onClick={editingEventId ? updateEvent : addEvent}
->
-  {editingEventId ? '수정 완료' : '일정 저장'}
-</button>
-
-{editingEventId && (
   <button
-    className="btn ghost"
-    onClick={() => {
-      setEditingEventId(null)
-      setEventForm({
-        ymd: '',
-        time: '',
-        type: '수업',
-        title: '',
-        place: '',
-        cap: 8,
-        online: false
-      })
-    }}
+    className="btn"
+    onClick={editingEventId ? updateEvent : addEvent}
   >
-    취소
+    {editingEventId
+      ? (lang === 'ru' ? 'Сохранить изменения' : '수정 완료')
+      : (lang === 'ru' ? 'Сохранить расписание' : '일정 저장')}
   </button>
-)}
+
+  {editingEventId && (
+    <button
+      className="btn ghost"
+      onClick={() => {
+        setEditingEventId(null)
+        setEventForm({
+          ymd: '',
+          time: '',
+          type: '수업',
+          title: '',
+          place: '',
+          cap: 8,
+          online: false
+        })
+      }}
+    >
+      {lang === 'ru' ? 'Отмена' : '취소'}
+    </button>
+  )}
 </div>
-      <h2>{lang === 'ru' ? 'Запланированные занятия' : '등록된 수업 일정'}</h2>
+
+<h2>{lang === 'ru' ? 'Запланированные занятия' : '등록된 수업 일정'}</h2>
+
 
 <div style={{ display: 'grid', gap: 10, marginBottom: 30 }}>
   {events.map((event) => (
