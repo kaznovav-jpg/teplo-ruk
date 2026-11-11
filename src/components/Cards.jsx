@@ -44,7 +44,7 @@ export function ProductCard({ p, D }) {
         </div>
       </Link>
       <div className="bd">{p.badges.map((b) => <span key={b} className="badge">{b}</span>)}</div>
-      <Link to={`/product/${p.id}`}><p className="ar">{artistName(D, p.artist, lang)}</p><p className="nm">{name}</p><p className="pr">{won(p.price)}</p></Link>
+      <Link to={`/product/${p.id}`}><p className="ar">{artistName(D, p.artist, lang)}</p><p className="nm">{name}</p><p className="pr">{won(p.price, lang)}</p></Link>
       <Heart id={p.id} label={p.name} />
     </article>
   )
