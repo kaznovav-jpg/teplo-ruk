@@ -597,8 +597,6 @@ const deleteArticle = async (article) => {
 
 <div style={{ display: 'grid', gap: 10, marginBottom: 30 }}>
   <label>
-    
-<label>
   {lang === 'ru' ? 'Название статьи (한국어)' : '아티클 제목 (한국어)'}
   <input
     className="field"
