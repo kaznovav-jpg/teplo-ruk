@@ -802,51 +802,51 @@ const deleteArticle = async (article) => {
     : (lang === 'ru' ? 'Добавить статью' : '아티클 추가')}
 </button>
 </div>
-      <h2>Список товаров</h2>
+      <h2>{lang === 'ru' ? 'Список товаров' : '상품 목록'}</h2>
 
-      <div style={{ display: 'grid', gap: 12, marginBottom: 30 }}>
-        {products.map((product) => (
-          <div
-            key={product.id}
-            style={{
-              padding: 12,
-              border: '1px solid #ddd',
-              borderRadius: 8
-            }}
-          >
-            {product.images?.[0] && (
-              <img
-                src={product.images[0]}
-                alt={product.name}
-                style={{
-                  width: 100,
-                  height: 100,
-                  objectFit: 'cover',
-                  borderRadius: 8
-                }}
-              />
-            )}
+<div style={{ display: 'grid', gap: 12, marginBottom: 30 }}>
+  {products.map((product) => (
+    <div
+      key={product.id}
+      style={{
+        padding: 12,
+        border: '1px solid #ddd',
+        borderRadius: 8
+      }}
+    >
+      {product.images?.[0] && (
+        <img
+          src={product.images[0]}
+          alt={product.name}
+          style={{
+            width: 100,
+            height: 100,
+            objectFit: 'cover',
+            borderRadius: 8
+          }}
+        />
+      )}
 
-            <strong>{product.name}</strong>
-            <p>{product.nameRu || ''}</p>
-            <p>{Number(product.price || 0).toLocaleString()} ₩</p>
+      <strong>{product.name}</strong>
+      <p>{product.nameRu || ''}</p>
+      <p>{Number(product.price || 0).toLocaleString()} ₩</p>
 
-            <button
-              className="btn"
-              onClick={() => editProduct(product)}
-            >
-              Редактировать
-            </button>
+      <button
+        className="btn"
+        onClick={() => editProduct(product)}
+      >
+        {lang === 'ru' ? 'Редактировать' : '수정'}
+      </button>
 
-            <button
-              className="btn ghost"
-              onClick={() => deleteProduct(product)}
-            >
-              Удалить
-            </button>
-          </div>
-        ))}
-      </div>
+      <button
+        className="btn ghost"
+        onClick={() => deleteProduct(product)}
+      >
+        {lang === 'ru' ? 'Удалить' : '삭제'}
+      </button>
+    </div>
+  ))}
+</div>
 
       <h2>Список статей</h2>
 
