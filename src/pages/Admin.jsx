@@ -966,82 +966,88 @@ const deleteArticle = async (article) => {
 
 
 <div style={{ display: 'grid', gap: 10, marginBottom: 30 }}>
-  {events.map((event) => (
-    <div
-      key={event.id}
-      style={{
-        padding: 12,
-        border: '1px solid #ddd',
-        borderRadius: 8
-      }}
+ 
+{events.map((event) => (
+  <div
+    key={event.id}
+    style={{
+      padding: 16,
+      border: '1px solid #ddd',
+      borderRadius: 8,
+      marginBottom: 12
+    }}
+  >
+    <strong>{event.title}</strong>
+    <p>{event.ymd} · {event.time}</p>
+    <p>
+      {event.place || '-'} · {lang === 'ru' ? 'Мест' : '모집'} {event.cap}
+      {lang === 'ru' ? '' : '명'}
+    </p>
+
+    <button
+      className="btn"
+      onClick={() => editEvent(event)}
     >
-      <strong>{event.title}</strong>
-      <p>{event.ymd} · {event.time}</p>
-      <p>{event.place || '-' } · 모집 {event.cap}명</p>
+      {lang === 'ru' ? 'Редактировать' : '수정'}
+    </button>
 
-           <button
-        className="btn"
-        onClick={() => editEvent(event)}
-      >
-        수정
-      </button>
-
-      <button
-        className="btn ghost"
-        onClick={() => deleteEvent(event)}
-      >
-        삭제
-      </button>
-    </div>
-  ))}
+    <button
+      className="btn ghost"
+      onClick={() => deleteEvent(event)}
+    >
+      {lang === 'ru' ? 'Удалить' : '삭제'}
+    </button>
+  </div>
+))}
 </div>
-      <h2>{lang === 'ru' ? 'Список записей на занятия' : '수업 신청 목록'}</h2>
 
-      {!isFirebase && (
-        <p>Firebase 연결이 필요합니다.</p>
-      )}
+<h2>{lang === 'ru' ? 'Список записей на занятия' : '수업 신청 목록'}</h2>
 
-      <p>전체 신청: {adminReservations.length}명</p>
+{!isFirebase && (
+  <p>{lang === 'ru' ? 'Необходимо подключение Firebase.' : 'Firebase 연결이 필요합니다.'}</p>
+)}
 
-      {adminReservations.length === 0 ? (
-        <p>아직 신청자가 없습니다.</p>
-      ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table>
-            <thead>
-              <tr>
-                <th>수업</th>
-                <th>이름</th>
-                <th>이메일</th>
-                <th>연락처</th>
-                <th>신청일</th>
-              </tr>
-            </thead>
-            <tbody>
-              {adminReservations.map((r) => {
-                const event = events.find((e) => e.id === r.eventId)
+<p>
+  {lang === 'ru' ? 'Всего заявок:' : '전체 신청:'} {adminReservations.length}
+  {lang === 'ru' ? '' : '명'}
+</p>
 
-                return (
-                  <tr key={r.id}>
-                   <td>
-  {r.eventTitle ||
-    event?.title ||
-    D.extras.events.find((e) => e.id === r.eventId)?.title ||
-    r.eventId}
-</td>
-                    <td>{r.name || '-'}</td>
-                    <td>{r.email || '-'}</td>
-                    <td>{r.phone || '-'}</td>
-                    <td>
-                      {r.at ? new Date(r.at).toLocaleString() : '-'}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </main>
-  )
-}
+{adminReservations.length === 0 ? (
+  <p>{lang === 'ru' ? 'Пока нет записавшихся.' : '아직 신청자가 없습니다.'}</p>
+) : (
+  <div style={{ overflowX: 'auto' }}>
+    <table>
+      <thead>
+        <tr>
+          <th>{lang === 'ru' ? 'Занятие' : '수업'}</th>
+          <th>{lang === 'ru' ? 'Имя' : '이름'}</th>
+          <th>{lang === 'ru' ? 'Электронная почта' : '이메일'}</th>
+          <th>{lang === 'ru' ? 'Контакт' : '연락처'}</th>
+          <th>{lang === 'ru' ? 'Дата записи' : '신청일'}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {adminReservations.map((r) => {
+          const event = events.find((e) => e.id === r.eventId)
+
+          return (
+            <tr key={r.id}>
+              <td>
+                {r.eventTitle ||
+                  event?.title ||
+                  D.extras.events.find((e) => e.id === r.eventId)?.title ||
+                  r.eventId}
+              </td>
+              <td>{r.name || '-'}</td>
+              <td>{r.email || '-'}</td>
+              <td>{r.phone || '-'}</td>
+              <td>
+                {r.at ? new Date(r.at).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR') : '-'}
+              </td>
+            </tr>
+          )
+        })}
+      </tbody>
+    </table>
+  </div>
+)}
