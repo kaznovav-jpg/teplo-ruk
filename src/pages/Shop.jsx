@@ -55,11 +55,18 @@ const { lang } = useLanguage()
         </aside>
         <div>
           <div className="bar">
-            <button className="btn ghost fbtn" onClick={() => setSheet(true)}>필터</button>
-            <span className="muted">총 {list.length}개</span>
-            <select aria-label="정렬" value={sort} onChange={(e) => setSort(e.target.value)}>
-              <option value="pop">인기순</option><option value="new">최신순</option><option value="lo">낮은 가격순</option><option value="hi">높은 가격순</option>
-            </select>
+            <button className="btn ghost fbtn" onClick={() => setSheet(true)}>
+  {lang === 'ru' ? 'Фильтры' : '필터'}
+</button>
+<span className="muted">
+  {lang === 'ru' ? `Всего: ${list.length}` : `총 ${list.length}개`}
+</span>
+<select aria-label={lang === 'ru' ? 'Сортировка' : '정렬'} value={sort} onChange={(e) => setSort(e.target.value)}>
+  <option value="pop">{lang === 'ru' ? 'По популярности' : '인기순'}</option>
+  <option value="new">{lang === 'ru' ? 'Сначала новые' : '최신순'}</option>
+  <option value="lo">{lang === 'ru' ? 'Сначала дешевле' : '낮은 가격순'}</option>
+  <option value="hi">{lang === 'ru' ? 'Сначала дороже' : '높은 가격순'}</option>
+</select>
           </div>
           <div className="grid g4">
             {list.length ? list.map((p) => <ProductCard key={p.id} p={p} D={D} />) : <p className="empty" style={{ gridColumn: '1/-1' }}>조건에 맞는 상품이 없어요. 필터를 줄여 보세요.</p>}
