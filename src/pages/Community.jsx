@@ -63,38 +63,34 @@ useTitle(title)
         <div className="thumb wide"><Img src={a.thumb} alt={`${a.title} 대표 이미지`} seed={a.id} h={400} loading="eager" /></div>
                 {excerpt && <p className="lead">{excerpt}</p>}
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: 12,
-          marginTop: 20
-        }}>
-          {(a.images?.length ? a.images.slice(1) : []).map((url, i) => (
-            <Img
-              key={i}
-              src={url}
-              alt={`${title} — ${i + 2}`}
-              seed={`${a.id}-${i}`}
-              h={260}
-            />
-          ))}
-        </div>
-
-        <nav className="lead" aria-label="목차" style={{ marginTop: 20 }}>
-          <ol style={{ marginTop: 6 }}>{body.map((s, i) => <li key={i}><button className="btn ghost" style={{ border: 0, justifyContent: 'flex-start' }} onClick={() => document.getElementById('sec' + i)?.scrollIntoView({ behavior: 'smooth' })}>{i + 1}. {s.heading}</button></li>)}</ol>
-        </nav>
-       {body.map((s, i) => <div key={i}><h2 id={'sec' + i} style={{ fontSize: '1.3rem', marginTop: 26 }}>{s.heading}</h2><p>{s.text}</p></div>)}
-        <div className="acts"><button className="btn ghost" onClick={() => share(toast)}>공유하기</button><Heart id={a.id} text /></div>
-        <h2 className="mt" style={{ fontSize: '1.3rem' }}>관련 상품</h2>
-        <div className="grid g4" style={{ marginTop: 12, gridTemplateColumns: 'repeat(2,1fr)' }}>{a.related.map((pid) => <ProductCard key={pid} p={D.products.find((p) => p.id === pid)} D={D} />)}</div>
-        <div className="mt"><Comments id={a.id} sample={a.thread} /></div>
-        <h2 className="mt" style={{ fontSize: '1.3rem' }}>관련 글</h2>
-        <div className="grid g3" style={{ marginTop: 12, gridTemplateColumns: 'repeat(2,1fr)' }}>{articles.filter((x) => x.id !== a.id).slice(0, 2).map((x) => <ArticleCard key={x.id} a={x} />)}</div>
-      </div>
-      <div style={{ height: 48 }} />
-    </div>
-  )
-}
+        
+<div style={{
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+  gap: 12,
+  marginTop: 20
+}}>
+  {(a.images?.length ? a.images.slice(1) : []).map((url, i) => (
+    <button
+      key={i}
+      type="button"
+      onClick={() => window.open(url, '_blank')}
+      style={{
+        border: 0,
+        padding: 0,
+        background: 'transparent',
+        cursor: 'zoom-in'
+      }}
+    >
+      <Img
+        src={url}
+        alt={`${title} — ${i + 2}`}
+        seed={`${a.id}-${i}`}
+        h={260}
+      />
+    </button>
+  ))}
+</div>
 
 const useAll = () => { const { posts, S } = useApp(); return { all: [...posts, ...D.posts], likeN: (p) => (p.likes || 0) + (S.likes.includes(p.id) ? 1 : 0) } }
 const cmtN = (p) => (p.thread || []).length || p.comments || 0
