@@ -69,12 +69,16 @@ const { lang } = useLanguage()
 </select>
           </div>
           <div className="grid g4">
-            {list.length ? list.map((p) => <ProductCard key={p.id} p={p} D={D} />) : <p className="empty" style={{ gridColumn: '1/-1' }}>
-  {lang === 'ru'
-    ? 'Товары не найдены. Попробуйте изменить фильтры.'
-    : '조건에 맞는 상품이 없어요. 필터를 줄여 보세요.'}
-</p>
-          </div>
+  {list.length ? (
+    list.map((p) => <ProductCard key={p.id} p={p} D={D} />)
+  ) : (
+    <p className="empty" style={{ gridColumn: '1/-1' }}>
+      {lang === 'ru'
+        ? 'Товары не найдены. Попробуйте изменить фильтры.'
+        : '조건에 맞는 상품이 없어요. 필터를 줄여 보세요.'}
+    </p>
+  )}
+</div>
         </div>
       </div>
     </div>
