@@ -4,7 +4,7 @@ export const BOARDS = [['wip', '작업과정(WIP) 포토'], ['show', '자랑하�
 export const isPhoto = (b) => b === 'wip' || b === 'show'
 export const FREE_SHIP = 30000
 export const SHIP = 3000
-export const won = (n) => n.toLocaleString('ko-KR') + '원'
+export const won = (n, lang = 'ko') => n.toLocaleString('ko-KR') + (lang === 'ru' ? ' ₩' : '원')
 export const dFmt = (iso) => new Date(iso).toLocaleDateString('ko-KR')
 export const artistName = (D, id, lang = 'ko') => {
   const artist = D.artists.find((a) => a.id === id)
