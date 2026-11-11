@@ -43,7 +43,7 @@ export function ProductCard({ p, D }) {
           {p.soldOut && <div className="so">{lang === 'ru' ? 'Нет в наличии' : '품절'}</div>}
         </div>
       </Link>
-      <div className="bd">{p.badges.map((b) => <span key={b} className="badge">{b}</span>)}</div>
+     <div className="bd">{p.badges.map((b) => <span key={b} className="badge">{lang === 'ru' ? ({ 주문제작: 'На заказ', 품절: 'Нет в наличии' }[b] || b) : b}</span>)}</div>
       <Link to={`/product/${p.id}`}><p className="ar">{artistName(D, p.artist, lang)}</p><p className="nm">{name}</p><p className="pr">{won(p.price, lang)}</p></Link>
       <Heart id={p.id} label={p.name} />
     </article>
