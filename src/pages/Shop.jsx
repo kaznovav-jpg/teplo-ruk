@@ -47,7 +47,7 @@ const { lang } = useLanguage()
           <Group title={lang === 'ru' ? 'Цена' : '가격'} items={PR.map((p, i) => [i, lang === 'ru' ? ['До 30 000 ₩', '30 000–70 000 ₩', 'От 70 000 ₩'][i] : p[0]])} sel={f.pr} onFlip={flip('pr')} />
 <Group title={lang === 'ru' ? 'Материал' : '소재'} items={uniq((p) => [p.material]).map((m) => [m, lang === 'ru' ? ({ 린넨: 'Лён', 면: 'Хлопок', 캔버스: 'Канвас', 울: 'Шерсть', 양모: 'Шерсть', 나무: 'Дерево' }[m] || m) : m])} sel={f.m} onFlip={flip('m')} />
 <Group title={lang === 'ru' ? 'Цвет' : '색상'} items={uniq((p) => p.colors).map((m) => [m, lang === 'ru' ? ({ 아이보리: 'Слоновая кость', 베이지: 'Бежевый', 테라코타: 'Терракотовый', 차콜: 'Графитовый', 세이지: 'Шалфейный', 머스터드: 'Горчичный', 레드: 'Красный', 블루: 'Синий' }[m] || m) : m])} sel={f.c} onFlip={flip('c')} />
-<Group title={lang === 'ru' ? 'Мастер' : '작가'} items={uniq((p) => [p.artist]).map((a) => [a, artistName(D, a)])} sel={f.a} onFlip={flip('a')} />
+<Group title={lang === 'ru' ? 'Мастер' : '작가'} items={uniq((p) => [p.artist]).map((a) => [a, artistName(D, a, lang)])} sel={f.a} onFlip={flip('a')} />
 <fieldset><legend>{lang === 'ru' ? 'Статус' : '상태'}</legend>
   <label><input type="checkbox" checked={onlyNew} onChange={() => setNew(!onlyNew)} />{lang === 'ru' ? 'Только новинки' : '신상품만'}</label>
   <label><input type="checkbox" checked={inStock} onChange={() => setStock(!inStock)} />{lang === 'ru' ? 'Только в наличии' : '품절 제외'}</label>
