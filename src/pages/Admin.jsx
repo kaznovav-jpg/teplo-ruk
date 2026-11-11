@@ -388,7 +388,7 @@ const deleteArticle = async (article) => {
   return (
     <main className="page">
       <h1>{lang === 'ru' ? 'Панель администратора' : '관리자 페이지'}</h1>
-            <h2>Управление товарами</h2>
+            <h2>{lang === 'ru' ? 'Управление товарами' : '상품 관리'}</h2>
 
       <div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
         <label>
