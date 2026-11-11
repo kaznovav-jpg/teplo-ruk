@@ -990,7 +990,7 @@ const deleteArticle = async (article) => {
     </div>
   ))}
 </div>
-      <h2>수업 신청 목록</h2>
+      <h2>{lang === 'ru' ? 'Список записей на занятия' : '수업 신청 목록'}</h2>
 
       {!isFirebase && (
         <p>Firebase 연결이 필요합니다.</p>
