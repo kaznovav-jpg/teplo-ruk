@@ -39,7 +39,7 @@ const { lang } = useLanguage()
   const uniq = (fn) => [...new Set(base.flatMap(fn))]
   return (
     <div className="wrap">
-      <Crumb items={[<Link to="/category?c=all">공예 종류</Link>, name]} />
+      <Crumb items={[<Link to="/category?c=all">{lang === 'ru' ? 'Виды рукоделия' : '공예 종류'}</Link>, name]} />
       <h1 style={{ fontSize: '1.8rem', marginBottom: 18 }}>{name}</h1>
       <div className="cat-lay">
         <aside className={'filters' + (sheet ? ' on' : '')}>
