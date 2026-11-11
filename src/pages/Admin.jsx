@@ -848,7 +848,7 @@ const deleteArticle = async (article) => {
   ))}
 </div>
 
-      <h2>Список статей</h2>
+      <h2>{lang === 'ru' ? 'Список статей' : '아티클 목록'}</h2>
 
 <div style={{ display: 'grid', gap: 12, marginBottom: 30 }}>
   {articles.map((article) => (
@@ -881,14 +881,14 @@ const deleteArticle = async (article) => {
         className="btn"
         onClick={() => editArticle(article)}
       >
-        Редактировать
+        {lang === 'ru' ? 'Редактировать' : '수정'}
       </button>
 
       <button
         className="btn ghost"
         onClick={() => deleteArticle(article)}
       >
-        Удалить
+        {lang === 'ru' ? 'Удалить' : '삭제'}
       </button>
     </div>
   ))}
