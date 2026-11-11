@@ -6,6 +6,7 @@ import * as F from '../lib/firebase.js'
 
 export default function Admin() {
   const { user, isAdmin, adminReservations, adminEvents, products, articles, isFirebase } = useApp()
+    const { lang } = useLanguage()
   const [eventForm, setEventForm] = useState({
   ymd: '',
   time: '',
