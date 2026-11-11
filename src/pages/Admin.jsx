@@ -386,7 +386,7 @@ const deleteArticle = async (article) => {
     setProductForm((prev) => ({ ...prev, [field]: value }))
   }
   return (
-    <main className="page">
+    <main className="page" style={{ maxWidth: '1100px', margin: '0 auto', padding: '32px 24px' }}>
       <h1>{lang === 'ru' ? 'Панель администратора' : '관리자 페이지'}</h1>
             <h2>{lang === 'ru' ? 'Управление товарами' : '상품 관리'}</h2>
 
