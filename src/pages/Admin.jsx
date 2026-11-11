@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useApp } from '../lib/store.jsx'
+import { useLanguage } from '../lib/language.jsx'
 import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 
