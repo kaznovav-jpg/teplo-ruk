@@ -391,8 +391,6 @@ const deleteArticle = async (article) => {
             <h2>{lang === 'ru' ? 'Управление товарами' : '상품 관리'}</h2>
 
       <div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
-        <label>
-         
 <label>
   {lang === 'ru' ? 'Название товара (한국어)' : '상품명 (한국어)'}
   <input
