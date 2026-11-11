@@ -989,7 +989,11 @@ const deleteArticle = async (article) => {
       marginBottom: 12
     }}
   >
-    <strong>{event.title}</strong>
+    <strong>
+  {lang === 'ru'
+    ? (event.titleRu || event.title)
+    : (event.titleKo || event.title)}
+</strong>
     <p>{event.ymd} · {event.time}</p>
     <p>
       {event.place || '-'} · {lang === 'ru' ? 'Мест' : '모집'} {event.cap}
