@@ -597,66 +597,68 @@ const deleteArticle = async (article) => {
 
 <div style={{ display: 'grid', gap: 10, marginBottom: 30 }}>
   <label>
-    Название статьи (한국어)
-    <input
-      className="field"
-      value={articleForm.title}
-      onChange={(e) => setArticleForm({ ...articleForm, title: e.target.value })}
-    />
-  </label>
+    
+<label>
+  {lang === 'ru' ? 'Название статьи (한국어)' : '아티클 제목 (한국어)'}
+  <input
+    className="field"
+    value={articleForm.title}
+    onChange={(e) => setArticleForm({ ...articleForm, title: e.target.value })}
+  />
+</label>
 
-  <label>
-    Название статьи (Русский)
-    <input
-      className="field"
-      value={articleForm.titleRu}
-      onChange={(e) => setArticleForm({ ...articleForm, titleRu: e.target.value })}
-    />
-  </label>
+<label>
+  {lang === 'ru' ? 'Название статьи (Русский)' : '아티클 제목 (러시아어)'}
+  <input
+    className="field"
+    value={articleForm.titleRu}
+    onChange={(e) => setArticleForm({ ...articleForm, titleRu: e.target.value })}
+  />
+</label>
 
-  <label>
-    Категория
-    <select
-      className="field"
-      value={articleForm.tag}
-      onChange={(e) => setArticleForm({ ...articleForm, tag: e.target.value })}
-    >
-      <option value="정보">Информация</option>
-      <option value="트렌드">Тренды</option>
-      <option value="리뷰">Обзоры</option>
-    </select>
-  </label>
+<label>
+  {lang === 'ru' ? 'Категория' : '카테고리'}
+  <select
+    className="field"
+    value={articleForm.tag}
+    onChange={(e) => setArticleForm({ ...articleForm, tag: e.target.value })}
+  >
+    <option value="정보">{lang === 'ru' ? 'Информация' : '정보'}</option>
+    <option value="트렌드">{lang === 'ru' ? 'Тренды' : '트렌드'}</option>
+    <option value="리뷰">{lang === 'ru' ? 'Обзоры' : '리뷰'}</option>
+  </select>
+</label>
 
-  <label>
-    Дата публикации
-    <input
-      className="field"
-      type="date"
-      value={articleForm.date}
-      onChange={(e) => setArticleForm({ ...articleForm, date: e.target.value })}
-    />
-  </label>
+<label>
+  {lang === 'ru' ? 'Дата публикации' : '게시 날짜'}
+  <input
+    className="field"
+    type="date"
+    value={articleForm.date}
+    onChange={(e) => setArticleForm({ ...articleForm, date: e.target.value })}
+  />
+</label>
 
-  <label>
-    Краткое описание (한국어)
-    <textarea
-      className="field"
-      value={articleForm.excerpt}
-      onChange={(e) => setArticleForm({ ...articleForm, excerpt: e.target.value })}
-    />
-  </label>
+<label>
+  {lang === 'ru' ? 'Краткое описание (한국어)' : '간단한 설명 (한국어)'}
+  <textarea
+    className="field"
+    value={articleForm.excerpt}
+    onChange={(e) => setArticleForm({ ...articleForm, excerpt: e.target.value })}
+  />
+</label>
 
-  <label>
-    Краткое описание (Русский)
-    <textarea
-      className="field"
-      value={articleForm.excerptRu}
-      onChange={(e) => setArticleForm({ ...articleForm, excerptRu: e.target.value })}
-    />
-  </label>
+<label>
+  {lang === 'ru' ? 'Краткое описание (Русский)' : '간단한 설명 (러시아어)'}
+  <textarea
+    className="field"
+    value={articleForm.excerptRu}
+    onChange={(e) => setArticleForm({ ...articleForm, excerptRu: e.target.value })}
+  />
+</label>
 
-  <label>
-  Фотографии статьи
+<label>
+  {lang === 'ru' ? 'Фотографии статьи' : '아티클 사진'}
 
   <input
     className="field"
@@ -728,11 +730,11 @@ const deleteArticle = async (article) => {
   </div>
 </label>
 
-  {articleForm.body.map((section, index) => (
+{articleForm.body.map((section, index) => (
   <div key={index} style={{ border: '1px solid #ddd', borderRadius: 8, padding: 12, display: 'grid', gap: 10 }}>
-    <strong>Раздел {index + 1}</strong>
+    <strong>{lang === 'ru' ? `Раздел ${index + 1}` : `섹션 ${index + 1}`}</strong>
 
-    <label>Заголовок (한국어)
+    <label>{lang === 'ru' ? 'Заголовок (한국어)' : '제목 (한국어)'}
       <input className="field" value={section.heading || ''} onChange={(e) => {
         const body = [...articleForm.body]
         body[index] = { ...section, heading: e.target.value }
@@ -740,7 +742,7 @@ const deleteArticle = async (article) => {
       }} />
     </label>
 
-    <label>Текст (한국어)
+    <label>{lang === 'ru' ? 'Текст (한국어)' : '본문 (한국어)'}
       <textarea className="field" rows={5} value={section.text || ''} onChange={(e) => {
         const body = [...articleForm.body]
         body[index] = { ...section, text: e.target.value }
@@ -748,7 +750,7 @@ const deleteArticle = async (article) => {
       }} />
     </label>
 
-    <label>Заголовок (Русский)
+    <label>{lang === 'ru' ? 'Заголовок (Русский)' : '제목 (러시아어)'}
       <input className="field" value={section.headingRu || ''} onChange={(e) => {
         const body = [...articleForm.body]
         body[index] = { ...section, headingRu: e.target.value }
@@ -756,7 +758,7 @@ const deleteArticle = async (article) => {
       }} />
     </label>
 
-    <label>Текст (Русский)
+    <label>{lang === 'ru' ? 'Текст (Русский)' : '본문 (러시아어)'}
       <textarea className="field" rows={5} value={section.textRu || ''} onChange={(e) => {
         const body = [...articleForm.body]
         body[index] = { ...section, textRu: e.target.value }
@@ -769,13 +771,12 @@ const deleteArticle = async (article) => {
         const body = articleForm.body.filter((_, i) => i !== index)
         setArticleForm({ ...articleForm, body })
       }}>
-        Удалить раздел
+        {lang === 'ru' ? 'Удалить раздел' : '섹션 삭제'}
       </button>
     )}
   </div>
 ))}
->
-  + Добавить раздел
+
 <button
   type="button"
   className="btn ghost"
@@ -792,15 +793,17 @@ const deleteArticle = async (article) => {
     ]
   })}
 >
-  + Добавить раздел
+  {lang === 'ru' ? '+ Добавить раздел' : '+ 섹션 추가'}
 </button>
-  )}
-  <button
+
+<button
   type="button"
   className="btn"
   onClick={saveArticle}
 >
-  {editingArticleId ? 'Сохранить изменения' : 'Добавить статью'}
+  {editingArticleId
+    ? (lang === 'ru' ? 'Сохранить изменения' : '수정 사항 저장')
+    : (lang === 'ru' ? 'Добавить статью' : '아티클 추가')}
 </button>
 </div>
       <h2>Список товаров</h2>
