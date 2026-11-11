@@ -151,3 +151,70 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1F1C1A;--sub:#2C2723;--tx:#F1EBE1;--tx2:#B8AFA3;--line:#433B34;--pt:#D9825F;--pt-d:#E6987A;--card:#2A2522;--bgrgb:31,28,26;--sh:0 4px 16px rgba(0,0,0,.4)}
 .btn:not(.ghost),.badge:not(.free):not(.line),.cnt,.notice,.notice button,.top,.news{color:#1F1C1A}.news .btn{color:#fff}}
 .toast{pointer-events:none}
+/* Admin page styling */
+.admin-page {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-page > div {
+  width: 100%;
+  max-width: 100% !important;
+  box-sizing: border-box;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 24px;
+  margin-bottom: 28px;
+  box-shadow: var(--sh);
+}
+
+.admin-page h1 {
+  margin-bottom: 28px;
+}
+
+.admin-page h2 {
+  margin: 28px 0 16px;
+}
+
+.admin-page label {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.admin-page label input:not([type="file"]),
+.admin-page label select,
+.admin-page label textarea {
+  width: 100%;
+  max-width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  background: var(--bg);
+  font: inherit;
+}
+
+.admin-page label textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.admin-page input[type="file"] {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  background: var(--bg);
+}
+
+@media (max-width: 600px) {
+  .admin-page > div {
+    padding: 16px;
+  }
+}
