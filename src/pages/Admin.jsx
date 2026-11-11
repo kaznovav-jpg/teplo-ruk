@@ -580,7 +580,7 @@ const deleteArticle = async (article) => {
         )}
             </div>
 
-      <h2>Управление статьями</h2>
+      <h2>{lang === 'ru' ? 'Управление статьями' : '아티클 관리'}</h2>
 
 <div style={{ display: 'grid', gap: 10, marginBottom: 30 }}>
   <label>
