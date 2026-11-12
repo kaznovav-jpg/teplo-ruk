@@ -9,24 +9,34 @@ import { Crumb, Heart, FollowBtn, ClassCard, ArtistCard, ProductCard, Img, typeB
 
 export function Classes() {
   useTitle('클래스')
+  const { lang } = useLanguage()
+  const ru = lang === 'ru'
   const [f, setF] = useState({ cat: '', lv: '', ty: '', kd: '' })
-  const sel = (k, label, opts) => (
-    <select className="field" aria-label={label} value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })}>
-      <option value="">{label}: 전체</option>{opts.map((o) => <option key={o[0]} value={o[0]}>{o[1]}</option>)}
+  const labels = ru
+    ? { cat: 'Виды рукоделия', lv: 'Уровень сложности', ty: 'Цена', kd: 'Формат' }
+    : { cat: '공예 종류', lv: '난이도', ty: '가격', kd: '방식' }
+  const all = ru ? 'Все' : '전체'
+  const catNames = { bag: 'Сумки и шитьё', knit: 'Вязание', felt: 'Фетр и валяние', clothes: 'Одежда ручной работы', deco: 'Декор и декупаж' }
+  const options = {
+    cat: CATS.map((c) => [c[0], ru ? (catNames[c[0]] || c[1]) : c[1]]),
+    lv: [['초급', ru ? 'Начальный' : '초급'], ['중급', ru ? 'Средний' : '중급']],
+    ty: [['무료', ru ? 'Бесплатно' : '무료'], ['유료', ru ? 'Платно' : '유료'], ['패키지', ru ? 'Набор материалов' : '패키지(재료키트)']],
+    kd: [['동영상', ru ? 'Видео' : '동영상'], ['오프라인', ru ? 'Очно' : '오프라인']]
+  }
+  const sel = (k) => (
+    <select className="field" aria-label={labels[k]} value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })}>
+      <option value="">{labels[k]}: {all}</option>{options[k].map((o) => <option key={o[0]} value={o[0]}>{o[1]}</option>)}
     </select>
   )
   const l = D.classes.filter((c) => (!f.cat || c.cat === f.cat) && (!f.lv || c.level === f.lv) && (!f.ty || c.type === f.ty) && (!f.kd || c.kind === f.kd))
   return (
     <div className="wrap">
-      <Crumb items={['클래스']} />
-      <h1 style={{ fontSize: '1.8rem', marginBottom: 6 }}>클래스</h1>
-      <p className="muted" style={{ marginBottom: 18 }}>동영상으로 집에서, 오프라인으로 공방에서 배워요.</p>
-      <div className="sw2">
-        {sel('cat', '공예 종류', CATS.map((c) => [c[0], c[1]]))}{sel('lv', '난이도', [['초급', '초급'], ['중급', '중급']])}
-        {sel('ty', '가격', [['무료', '무료'], ['유료', '유료'], ['패키지', '패키지(재료키트)']])}{sel('kd', '방식', [['동영상', '동영상'], ['오프라인', '오프라인']])}
-      </div>
-      <p className="muted" style={{ marginBottom: 12 }}>총 {l.length}개</p>
-      <div className="grid g3">{l.length ? l.map((c) => <ClassCard key={c.id} c={c} D={D} />) : <p className="empty" style={{ gridColumn: '1/-1' }}>조건에 맞는 클래스가 없어요. 필터를 줄여 보세요.</p>}</div>
+      <Crumb items={[ru ? 'Мастер-классы' : '클래스']} />
+      <h1 style={{ fontSize: '1.8rem', marginBottom: 6 }}>{ru ? 'Мастер-классы' : '클래스'}</h1>
+      <p className="muted" style={{ marginBottom: 18 }}>{ru ? 'Учитесь дома по видео или очно в мастерской.' : '동영상으로 집에서, 오프라인으로 공방에서 배워요.'}</p>
+      <div className="sw2">{sel('cat')}{sel('lv')}{sel('ty')}{sel('kd')}</div>
+      <p className="muted" style={{ marginBottom: 12 }}>{ru ? `Всего ${l.length} шт.` : `총 ${l.length}개`}</p>
+      <div className="grid g3">{l.length ? l.map((c) => <ClassCard key={c.id} c={c} D={D} />) : <p className="empty" style={{ gridColumn: '1/-1' }}>{ru ? 'По заданным условиям ничего не найдено. Измените фильтры.' : '조건에 맞는 클래스가 없어요. 필터를 줄여 보세요.'}</p>}</div>
     </div>
   )
 }
