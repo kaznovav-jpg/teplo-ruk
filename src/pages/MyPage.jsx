@@ -59,12 +59,79 @@ export default function MyPage() {
   const { user, S, orders, posts, cancelRes, logout, updateUser, toast, cartCount, adminEvents, isFirebase } = useApp()
   const myc = useMyComments(user)
   const [masterApplication, setMasterApplication] = useState(null)
+  const [myArtistWorks, setMyArtistWorks] = useState([])
+  const [workForm, setWorkForm] = useState({ title: '', titleRu: '', description: '', descriptionRu: '', price: '', category: 'accessory', image: '' })
+  const [editingWorkId, setEditingWorkId] = useState(null)
+  const [workSaving, setWorkSaving] = useState(false)
   useEffect(() => {
     if (!user?.uid || !isFirebase) { setMasterApplication(null); return }
     return F.onSnapshot(F.doc(F.db, 'masterApplications', user.uid),
       (snap) => setMasterApplication(snap.exists() ? snap.data() : null),
       (error) => console.error('Master application error:', error))
   }, [user?.uid, isFirebase])
+  useEffect(() => {
+    if (!user?.uid || !isFirebase || masterApplication?.status !== 'approved') { setMyArtistWorks([]); return }
+    return F.onSnapshot(
+      F.query(F.collection(F.db, 'artistWorks'), F.where('artistUid', '==', user.uid)),
+      (snap) => setMyArtistWorks(snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''))),
+      (error) => console.error('My artist works error:', error)
+    )
+  }, [user?.uid, isFirebase, masterApplication?.status])
+
+  const uploadMakerImage = async (file) => {
+    if (!file) return ''
+    const body = new FormData()
+    body.append('file', file)
+    body.append('upload_preset', 'teplo_ruk_upload')
+    const response = await fetch('https://api.cloudinary.com/v1_1/sfnfmwiv/image/upload', { method: 'POST', body })
+    const result = await response.json()
+    if (!response.ok) throw new Error(result.error?.message || 'Upload failed')
+    return result.secure_url
+  }
+
+  const saveMakerWork = async (e) => {
+    e.preventDefault()
+    if (!isFirebase) { toast(isRu ? 'Для отправки работы необходимо подключение Firebase.' : '작품을 등록하려면 Firebase 연결이 필요합니다.'); return }
+    if (!workForm.title.trim() || !workForm.titleRu.trim() || !workForm.image || !workForm.price) {
+      toast(isRu ? 'Заполните названия, цену и загрузите фотографию.' : '작품명, 가격과 사진을 입력해 주세요.')
+      return
+    }
+    setWorkSaving(true)
+    const data = {
+      artistUid: user.uid,
+      artistName: user.name || '',
+      title: workForm.title.trim(),
+      titleRu: workForm.titleRu.trim(),
+      description: workForm.description.trim(),
+      descriptionRu: workForm.descriptionRu.trim(),
+      price: Number(workForm.price),
+      category: workForm.category,
+      image: workForm.image,
+      status: 'pending',
+      updatedAt: new Date().toISOString()
+    }
+    try {
+      if (editingWorkId) await F.setDoc(F.doc(F.db, 'artistWorks', editingWorkId), data, { merge: true })
+      else await F.addDoc(F.collection(F.db, 'artistWorks'), { ...data, createdAt: new Date().toISOString() })
+      setWorkForm({ title: '', titleRu: '', description: '', descriptionRu: '', price: '', category: 'accessory', image: '' })
+      setEditingWorkId(null)
+      toast(isRu ? 'Работа отправлена на проверку администратора.' : '작품이 관리자 검토로 전송되었습니다.')
+    } catch (error) {
+      console.error('Maker work save error:', error)
+      toast(isRu ? 'Не удалось отправить работу. Проверьте подключение и попробуйте снова.' : '작품을 저장하지 못했습니다. 다시 시도해 주세요.')
+    } finally { setWorkSaving(false) }
+  }
+  const editMakerWork = (work) => {
+    setEditingWorkId(work.id)
+    setWorkForm({ title: work.title || '', titleRu: work.titleRu || '', description: work.description || '', descriptionRu: work.descriptionRu || '', price: String(work.price || ''), category: work.category || 'accessory', image: work.image || '' })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  const deleteMakerWork = async (work) => {
+    if (!window.confirm(isRu ? 'Удалить эту работу?' : '이 작품을 삭제할까요?')) return
+    try { await F.deleteDoc(F.doc(F.db, 'artistWorks', work.id)); toast(isRu ? 'Работа удалена.' : '작품이 삭제되었습니다.') }
+    catch (error) { console.error(error); toast(isRu ? 'Не удалось удалить работу.' : '작품을 삭제하지 못했습니다.') }
+  }
+
   const submitMasterApplication = async (e) => {
     e.preventDefault()
     if (!isFirebase) { toast(isRu ? 'Для подачи заявки необходимо подключение Firebase.' : '신청하려면 Firebase 연결이 필요합니다.'); return }
