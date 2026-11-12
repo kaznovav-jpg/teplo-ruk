@@ -71,7 +71,12 @@ service cloud.firestore {
       allow get: if isAdmin()
         || (request.auth != null && request.auth.uid == uid);
       allow list: if isAdmin();
-      allow update: if isAdmin();
+      allow update: if isAdmin()
+        || (request.auth != null
+          && request.auth.uid == uid
+          && resource.data.status == 'rejected'
+          && request.resource.data.uid == uid
+          && request.resource.data.status == 'pending');
       allow delete: if isAdmin();
     }
 
