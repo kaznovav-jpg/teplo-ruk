@@ -108,9 +108,9 @@ export default function MyPage() {
         <p>{isRu ? 'Ваша заявка одобрена. Скоро здесь появится управление вашими работами.' : '작가 신청이 승인되었습니다. 곧 이곳에서 작품을 관리할 수 있습니다.'}</p>
       ) : masterApplication?.status === 'pending' ? (
         <p>{isRu ? 'Ваша заявка отправлена и ожидает проверки администратора. Мы сообщим о решении.' : '신청이 접수되어 관리자 검토를 기다리고 있습니다. 승인 결과를 안내해 드리겠습니다.'}</p>
-      ) : masterApplication?.status === 'rejected' ? (
+      ) : ['rejected', 'removed'].includes(masterApplication?.status) ? (
         <>
-          <p>{isRu ? 'Предыдущая заявка не была одобрена. Вы можете отправить новую.' : '이전 신청이 승인되지 않았습니다. 내용을 보완하여 다시 신청할 수 있습니다.'}</p>
+          <p>{masterApplication?.status === 'removed' ? (isRu ? 'Доступ мастера был закрыт администратором. Вы можете подать заявку повторно.' : '관리자가 작가 권한을 해제했습니다. 다시 신청할 수 있습니다.') : (isRu ? 'Предыдущая заявка не была одобрена. Вы можете отправить новую.' : '이전 신청이 승인되지 않았습니다. 내용을 보완하여 다시 신청할 수 있습니다.')}</p>
           <form className="form" onSubmit={submitMasterApplication}>
             <label>{isRu ? 'Контактный телефон' : '연락처'}<input className="field" name="phone" defaultValue={masterApplication?.phone || user.phone || ''} required /></label>
             <label>{isRu ? 'Направление рукоделия' : '공예 분야'}<input className="field" name="craft" defaultValue={masterApplication?.craft || ''} placeholder={isRu ? 'Например, вышивка, вязание, шитьё' : '예: 자수, 뜨개질, 바느질'} required /></label>
