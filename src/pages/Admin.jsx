@@ -18,6 +18,7 @@ export default function Admin() {
   online: false
 })
   const [editingEventId, setEditingEventId] = useState(null)
+  const [previewWork, setPreviewWork] = useState(null)
   const [productForm, setProductForm] = useState({
   name: '',
   nameRu: '',
@@ -473,12 +474,34 @@ const deleteArticle = async (article) => {
           <img src={work.image} alt={work.title} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 8 }} />
           <div><b>{lang === 'ru' ? work.titleRu : work.title}</b><p>{lang === 'ru' ? work.descriptionRu : work.description}</p><p>{Number(work.price || 0).toLocaleString('ko-KR')} ₩ · {work.artistName || work.artistUid}</p><p className="muted">{lang === 'ru' ? 'Статус:' : '상태:'} {work.status}</p>
             <div className="acts">
+              <button className="btn ghost" onClick={() => setPreviewWork(work)}>{lang === 'ru' ? 'Предпросмотр' : '미리보기'}</button>
               <button className="btn" onClick={async () => { try { await F.setDoc(F.doc(F.db, 'artistWorks', work.id), { status: 'approved', reviewedAt: new Date().toISOString() }, { merge: true }); alert(lang === 'ru' ? 'Работа опубликована.' : '작품이 공개되었습니다.') } catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось одобрить работу.' : '승인에 실패했습니다.') } }}>{lang === 'ru' ? 'Одобрить и опубликовать' : '승인 및 공개'}</button>
               <button className="btn ghost" onClick={async () => { try { await F.setDoc(F.doc(F.db, 'artistWorks', work.id), { status: 'rejected', reviewedAt: new Date().toISOString() }, { merge: true }); alert(lang === 'ru' ? 'Работа возвращена на доработку.' : '수정 요청으로 변경되었습니다.') } catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось изменить статус.' : '상태 변경에 실패했습니다.') } }}>{lang === 'ru' ? 'Отклонить' : '수정 요청'}</button>
             </div>
           </div>
         </div>)}
       </div>}
+      {previewWork && (
+        <div role="dialog" aria-modal="true" aria-label={lang === 'ru' ? 'Предпросмотр публикации' : '게시 미리보기'} onClick={() => setPreviewWork(null)} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(30, 25, 22, .65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, overflowY: 'auto' }}>
+          <div className="box" onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', padding: 22, background: '#fff' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+              <h2 style={{ margin: 0 }}>{lang === 'ru' ? 'Предпросмотр публикации' : '게시 미리보기'}</h2>
+              <button className="btn ghost" onClick={() => setPreviewWork(null)}>{lang === 'ru' ? 'Закрыть' : '닫기'}</button>
+            </div>
+            <p className="muted" style={{ marginBottom: 12 }}>{lang === 'ru' ? 'Так работа будет выглядеть в разделе «Работы мастеров».' : '작가 작품 페이지에 표시될 모습입니다.'}</p>
+            <article className="box" style={{ padding: 14 }}>
+              <img src={previewWork.image} alt={lang === 'ru' ? previewWork.titleRu : previewWork.title} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: 8 }} />
+              <h3 style={{ marginTop: 10 }}>{lang === 'ru' ? (previewWork.titleRu || previewWork.title) : (previewWork.title || previewWork.titleRu)}</h3>
+              <p className="muted">{lang === 'ru' ? (previewWork.descriptionRu || previewWork.description) : (previewWork.description || previewWork.descriptionRu)}</p>
+              <b>{Number(previewWork.price || 0).toLocaleString('ko-KR')} ₩</b>
+              <p className="muted">{previewWork.artistName || previewWork.artistUid}</p>
+            </article>
+            <div className="acts" style={{ marginTop: 16 }}>
+              <button className="btn ghost" onClick={() => setPreviewWork(null)}>{lang === 'ru' ? 'Вернуться к проверке' : '검토로 돌아가기'}</button>
+            </div>
+          </div>
+        </div>
+      )}
             <h2>{lang === 'ru' ? 'Управление товарами' : '상품 관리'}</h2>
 
       <div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
