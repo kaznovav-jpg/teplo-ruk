@@ -41,7 +41,14 @@ export default function Layout() {
     return () => removeEventListener('scroll', f)
   }, [])
 
-  const sub = CATS.map((c) => <Link key={c[0]} to={`/category?c=${c[0]}`}>{c[1]}</Link>)
+  const CAT_NAMES_RU = {
+    bag: 'Сумки и шитьё',
+    knit: 'Вязание',
+    felt: 'Фетр и валяние',
+    clothes: 'Одежда ручной работы',
+    deco: 'Декор и декупаж'
+  }
+  const sub = CATS.map((c) => <Link key={c[0]} to={`/category?c=${c[0]}`}>{lang === 'ru' ? CAT_NAMES_RU[c[0]] || c[1] : c[1]}</Link>)
   const doSearch = (e) => { e.preventDefault(); nav('/category?c=all&s=' + encodeURIComponent(kw)) }
   const authBtn = async () => { if (user) { await logout(); toast('로그아웃되었습니다'); nav('/') } else nav('/mypage?tab=login') }
 
