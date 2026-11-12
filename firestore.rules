@@ -74,7 +74,7 @@ service cloud.firestore {
       allow update: if isAdmin()
         || (request.auth != null
           && request.auth.uid == uid
-          && resource.data.status == 'rejected'
+          && resource.data.status in ['rejected', 'removed']
           && request.resource.data.uid == uid
           && request.resource.data.status == 'pending');
       allow delete: if isAdmin();
