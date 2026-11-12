@@ -492,7 +492,16 @@ const deleteArticle = async (article) => {
             <article className="box" style={{ padding: 14 }}>
               <img src={previewWork.image} alt={lang === 'ru' ? previewWork.titleRu : previewWork.title} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: 8 }} />
               <h3 style={{ marginTop: 10 }}>{lang === 'ru' ? (previewWork.titleRu || previewWork.title) : (previewWork.title || previewWork.titleRu)}</h3>
-              <p className="muted">{lang === 'ru' ? (previewWork.descriptionRu || previewWork.description) : (previewWork.description || previewWork.descriptionRu)}</p>
+              <p className="muted" style={{ marginTop: 8, marginBottom: 6 }}>{lang === 'ru' ? 'Описание' : '설명'}</p>
+              <p>{lang === 'ru' ? (previewWork.descriptionRu || previewWork.description || 'Описание не добавлено') : (previewWork.description || previewWork.descriptionRu || '설명이 없습니다')}</p>
+              <p className="muted" style={{ marginTop: 10 }}>{lang === 'ru' ? 'Категория' : '카테고리'}: {{
+                accessory: lang === 'ru' ? 'Аксессуары' : '액세서리',
+                bag: lang === 'ru' ? 'Сумки и шитьё' : '가방·바느질',
+                home: lang === 'ru' ? 'Для дома' : '홈 인테리어',
+                clothes: lang === 'ru' ? 'Одежда' : '의류',
+                knit: lang === 'ru' ? 'Вязание' : '뜨개질',
+                embroidery: lang === 'ru' ? 'Вышивка' : '자수'
+              }[previewWork.category] || previewWork.category || '—'}</p>
               <b>{Number(previewWork.price || 0).toLocaleString('ko-KR')} ₩</b>
               <p className="muted">{previewWork.artistName || previewWork.artistUid}</p>
             </article>
