@@ -50,7 +50,7 @@ export function ProductCard({ p, D }) {
   )
 }
 
-export const typeBadge = (t) => <span className={'badge ' + (t === '유료' ? '' : t === '무료' ? 'free' : 'free kit')}>{t}</span>
+export const typeBadge = (t, label = t) => <span className={'badge ' + (t === '유료' ? '' : t === '무료' ? 'free' : 'free kit')}>{label}</span>
 
 export function ClassCard({ c, D }) {
   const { lang } = useLanguage()
@@ -58,12 +58,14 @@ export function ClassCard({ c, D }) {
   const title = ru ? (c.titleRu || c.title) : c.title
   const kind = ru ? (c.kindRu || c.kind) : c.kind
   const level = ru ? (c.levelRu || c.level) : c.level
-  const type = ru ? (c.typeRu || c.type) : c.type
+  const type = ru ? (c.typeRu || ({ 무료: 'Бесплатно', 유료: 'Платно', 패키지: 'Набор материалов' }[c.type] || c.type)) : c.type
+  const kindLabel = ru ? (c.kindRu || ({ 동영상: 'Видео', 오프라인: 'Очно' }[c.kind] || c.kind)) : kind
+  const levelLabel = ru ? (c.levelRu || ({ 초급: 'Начальный', 중급: 'Средний' }[c.level] || c.level)) : level
   return (
     <article className="card">
       <Link to={`/classes/${c.id}`}>
         <div className="thumb wide"><Img src={c.thumb} alt={title} seed={c.id} h={400} /></div>
-        <p style={{ marginTop: 10 }}>{typeBadge(type)}<span className="badge line">{kind}</span><span className="badge line">{level}</span></p>
+        <p style={{ marginTop: 10 }}>{typeBadge(c.type, type)}<span className="badge line">{kindLabel}</span><span className="badge line">{levelLabel}</span></p>
         <p className="nm">{title}</p>
         <p className="ar">{artistName(D, c.artist, lang)} {ru ? '·' : '작가 ·'} {c.minutes}{ru ? ' мин' : '분'} · {c.price ? won(c.price, lang) : (ru ? 'Бесплатно' : '무료')}</p>
       </Link>
