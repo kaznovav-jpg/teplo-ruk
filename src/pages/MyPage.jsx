@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { D } from '../lib/data.js'
+import * as F from '../lib/firebase.js'
 import { useApp, useMyComments } from '../lib/store.jsx'
 import { won } from '../lib/util.js'
 import useTitle from '../lib/useTitle.js'
@@ -43,15 +44,47 @@ function AuthForms({ tab, go }) {
   )
 }
 
-const NAV = [['dash', '요약'], ['orders', '주문내역'], ['class', '내 클래스·예약'], ['fav', '즐겨찾기'], ['act', '내 활동'], ['coupon', '쿠폰·적립금'], ['profile', '프로필 관리']]
+const NAV = [['dash', '요약'], ['master', '작가 신청'], ['orders', '주문내역'], ['class', '내 클래스·예약'], ['fav', '즐겨찾기'], ['act', '내 활동'], ['coupon', '쿠폰·적립금'], ['profile', '프로필 관리']]
 const STEPS = ['결제완료', '제작중', '배송중', '배송완료']
 const stepOf = (o) => { const h = (Date.now() - o.at) / 36e5; return h < 1 ? 0 : h < 24 ? 1 : h < 72 ? 2 : 3 }
 
 export default function MyPage() {
   useTitle('마이페이지')
   const [sp, setSp] = useSearchParams()
-  const { user, S, orders, posts, cancelRes, logout, updateUser, toast, cartCount, adminEvents } = useApp()
+  const { user, S, orders, posts, cancelRes, logout, updateUser, toast, cartCount, adminEvents, isFirebase } = useApp()
   const myc = useMyComments(user)
+  const [masterApplication, setMasterApplication] = useState(null)
+  useEffect(() => {
+    if (!user?.uid || !isFirebase) { setMasterApplication(null); return }
+    return F.onSnapshot(F.doc(F.db, 'masterApplications', user.uid),
+      (snap) => setMasterApplication(snap.exists() ? snap.data() : null),
+      (error) => console.error('Master application error:', error))
+  }, [user?.uid, isFirebase])
+  const submitMasterApplication = async (e) => {
+    e.preventDefault()
+    if (!isFirebase) { toast('Для подачи заявки необходимо подключение Firebase.'); return }
+    if (masterApplication?.status === 'pending' || masterApplication?.status === 'approved') return
+    const form = e.currentTarget
+    const data = {
+      uid: user.uid,
+      name: user.name || '',
+      email: user.email || '',
+      phone: form.phone.value.trim(),
+      craft: form.craft.value.trim(),
+      bio: form.bio.value.trim(),
+      portfolio: form.portfolio.value.trim(),
+      status: 'pending',
+      submittedAt: new Date().toISOString()
+    }
+    try {
+      await F.setDoc(F.doc(F.db, 'masterApplications', user.uid), data)
+      setMasterApplication(data)
+      toast('Заявка отправлена. Ожидайте решения администратора.')
+    } catch (error) {
+      console.error('Master application submit error:', error)
+      toast('Не удалось отправить заявку. Попробуйте ещё раз.')
+    }
+  }
   let tab = sp.get('tab') || ''
   const go = (t) => setSp({ tab: t })
   if (!user) return <AuthForms tab={AUTH.includes(tab) ? tab : 'login'} go={go} />
@@ -64,6 +97,36 @@ export default function MyPage() {
       <Link className="stat" to="/cart"><b>{cartCount}</b>장바구니</Link>{stat('fav', wish.length, '찜')}{stat('class', S.enrolled.length, '수강 중 클래스')}
       {stat('class', S.reservations.length, '일정 예약')}{stat('orders', orders.length, '주문')}{stat('coupon', `${(user.coupons || []).length}장`, `쿠폰 · ${(user.points || 0).toLocaleString('ko-KR')}P`)}
     </div>,
+    master: <section className="box" style={{ maxWidth: 620 }}>
+      <h2>Стать мастером «Тепло Рук»</h2>
+      {masterApplication?.status === 'approved' ? (
+        <p>Ваша заявка одобрена. Скоро здесь появится управление вашими работами.</p>
+      ) : masterApplication?.status === 'pending' ? (
+        <p>Ваша заявка отправлена и ожидает проверки администратора. Мы сообщим о решении.</p>
+      ) : masterApplication?.status === 'rejected' ? (
+        <>
+          <p>Предыдущая заявка не была одобрена. Вы можете отправить новую.</p>
+          <form className="form" onSubmit={submitMasterApplication}>
+            <label>Контактный телефон<input className="field" name="phone" defaultValue={masterApplication?.phone || user.phone || ''} required /></label>
+            <label>Направление рукоделия<input className="field" name="craft" defaultValue={masterApplication?.craft || ''} placeholder="Например, вышивка, вязание, шитьё" required /></label>
+            <label>Расскажите о себе и своём опыте<textarea className="field" name="bio" rows={4} defaultValue={masterApplication?.bio || ''} required /></label>
+            <label>Ссылка на портфолио или социальные сети<input className="field" name="portfolio" defaultValue={masterApplication?.portfolio || ''} /></label>
+            <button className="btn">Отправить заявку повторно</button>
+          </form>
+        </>
+      ) : (
+        <>
+          <p className="muted">Расскажите о себе и своих работах. После проверки администратор сможет открыть вам кабинет мастера.</p>
+          <form className="form" onSubmit={submitMasterApplication}>
+            <label>Контактный телефон<input className="field" name="phone" defaultValue={user.phone || ''} required /></label>
+            <label>Направление рукоделия<input className="field" name="craft" placeholder="Например, вышивка, вязание, шитьё" required /></label>
+            <label>Расскажите о себе и своём опыте<textarea className="field" name="bio" rows={4} required /></label>
+            <label>Ссылка на портфолио или социальные сети<input className="field" name="portfolio" placeholder="https://..." /></label>
+            <button className="btn">Отправить заявку</button>
+          </form>
+        </>
+      )}
+    </section>,
     orders: orders.length ? orders.map((o, k) => (
       <div className="box" key={o.id || k}>
         <p><b>{o.no}</b> <span className="muted">{o.date}</span></p>
