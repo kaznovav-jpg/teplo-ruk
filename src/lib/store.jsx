@@ -29,6 +29,7 @@ export function AppProvider({ children }) {
   const [orders, setOrders] = useState([])
   const [posts, setPosts] = useState([])
  const [adminReservations, setAdminReservations] = useState([])
+  const [masterApplications, setMasterApplications] = useState([])
   const [adminEvents, setAdminEvents] = useState([])
  const [products, setProducts] = useState(D.products)
   const [articles, setArticles] = useState(D.articles)
@@ -118,6 +119,19 @@ setS({ ...EMPTY, ...pickState(d) })
       (e) => console.error('Admin reservations error:', e)
     )
   }, [user, isAdmin])
+  // Заявки на статус мастера: список доступен только администратору
+  useEffect(() => {
+    if (!user || !isAdmin || !F.isFirebase) {
+      setMasterApplications([])
+      return
+    }
+    return F.onSnapshot(
+      F.collection(F.db, 'masterApplications'),
+      (s) => setMasterApplications(s.docs.map((d) => ({ ...d.data(), id: d.id }))),
+      (e) => console.error('Master applications error:', e)
+    )
+  }, [user, isAdmin])
+
    // Расписание занятий из Firebase
   useEffect(() => {
     if (!F.isFirebase) return
@@ -221,7 +235,7 @@ setS({ ...EMPTY, ...pickState(d) })
   }
 
   const api = {
-   user, isAdmin, S, orders, posts, adminReservations, adminEvents, products, articles, toast, isFirebase: F.isFirebase,
+   user, isAdmin, S, orders, posts, adminReservations, adminEvents, masterApplications, products, articles, toast, isFirebase: F.isFirebase,
     cartCount: S.cart.reduce((a, b) => a + b.qty, 0),
     addCart: (it) => upd((s) => {
       const c = [...s.cart], f = c.find((x) => x.pid === it.pid && x.color === it.color && x.size === it.size)
