@@ -133,7 +133,28 @@ setS({ ...EMPTY, ...pickState(d) })
     )
   }, [user, isAdmin])
 
-   // Расписание занятий из Firebase
+   // Работы мастеров: администратор видит все, мастер — свои, остальные — только опубликованные.
+  useEffect(() => {
+    if (!F.isFirebase) {
+      setArtistWorks([])
+      return
+    }
+
+    const worksRef = F.collection(F.db, 'artistWorks')
+    const worksQuery = isAdmin
+      ? worksRef
+      : user
+        ? F.query(worksRef, F.where('artistUid', '==', user.uid))
+        : F.query(worksRef, F.where('status', '==', 'approved'))
+
+    return F.onSnapshot(
+      worksQuery,
+      (s) => setArtistWorks(s.docs.map((d) => ({ ...d.data(), id: d.id }))),
+      (e) => console.error('Artist works error:', e)
+    )
+  }, [user, isAdmin])
+
+  // Расписание занятий из Firebase
   useEffect(() => {
     if (!F.isFirebase) return
 
