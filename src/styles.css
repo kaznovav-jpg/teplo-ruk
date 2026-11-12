@@ -238,3 +238,28 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
   flex-shrink: 0;
   padding: 0 8px;
 }
+
+/* Give the Russian desktop navigation more room without changing mobile layout */
+@media (min-width: 1024px) {
+  .hdr .wrap {
+    gap: 10px;
+  }
+  .nav {
+    margin-left: 0;
+    gap: 0;
+  }
+  .nav a {
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: .82rem;
+  }
+  .tools {
+    gap: 0;
+  }
+  .tools .ibtn:nth-child(1),
+  .tools .ibtn:nth-child(2) {
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: .82rem;
+  }
+}
