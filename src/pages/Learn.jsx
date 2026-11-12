@@ -195,7 +195,13 @@ useEffect(() => {
     .then((data) => setReservationCounts(data.counts || {}))
     .catch((error) => console.error('Reservation counts error:', error))
 }, [])
-  const [view, setView] = useState(() => (innerWidth < 768 ? 'list' : 'cal')), [ty, setTy] = useState(''), [ym, setYm] = useState({ y: 2026, m: 9 }), [open, setOpen] = useState(null)
+  const [view, setView] = useState(() => (innerWidth < 768 ? 'list' : 'cal')), [ty, setTy] = useState(''), [ym, setYm] = useState(() => {
+    const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric' }).formatToParts(new Date())
+    return {
+      y: Number(parts.find((part) => part.type === 'year')?.value),
+      m: Number(parts.find((part) => part.type === 'month')?.value) - 1
+    }
+  }), [open, setOpen] = useState(null)
   const { y, m } = ym, pre = `${y}-${pad(m + 1)}`
   const list = events.filter((e) => (!ty || e.type === ty) && e.ymd.startsWith(pre))
   const shift = (d) => setYm(({ y, m }) => { m += d; return m < 0 ? { y: y - 1, m: 11 } : m > 11 ? { y: y + 1, m: 0 } : { y, m } })
