@@ -115,12 +115,17 @@ export function Learn() {
 
 export function Artists() {
   useTitle('작가 작품')
+  const { lang } = useLanguage()
+  const { artistWorks } = useApp()
+  const ru = lang === 'ru'
   return (
     <div className="wrap">
       <Crumb items={['작가 작품']} />
       <h1 style={{ fontSize: '1.8rem', marginBottom: 18 }}>작가 작품</h1>
       <div className="grid g3">{D.artists.map((a) => <ArtistCard key={a.id} a={a} D={D} />)}</div>
-      <div className="mt"><div className="sec-h"><h2>시즌 기획전</h2></div>
+      <h2 className="mt" style={{ fontSize: '1.3rem' }}>{ru ? 'Работы независимых мастеров' : '입점 작가 작품'}</h2>
+      {artistWorks.length ? <div className="grid g4" style={{ marginTop: 14 }}>{artistWorks.map((work) => <article className="box" key={work.id}><img src={work.image} alt={ru ? work.titleRu : work.title} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: 8 }} /><h3 style={{ marginTop: 10 }}>{ru ? work.titleRu : work.title}</h3><p className="muted">{ru ? work.descriptionRu : work.description}</p><b>{Number(work.price || 0).toLocaleString('ko-KR')} ₩</b><p className="muted">{work.artistName}</p></article>)}</div> : <p className="muted">{ru ? 'Новые работы мастеров скоро появятся здесь.' : '새로운 작가 작품이 곧 이곳에 소개됩니다.'}</p>}
+            <div className="mt"><div className="sec-h"><h2>시즌 기획전</h2></div>
         {D.extras.collections.map((k) => (
           <section key={k.id} style={{ marginBottom: 36 }}>
             <h3 style={{ fontSize: '1.25rem' }}>{k.title}</h3><p className="muted">{k.desc}</p>
