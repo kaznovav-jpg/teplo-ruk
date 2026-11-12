@@ -57,21 +57,21 @@ export default function Home() {
 
       <section className="sec" style={{ paddingTop: 0 }}><div className="wrap">
         <div className="tabs" role="tablist">
-          <button role="tab" className={tab === 'new' ? 'on' : ''} onClick={() => setTab('new')}>${t('신상품', 'Новинки')}</button>
-          <button role="tab" className={tab === 'best' ? 'on' : ''} onClick={() => setTab('best')}>${t('베스트셀러', 'Бестселлеры')}</button>
+          <button role="tab" className={tab === 'new' ? 'on' : ''} onClick={() => setTab('new')}>{t('신상품', 'Новинки')}</button>
+          <button role="tab" className={tab === 'best' ? 'on' : ''} onClick={() => setTab('best')}>{t('베스트셀러', 'Бестселлеры')}</button>
         </div>
         <div className="grid g4">{list.map((p) => <ProductCard key={p.id} p={p} D={D} />)}</div>
       </div></section>
 
       <section className="sec alt"><div className="wrap">
-        <div className="sec-h"><h2>${t('이번 주 추천 클래스', 'Рекомендуемые мастер-классы')}</h2><Link className="more" to="/classes">${t('전체 보기', 'Смотреть все')}</Link></div>
+        <div className="sec-h"><h2>{t('이번 주 추천 클래스', 'Рекомендуемые мастер-классы')}</h2><Link className="more" to="/classes">{t('전체 보기', 'Смотреть все')}</Link></div>
         <div className="grid g3">{D.classes.slice(0, 3).map((c) => <ClassCard key={c.id} c={c} D={D} />)}</div>
       </div></section>
 
       <section className="sec"><div className="wrap">
-        <div className="sec-h"><h2>${t('이달의 작가', 'Мастер месяца')}</h2><Link className="more" to="/artists">작가 ${t('전체 보기', 'Смотреть все')}</Link></div>
+        <div className="sec-h"><h2>{t('이달의 작가', 'Мастер месяца')}</h2><Link className="more" to="/artists">작가 {t('전체 보기', 'Смотреть все')}</Link></div>
         <div className="artist">
-          <div className="thumb wide"><Img src={art.cover} alt={`${art.name} ${t('작가 작업 공간', 'рабочее пространство мастера')}`} seed="artist1" h={540} /></div>
+          <div className="thumb wide"><Img src={art.cover} alt={`${art.name} {t('작가 작업 공간', 'рабочее пространство мастера')}`} seed="artist1" h={540} /></div>
           <div>
             <h3 style={{ fontSize: '1.4rem' }}>{art.name}</h3><p className="muted">{art.field}</p>
             <p style={{ margin: '12px 0 18px' }}>{art.bio}</p>
@@ -84,41 +84,41 @@ export default function Home() {
 
       <section className="sec alt"><div className="wrap two">
         <div>
-          <div className="sec-h"><h2>${t('다가오는 일정', 'Ближайшие события')}</h2><Link className="more" to="/schedule">${t('전체 일정', 'Все события')}</Link></div>
+          <div className="sec-h"><h2>{t('다가오는 일정', 'Ближайшие события')}</h2><Link className="more" to="/schedule">{t('전체 일정', 'Все события')}</Link></div>
           <ul className="list">{ex.events.slice(0, 4).map((e) => <li key={e.id}><span className="chip">{e.date}</span><Link to="/schedule" style={{ flex: 1 }}>{e.title}</Link><span className="badge line">{e.type}</span></li>)}</ul>
         </div>
         <div>
-          <div className="sec-h"><h2>${t('커뮤니티 인기글', 'Популярное в сообществе')}</h2><Link className="more" to="/community">${t('더 보기', 'Ещё')}</Link></div>
+          <div className="sec-h"><h2>{t('커뮤니티 인기글', 'Популярное в сообществе')}</h2><Link className="more" to="/community">{t('더 보기', 'Ещё')}</Link></div>
           <ul className="list">{hotPosts.map((p) => <li key={p.id}><span className="badge line">{p.tag}</span><Link to={`/community/${p.id}`} style={{ flex: 1 }}>{p.title}</Link><span className="muted">♥{p.likes} 💬{p.comments}</span></li>)}</ul>
         </div>
       </div></section>
 
       <section className="sec"><div className="wrap">
-        <div className="sec-h"><h2>${t('최신 아티클', 'Новые статьи')}</h2><Link className="more" to="/articles">${t('전체 보기', 'Смотреть все')}</Link></div>
+        <div className="sec-h"><h2>{t('최신 아티클', 'Новые статьи')}</h2><Link className="more" to="/articles">{t('전체 보기', 'Смотреть все')}</Link></div>
         <div className="grid g3">{D.articles.slice(0, 3).map((a) => <ArticleCard key={a.id} a={a} />)}</div>
       </div></section>
 
       <section className="sec alt"><div className="wrap">
-        <div className="sec-h"><h2>${t('작업 중인 작품(WIP) 갤러리', 'Галерея работ в процессе')}</h2></div>
+        <div className="sec-h"><h2>{t('작업 중인 작품(WIP) 갤러리', 'Галерея работ в процессе')}</h2></div>
         <div className="insta">{D.posts.filter((p) => p.images.length).slice(0, 6).map((p) => <div key={p.id}><Link to={`/community/${p.id}`}><Img src={p.thumb} alt={p.title} seed={p.id} w={400} h={400} /></Link></div>)}</div>
       </div></section>
 
       <section className="sec"><div className="wrap">
-        <div className="sec-h"><h2>${t('고객 후기', 'Отзывы клиентов')}</h2></div>
+        <div className="sec-h"><h2>{t('고객 후기', 'Отзывы клиентов')}</h2></div>
         <div className="slider"><div className="track" style={{ transform: `translateX(-${rv * 100}%)` }}>
-          {ex.reviews.map((r) => <div key={r.name} className="rv"><p>★★★★★</p><p style={{ margin: '8px 0' }}>{r.text}</p><p className="muted">{r.name} ${t('님', '')}</p></div>)}
+          {ex.reviews.map((r) => <div key={r.name} className="rv"><p>★★★★★</p><p style={{ margin: '8px 0' }}>{r.text}</p><p className="muted">{r.name} {t('님', '')}</p></div>)}
         </div></div>
       </div></section>
 
       <section className="sec alt"><div className="wrap">
-        <div className="sec-h"><h2>${t('인스타그램', 'Instagram')}</h2></div>
-        <div className="insta">{P.slice(6, 12).map((p) => <div key={p.id}><Img src={p.images[2]} alt={`${p.name} ${t('인스타그램', 'Instagram')} 사진`} seed={p.id + 'i'} w={400} h={400} /></div>)}</div>
+        <div className="sec-h"><h2>{t('인스타그램', 'Instagram')}</h2></div>
+        <div className="insta">{P.slice(6, 12).map((p) => <div key={p.id}><Img src={p.images[2]} alt={`${p.name} {t('인스타그램', 'Instagram')} 사진`} seed={p.id + 'i'} w={400} h={400} /></div>)}</div>
       </div></section>
 
       <section className="news"><div className="wrap">
-        <h2>${t('새 소식을 가장 먼저 받아보세요', 'Узнавайте новости первыми')}</h2>
+        <h2>{t('새 소식을 가장 먼저 받아보세요', 'Узнавайте новости первыми')}</h2>
         <form onSubmit={(e) => { e.preventDefault(); toast('구독해 주셔서 감사합니다 (샘플)'); e.target.reset() }}>
-          <input type="email" required placeholder="${t('이메일 주소', 'Адрес электронной почты')}" aria-label="이메일" /><button className="btn">${t('구독하기', 'Подписаться')}</button>
+          <input type="email" required placeholder={t('이메일 주소', 'Адрес электронной почты')} aria-label="이메일" /><button className="btn">{t('구독하기', 'Подписаться')}</button>
         </form>
       </div></section>
     </>
