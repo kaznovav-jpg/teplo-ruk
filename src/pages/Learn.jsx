@@ -118,14 +118,58 @@ export function Artists() {
   const { lang } = useLanguage()
   const { artistWorks } = useApp()
   const ru = lang === 'ru'
+  const [selectedWork, setSelectedWork] = useState(null)
+  const categoryName = (category) => ({
+    accessory: ru ? 'Аксессуары' : '액세서리',
+    bag: ru ? 'Сумки и шитьё' : '가방·바느질',
+    home: ru ? 'Для дома' : '홈 인테리어',
+    clothes: ru ? 'Одежда' : '의류',
+    knit: ru ? 'Вязание' : '뜨개질',
+    embroidery: ru ? 'Вышивка' : '자수'
+  }[category] || category || '—')
+  useEffect(() => {
+    if (!selectedWork) return
+    const onKeyDown = (event) => { if (event.key === 'Escape') setSelectedWork(null) }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [selectedWork])
   return (
     <div className="wrap">
       <Crumb items={['작가 작품']} />
       <h1 style={{ fontSize: '1.8rem', marginBottom: 18 }}>작가 작품</h1>
       <div className="grid g3">{D.artists.map((a) => <ArtistCard key={a.id} a={a} D={D} />)}</div>
       <h2 className="mt" style={{ fontSize: '1.3rem' }}>{ru ? 'Работы независимых мастеров' : '입점 작가 작품'}</h2>
-      {artistWorks.length ? <div className="grid g4" style={{ marginTop: 14 }}>{artistWorks.map((work) => <article className="box" key={work.id}><img src={work.image} alt={ru ? work.titleRu : work.title} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: 8 }} /><h3 style={{ marginTop: 10 }}>{ru ? work.titleRu : work.title}</h3><p className="muted" style={{ marginTop: 8, marginBottom: 6 }}>{ru ? 'Описание' : '설명'}</p><p>{ru ? (work.descriptionRu || work.description) : (work.description || work.descriptionRu)}</p><p className="muted">{ru ? 'Категория' : '카테고리'}: {{ accessory: ru ? 'Аксессуары' : '액세서리', bag: ru ? 'Сумки и шитьё' : '가방·바느질', home: ru ? 'Для дома' : '홈 인테리어', clothes: ru ? 'Одежда' : '의류', knit: ru ? 'Вязание' : '뜨개질', embroidery: ru ? 'Вышивка' : '자수' }[work.category] || work.category || '—'}</p><b>{Number(work.price || 0).toLocaleString('ko-KR')} ₩</b><p className="muted">{work.artistName}</p></article>)}</div> : <p className="muted">{ru ? 'Новые работы мастеров скоро появятся здесь.' : '새로운 작가 작품이 곧 이곳에 소개됩니다.'}</p>}
-            <div className="mt"><div className="sec-h"><h2>시즌 기획전</h2></div>
+      {artistWorks.length ? <div className="grid g4" style={{ marginTop: 14 }}>{artistWorks.map((work) => <article
+        className="box" key={work.id} role="button" tabIndex={0}
+        aria-label={ru ? 'Подробнее о работе ' + (work.titleRu || work.title) : '작품 자세히 보기 ' + work.title}
+        onClick={() => setSelectedWork(work)}
+        onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSelectedWork(work) } }}
+        style={{ cursor: 'pointer', textAlign: 'left' }}
+      >
+        <img src={work.image} alt={ru ? work.titleRu : work.title} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: 8 }} />
+        <h3 style={{ marginTop: 10 }}>{ru ? work.titleRu : work.title}</h3>
+        <p className="muted" style={{ marginTop: 8, marginBottom: 6 }}>{ru ? 'Описание' : '설명'}</p>
+        <p>{ru ? (work.descriptionRu || work.description) : (work.description || work.descriptionRu)}</p>
+        <p className="muted">{ru ? 'Категория' : '카테고리'}: {categoryName(work.category)}</p>
+        <b>{Number(work.price || 0).toLocaleString('ko-KR')} ₩</b>
+        <p className="muted">{work.artistName}</p>
+        <p className="muted" style={{ marginTop: 8 }}>{ru ? 'Нажмите, чтобы рассмотреть подробнее' : '자세히 보려면 눌러 주세요'}</p>
+      </article>)}</div> : <p className="muted">{ru ? 'Новые работы мастеров скоро появятся здесь.' : '새로운 작가 작품이 곧 이곳에 소개됩니다.'}</p>}
+      {selectedWork && <div className="modal" onClick={(event) => { if (event.target === event.currentTarget) setSelectedWork(null) }}>
+        <div role="dialog" aria-modal="true" aria-label={ru ? 'Подробная информация о работе' : '작품 상세 정보'} style={{ maxWidth: 760, maxHeight: '90vh', overflowY: 'auto', textAlign: 'left' }}>
+          <img src={selectedWork.image} alt={ru ? selectedWork.titleRu : selectedWork.title} style={{ width: '100%', maxHeight: '55vh', objectFit: 'contain', borderRadius: 10, background: 'var(--sub)' }} />
+          <h2 style={{ fontSize: '1.5rem', margin: '16px 0 8px' }}>{ru ? (selectedWork.titleRu || selectedWork.title) : selectedWork.title}</h2>
+          <p className="muted">{ru ? 'Мастер' : '작가'}: {selectedWork.artistName}</p>
+          <p className="muted" style={{ marginTop: 14, marginBottom: 6 }}>{ru ? 'Описание' : '작품 설명'}</p>
+          <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>{ru ? (selectedWork.descriptionRu || selectedWork.description || 'Описание не добавлено') : (selectedWork.description || selectedWork.descriptionRu || '설명이 없습니다')}</p>
+          <p className="muted" style={{ marginTop: 12 }}>{ru ? 'Категория' : '카테고리'}: {categoryName(selectedWork.category)}</p>
+          <p style={{ fontSize: '1.25rem', fontWeight: 700, marginTop: 12 }}>{Number(selectedWork.price || 0).toLocaleString('ko-KR')} ₩</p>
+          <div className="acts" style={{ justifyContent: 'flex-end', marginTop: 18 }}>
+            <button className="btn" onClick={() => setSelectedWork(null)}>{ru ? 'Закрыть' : '닫기'}</button>
+          </div>
+        </div>
+      </div>}
+      <div className="mt"><div className="sec-h"><h2>시즌 기획전</h2></div>
         {D.extras.collections.map((k) => (
           <section key={k.id} style={{ marginBottom: 36 }}>
             <h3 style={{ fontSize: '1.25rem' }}>{k.title}</h3><p className="muted">{k.desc}</p>
