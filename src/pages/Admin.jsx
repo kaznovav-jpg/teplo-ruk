@@ -429,6 +429,25 @@ const deleteArticle = async (article) => {
                   }
                 }}>{lang === 'ru' ? 'Одобрить мастера' : '작가 승인'}</button>
               )}
+              {application.status === 'approved' && (
+                <button className="btn ghost" onClick={async () => {
+                  const confirmed = window.confirm(lang === 'ru'
+                    ? `Удалить мастера «${application.name || application.email}»? Доступ к кабинету мастера будет закрыт.`
+                    : `‘${application.name || application.email}’ 작가 권한을 해제하시겠습니까? 작가 페이지 접근이 중단됩니다.`)
+                  if (!confirmed) return
+                  try {
+                    await F.deleteDoc(F.doc(F.db, 'masterProfiles', application.uid))
+                    await F.setDoc(F.doc(F.db, 'masterApplications', application.uid), {
+                      status: 'removed',
+                      reviewedAt: new Date().toISOString()
+                    }, { merge: true })
+                    alert(lang === 'ru' ? 'Статус мастера удалён. Заявку можно подать повторно.' : '작가 권한이 해제되었습니다. 다시 신청할 수 있습니다.')
+                  } catch (error) {
+                    console.error('Master removal error:', error)
+                    alert(lang === 'ru' ? 'Не удалось удалить статус мастера.' : '작가 권한 해제에 실패했습니다.')
+                  }
+                }}>{lang === 'ru' ? 'Удалить мастера' : '작가 권한 해제'}</button>
+              )}
               {application.status === 'pending' && (
                 <button className="btn ghost" onClick={async () => {
                   try {
