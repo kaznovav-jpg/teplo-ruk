@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { D } from '../lib/data.js'
+import { useLanguage } from '../lib/language.jsx'
 import { useApp } from '../lib/store.jsx'
 import { CATS, won } from '../lib/util.js'
 import useTitle from '../lib/useTitle.js'
@@ -183,6 +184,10 @@ function EventModal({ e, joined, onClose }) {
 export function Schedule() {
   useTitle('일정·시간표')
 const { S, adminEvents } = useApp()
+const { lang } = useLanguage()
+const ru = lang === 'ru'
+const typeLabel = (type) => ru ? ({ '수업': 'Занятие', '웨비나': 'Вебинар', '모임': 'Встреча' }[type] || type) : type
+const eventTitle = (event) => ru ? (event.titleRu || event.title) : event.title
 const events = adminEvents
 const [reservationCounts, setReservationCounts] = useState({})
 
@@ -203,6 +208,8 @@ useEffect(() => {
     }
   }), [open, setOpen] = useState(null)
   const { y, m } = ym, pre = `${y}-${pad(m + 1)}`
+  const monthLabel = new Intl.DateTimeFormat(ru ? 'ru-RU' : 'ko-KR', { month: ru ? 'long' : 'numeric', year: 'numeric', timeZone: 'Asia/Seoul' }).format(new Date(y, m, 15, 12))
+  const weekdays = ru ? ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'] : ['일', '월', '화', '수', '목', '금', '토']
   const list = events.filter((e) => (!ty || e.type === ty) && e.ymd.startsWith(pre))
   const shift = (d) => setYm(({ y, m }) => { m += d; return m < 0 ? { y: y - 1, m: 11 } : m > 11 ? { y: y + 1, m: 0 } : { y, m } })
   const first = new Date(y, m, 1).getDay(), days = new Date(y, m + 1, 0).getDate()
@@ -213,22 +220,22 @@ const isFull = (event) =>
   getJoined(event.id) >= Number(event.cap || 0)
   return (
     <div className="wrap">
-      <Crumb items={['일정·시간표']} />
-      <h1 style={{ fontSize: '1.8rem', marginBottom: 14 }}>일정·시간표</h1>
+      <Crumb items={[ru ? 'Расписание' : '일정·시간표']} />
+      <h1 style={{ fontSize: '1.8rem', marginBottom: 14 }}>{ru ? 'Расписание' : '일정·시간표'}</h1>
       <div className="sw2">
-        <button className="ibtn" aria-label="이전 달" onClick={() => shift(-1)}>‹</button><b>{y}년 {m + 1}월</b><button className="ibtn" aria-label="다음 달" onClick={() => shift(1)}>›</button><span style={{ flex: 1 }} />
-        <button className={'btn' + (view === 'cal' ? '' : ' ghost')} aria-pressed={view === 'cal'} onClick={() => setView('cal')}>캘린더</button>
-        <button className={'btn' + (view === 'list' ? '' : ' ghost')} aria-pressed={view === 'list'} onClick={() => setView('list')}>리스트</button>
+        <button className="ibtn" aria-label={ru ? 'Предыдущий месяц' : '이전 달'} onClick={() => shift(-1)}>‹</button><b>{monthLabel}</b><button className="ibtn" aria-label={ru ? 'Следующий месяц' : '다음 달'} onClick={() => shift(1)}>›</button><span style={{ flex: 1 }} />
+        <button className={'btn' + (view === 'cal' ? '' : ' ghost')} aria-pressed={view === 'cal'} onClick={() => setView('cal')}>{ru ? 'Календарь' : '캘린더'}</button>
+        <button className={'btn' + (view === 'list' ? '' : ' ghost')} aria-pressed={view === 'list'} onClick={() => setView('list')}>{ru ? 'Список' : '리스트'}</button>
       </div>
-      <div className="tabs" role="tablist" aria-label="유형 필터">{['', '수업', '웨비나', '모임'].map((t) => <button key={t} role="tab" className={t === ty ? 'on' : ''} onClick={() => setTy(t)}>{t || '전체'}</button>)}</div>
+      <div className="tabs" role="tablist" aria-label={ru ? 'Фильтр событий' : '유형 필터'}>{['', '수업', '웨비나', '모임'].map((t) => <button key={t} role="tab" className={t === ty ? 'on' : ''} onClick={() => setTy(t)}>{t ? typeLabel(t) : (ru ? 'Все' : '전체')}</button>)}</div>
       {view === 'cal' ? (
         <>
           <div className="cal">
-            {['일', '월', '화', '수', '목', '금', '토'].map((d) => <div key={d} className="dh">{d}</div>)}
+            {weekdays.map((d) => <div key={d} className="dh">{d}</div>)}
             {Array.from({ length: first }, (_, i) => <div key={'b' + i} />)}
             {Array.from({ length: days }, (_, i) => {
               const k = `${pre}-${pad(i + 1)}`
-              return <div key={k}><b>{i + 1}</b>{list.filter((e) => e.ymd === k).map((e) => <button key={e.id} className="ev" data-t={e.type} aria-label={`${e.type} ${e.title} ${e.time}`} onClick={() => setOpen(e.id)}>{e.time.slice(0, 5)} {e.title}</button>)}</div>
+              return <div key={k}><b>{i + 1}</b>{list.filter((e) => e.ymd === k).map((e) => <button key={e.id} className="ev" data-t={e.type} aria-label={`${typeLabel(e.type)} ${eventTitle(e)} ${e.time}`} onClick={() => setOpen(e.id)}>{e.time.slice(0, 5)} {eventTitle(e)}</button>)}</div>
             })}
           </div>
           <p className="muted" style={{ marginTop: 10 }}>왼쪽 색 막대: 수업(테라코타) · 웨비나(초록) · 모임(황토)</p>
@@ -236,17 +243,17 @@ const isFull = (event) =>
       ) : list.length ? (
         <ul className="list">{list.map((e) => (
           <li key={e.id} style={{ padding: '10px 0', flexWrap: 'wrap' }}>
-            <span className="chip">{e.date}</span><span className="badge line">{e.type}</span>
-            <span style={{ flex: 1, minWidth: 160 }}><b>{e.title}</b><br /><span className="muted">{e.time} · {e.online ? '온라인' : e.place}</span></span>
+            <span className="chip">{e.date}</span><span className="badge line">{typeLabel(e.type)}</span>
+            <span style={{ flex: 1, minWidth: 160 }}><b>{eventTitle(e)}</b><br /><span className="muted">{e.time} · {e.online ? (ru ? 'Онлайн' : '온라인') : e.place}</span></span>
             <span className="badge line">
-  {getJoined(e.id)}/{e.cap}명
+  {getJoined(e.id)}/{e.cap}{ru ? ' чел.' : '명'}
 </span>
-{isFull(e) && <span className="badge line">마감</span>}
-{S.reservations.some((r) => r.id === e.id) && <span className="badge free">신청 완료</span>}
-<button className="btn ghost" onClick={() => setOpen(e.id)}>자세히</button>
+{isFull(e) && <span className="badge line">{ru ? 'Мест нет' : '마감'}</span>}
+{S.reservations.some((r) => r.id === e.id) && <span className="badge free">{ru ? 'Вы записаны' : '신청 완료'}</span>}
+<button className="btn ghost" onClick={() => setOpen(e.id)}>{ru ? 'Подробнее' : '자세히'}</button>
           </li>))}
         </ul>
-      ) : <p className="empty">이 달에는 일정이 없어요.</p>}
+      ) : <p className="empty">{ru ? 'В этом месяце событий нет.' : '이 달에는 일정이 없어요.'}</p>}
       <div style={{ height: 40 }} />
       {ev && <EventModal e={ev} joined={getJoined(ev.id)} onClose={() => setOpen(null)} />}
     </div>
