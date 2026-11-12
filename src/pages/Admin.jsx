@@ -12,6 +12,7 @@ export default function Admin() {
   time: '',
   type: '수업',
   title: '',
+  titleRu: '',
   place: '',
   cap: 8,
   online: false
@@ -300,6 +301,7 @@ const deleteArticle = async (article) => {
       time: '',
       type: '수업',
       title: '',
+      titleRu: '',
       place: '',
       cap: 8,
       online: false
@@ -334,6 +336,7 @@ const deleteArticle = async (article) => {
       time: '',
       type: '수업',
       title: '',
+      titleRu: '',
       place: '',
       cap: 8,
       online: false
@@ -353,6 +356,7 @@ const deleteArticle = async (article) => {
     time: event.time || '',
     type: event.type || '수업',
     title: event.title || '',
+    titleRu: event.titleRu || '',
     place: event.place || '',
     cap: event.cap || 8,
     online: event.online || false
@@ -926,6 +930,16 @@ const deleteArticle = async (article) => {
   </label>
 
   <label>
+    {lang === 'ru' ? 'Название по-русски' : '러시아어 제목'}
+    <input
+      type="text"
+      value={eventForm.titleRu}
+      onChange={(e) => setEventForm({ ...eventForm, titleRu: e.target.value })}
+      placeholder={lang === 'ru' ? 'Введите русское название' : '러시아어 제목을 입력하세요'}
+    />
+  </label>
+
+  <label>
     {lang === 'ru' ? 'Место проведения' : '장소'}
     <input
       type="text"
@@ -963,6 +977,7 @@ const deleteArticle = async (article) => {
           time: '',
           type: '수업',
           title: '',
+          titleRu: '',
           place: '',
           cap: 8,
           online: false
