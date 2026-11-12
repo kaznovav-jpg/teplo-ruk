@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 import { useApp, useMyComments } from '../lib/store.jsx'
+import { useLanguage } from '../lib/language.jsx'
 import { won } from '../lib/util.js'
 import useTitle from '../lib/useTitle.js'
 import { ProductCard, ClassCard, ArtistCard } from '../components/Cards.jsx'
@@ -44,13 +45,17 @@ function AuthForms({ tab, go }) {
   )
 }
 
-const NAV = [['dash', '요약'], ['master', '작가 신청'], ['orders', '주문내역'], ['class', '내 클래스·예약'], ['fav', '즐겨찾기'], ['act', '내 활동'], ['coupon', '쿠폰·적립금'], ['profile', '프로필 관리']]
 const STEPS = ['결제완료', '제작중', '배송중', '배송완료']
 const stepOf = (o) => { const h = (Date.now() - o.at) / 36e5; return h < 1 ? 0 : h < 24 ? 1 : h < 72 ? 2 : 3 }
 
 export default function MyPage() {
   useTitle('마이페이지')
   const [sp, setSp] = useSearchParams()
+  const { lang } = useLanguage()
+  const isRu = lang === 'ru'
+  const NAV = isRu
+    ? [['dash', 'Обзор'], ['master', 'Стать мастером'], ['orders', 'Мои заказы'], ['class', 'Мои курсы и записи'], ['fav', 'Избранное'], ['act', 'Моя активность'], ['coupon', 'Купоны и баллы'], ['profile', 'Профиль']]
+    : [['dash', '요약'], ['master', '작가 신청'], ['orders', '주문내역'], ['class', '내 클래스·예약'], ['fav', '즐겨찾기'], ['act', '내 활동'], ['coupon', '쿠폰·적립금'], ['profile', '프로필 관리']]
   const { user, S, orders, posts, cancelRes, logout, updateUser, toast, cartCount, adminEvents, isFirebase } = useApp()
   const myc = useMyComments(user)
   const [masterApplication, setMasterApplication] = useState(null)
@@ -62,7 +67,7 @@ export default function MyPage() {
   }, [user?.uid, isFirebase])
   const submitMasterApplication = async (e) => {
     e.preventDefault()
-    if (!isFirebase) { toast('Для подачи заявки необходимо подключение Firebase.'); return }
+    if (!isFirebase) { toast(isRu ? 'Для подачи заявки необходимо подключение Firebase.' : '신청하려면 Firebase 연결이 필요합니다.'); return }
     if (masterApplication?.status === 'pending' || masterApplication?.status === 'approved') return
     const form = e.currentTarget
     const data = {
@@ -79,10 +84,10 @@ export default function MyPage() {
     try {
       await F.setDoc(F.doc(F.db, 'masterApplications', user.uid), data)
       setMasterApplication(data)
-      toast('Заявка отправлена. Ожидайте решения администратора.')
+      toast(isRu ? 'Заявка отправлена. Ожидайте решения администратора.' : '신청이 전송되었습니다. 관리자 승인을 기다려 주세요.')
     } catch (error) {
       console.error('Master application submit error:', error)
-      toast('Не удалось отправить заявку. Попробуйте ещё раз.')
+      toast(isRu ? 'Не удалось отправить заявку. Попробуйте ещё раз.' : '신청을 보내지 못했습니다. 다시 시도해 주세요.')
     }
   }
   let tab = sp.get('tab') || ''
@@ -98,31 +103,31 @@ export default function MyPage() {
       {stat('class', S.reservations.length, '일정 예약')}{stat('orders', orders.length, '주문')}{stat('coupon', `${(user.coupons || []).length}장`, `쿠폰 · ${(user.points || 0).toLocaleString('ko-KR')}P`)}
     </div>,
     master: <section className="box" style={{ maxWidth: 620 }}>
-      <h2>Стать мастером «Тепло Рук»</h2>
+      <h2>{isRu ? 'Стать мастером «Тепло Рук»' : '손길의 온기 작가 신청'}</h2>
       {masterApplication?.status === 'approved' ? (
-        <p>Ваша заявка одобрена. Скоро здесь появится управление вашими работами.</p>
+        <p>{isRu ? 'Ваша заявка одобрена. Скоро здесь появится управление вашими работами.' : '작가 신청이 승인되었습니다. 곧 이곳에서 작품을 관리할 수 있습니다.'}</p>
       ) : masterApplication?.status === 'pending' ? (
-        <p>Ваша заявка отправлена и ожидает проверки администратора. Мы сообщим о решении.</p>
+        <p>{isRu ? 'Ваша заявка отправлена и ожидает проверки администратора. Мы сообщим о решении.' : '신청이 접수되어 관리자 검토를 기다리고 있습니다. 승인 결과를 안내해 드리겠습니다.'}</p>
       ) : masterApplication?.status === 'rejected' ? (
         <>
-          <p>Предыдущая заявка не была одобрена. Вы можете отправить новую.</p>
+          <p>{isRu ? 'Предыдущая заявка не была одобрена. Вы можете отправить новую.' : '이전 신청이 승인되지 않았습니다. 내용을 보완하여 다시 신청할 수 있습니다.'}</p>
           <form className="form" onSubmit={submitMasterApplication}>
-            <label>Контактный телефон<input className="field" name="phone" defaultValue={masterApplication?.phone || user.phone || ''} required /></label>
-            <label>Направление рукоделия<input className="field" name="craft" defaultValue={masterApplication?.craft || ''} placeholder="Например, вышивка, вязание, шитьё" required /></label>
-            <label>Расскажите о себе и своём опыте<textarea className="field" name="bio" rows={4} defaultValue={masterApplication?.bio || ''} required /></label>
-            <label>Ссылка на портфолио или социальные сети<input className="field" name="portfolio" defaultValue={masterApplication?.portfolio || ''} /></label>
-            <button className="btn">Отправить заявку повторно</button>
+            <label>{isRu ? 'Контактный телефон' : '연락처'}<input className="field" name="phone" defaultValue={masterApplication?.phone || user.phone || ''} required /></label>
+            <label>{isRu ? 'Направление рукоделия' : '공예 분야'}<input className="field" name="craft" defaultValue={masterApplication?.craft || ''} placeholder={isRu ? 'Например, вышивка, вязание, шитьё' : '예: 자수, 뜨개질, 바느질'} required /></label>
+            <label>{isRu ? 'Расскажите о себе и своём опыте' : '자기소개와 공예 경력을 소개해 주세요'}<textarea className="field" name="bio" rows={4} defaultValue={masterApplication?.bio || ''} required /></label>
+            <label>{isRu ? 'Ссылка на портфолио или социальные сети' : '포트폴리오 또는 SNS 링크'}<input className="field" name="portfolio" defaultValue={masterApplication?.portfolio || ''} /></label>
+            <button className="btn">{isRu ? 'Отправить заявку повторно' : '다시 신청하기'}</button>
           </form>
         </>
       ) : (
         <>
-          <p className="muted">Расскажите о себе и своих работах. После проверки администратор сможет открыть вам кабинет мастера.</p>
+          <p className="muted">{isRu ? 'Расскажите о себе и своих работах. После проверки администратор сможет открыть вам кабинет мастера.' : '자신과 작품을 소개해 주세요. 관리자 검토 후 작가 전용 페이지를 이용할 수 있습니다.'}</p>
           <form className="form" onSubmit={submitMasterApplication}>
-            <label>Контактный телефон<input className="field" name="phone" defaultValue={user.phone || ''} required /></label>
-            <label>Направление рукоделия<input className="field" name="craft" placeholder="Например, вышивка, вязание, шитьё" required /></label>
-            <label>Расскажите о себе и своём опыте<textarea className="field" name="bio" rows={4} required /></label>
-            <label>Ссылка на портфолио или социальные сети<input className="field" name="portfolio" placeholder="https://..." /></label>
-            <button className="btn">Отправить заявку</button>
+            <label>{isRu ? 'Контактный телефон' : '연락처'}<input className="field" name="phone" defaultValue={user.phone || ''} required /></label>
+            <label>{isRu ? 'Направление рукоделия' : '공예 분야'}<input className="field" name="craft" placeholder={isRu ? 'Например, вышивка, вязание, шитьё' : '예: 자수, 뜨개질, 바느질'} required /></label>
+            <label>{isRu ? 'Расскажите о себе и своём опыте' : '자기소개와 공예 경력을 소개해 주세요'}<textarea className="field" name="bio" rows={4} required /></label>
+            <label>{isRu ? 'Ссылка на портфолио или социальные сети' : '포트폴리오 또는 SNS 링크'}<input className="field" name="portfolio" placeholder={isRu ? 'https://...' : 'https://...'} /></label>
+            <button className="btn">{isRu ? 'Отправить заявку' : '작가 신청하기'}</button>
           </form>
         </>
       )}
@@ -195,9 +200,9 @@ export default function MyPage() {
   }
   return (
     <div className="wrap sec">
-      <h1 style={{ fontSize: '1.7rem', marginBottom: 16 }}>{user.name}님의 마이페이지</h1>
+      <h1 style={{ fontSize: '1.7rem', marginBottom: 16 }}>{isRu ? `Личный кабинет: ${user.name}` : `${user.name}님의 마이페이지`}</h1>
       <div className="mp">
-        <nav className="mpn" aria-label="마이페이지 메뉴">{NAV.map((n) => <button key={n[0]} className={n[0] === tab ? 'on' : ''} onClick={() => go(n[0])}>{n[1]}</button>)}</nav>
+        <nav className="mpn" aria-label={isRu ? "Меню личного кабинета" : "마이페이지 메뉴"}>{NAV.map((n) => <button key={n[0]} className={n[0] === tab ? 'on' : ''} onClick={() => go(n[0])}>{n[1]}</button>)}</nav>
         <div>{C[tab]}</div>
       </div>
     </div>
