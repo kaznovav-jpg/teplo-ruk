@@ -5,7 +5,7 @@ import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 
 export default function Admin() {
-  const { user, isAdmin, adminReservations, adminEvents, products, articles, isFirebase } = useApp()
+  const { user, isAdmin, adminReservations, adminEvents, masterApplications, products, articles, isFirebase } = useApp()
     const { lang } = useLanguage()
   const [eventForm, setEventForm] = useState({
   ymd: '',
@@ -392,6 +392,60 @@ const deleteArticle = async (article) => {
   return (
     <main className="page admin-page" style={{ maxWidth: '1100px', margin: '0 auto', padding: '32px 24px' }}>
       <h1>{lang === 'ru' ? 'Панель администратора' : '관리자 페이지'}</h1>
+      <h2>{lang === 'ru' ? 'Заявки мастеров' : '작가 신청 관리'}</h2>
+      {masterApplications.length === 0 ? (
+        <p>{lang === 'ru' ? 'Новых заявок пока нет.' : '새로운 신청이 없습니다.'}</p>
+      ) : (
+        <div style={{ display: 'grid', gap: 12, marginBottom: 28 }}>
+          {masterApplications.map((application) => (
+            <div key={application.id} className="box" style={{ padding: 16 }}>
+              <strong>{application.name || application.email}</strong>
+              <p>{lang === 'ru' ? 'Направление:' : '공예 분야:'} {application.craft || '-'}</p>
+              <p>{lang === 'ru' ? 'Контакт:' : '연락처:'} {application.phone || '-'}</p>
+              <p>{application.bio || '-'}</p>
+              {application.portfolio && <p><a href={application.portfolio} target="_blank" rel="noreferrer">{lang === 'ru' ? 'Портфолио / соцсети' : '포트폴리오 / SNS'}</a></p>}
+              <p>{lang === 'ru' ? 'Статус:' : '상태:'} {application.status}</p>
+              {application.status !== 'approved' && (
+                <button className="btn" onClick={async () => {
+                  try {
+                    await F.setDoc(F.doc(F.db, 'masterProfiles', application.uid), {
+                      uid: application.uid,
+                      name: application.name || '',
+                      email: application.email || '',
+                      craft: application.craft || '',
+                      bio: application.bio || '',
+                      portfolio: application.portfolio || '',
+                      status: 'approved',
+                      approvedAt: new Date().toISOString()
+                    })
+                    await F.setDoc(F.doc(F.db, 'masterApplications', application.uid), {
+                      status: 'approved',
+                      reviewedAt: new Date().toISOString()
+                    }, { merge: true })
+                    alert(lang === 'ru' ? 'Мастер одобрен.' : '작가가 승인되었습니다.')
+                  } catch (error) {
+                    console.error('Master approval error:', error)
+                    alert(lang === 'ru' ? 'Не удалось одобрить заявку.' : '승인에 실패했습니다.')
+                  }
+                }}>{lang === 'ru' ? 'Одобрить мастера' : '작가 승인'}</button>
+              )}
+              {application.status === 'pending' && (
+                <button className="btn ghost" onClick={async () => {
+                  try {
+                    await F.setDoc(F.doc(F.db, 'masterApplications', application.uid), {
+                      status: 'rejected',
+                      reviewedAt: new Date().toISOString()
+                    }, { merge: true })
+                  } catch (error) {
+                    console.error('Master rejection error:', error)
+                    alert(lang === 'ru' ? 'Не удалось отклонить заявку.' : '거절에 실패했습니다.')
+                  }
+                }}>{lang === 'ru' ? 'Отклонить' : '거절'}</button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
             <h2>{lang === 'ru' ? 'Управление товарами' : '상품 관리'}</h2>
 
       <div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
