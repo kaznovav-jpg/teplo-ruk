@@ -5,7 +5,7 @@ import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 
 export default function Admin() {
-  const { user, isAdmin, adminReservations, adminEvents, masterApplications, products, articles, isFirebase } = useApp()
+  const { user, isAdmin, adminReservations, adminEvents, masterApplications, artistWorks, products, articles, isFirebase } = useApp()
     const { lang } = useLanguage()
   const [eventForm, setEventForm] = useState({
   ymd: '',
@@ -465,6 +465,20 @@ const deleteArticle = async (article) => {
           ))}
         </div>
       )}
+            <h2>{lang === 'ru' ? 'Работы мастеров на проверке' : '작가 작품 검토'}</h2>
+      {artistWorks.filter((work) => work.status !== 'approved').length === 0 ? (
+        <p className="muted">{lang === 'ru' ? 'Новых работ на проверке нет.' : '검토할 작품이 없습니다.'}</p>
+      ) : <div style={{ display: 'grid', gap: 12, marginBottom: 30 }}>
+        {artistWorks.filter((work) => work.status !== 'approved').map((work) => <div className="box" key={work.id} style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 14, padding: 16 }}>
+          <img src={work.image} alt={work.title} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 8 }} />
+          <div><b>{lang === 'ru' ? work.titleRu : work.title}</b><p>{lang === 'ru' ? work.descriptionRu : work.description}</p><p>{Number(work.price || 0).toLocaleString('ko-KR')} ₩ · {work.artistName || work.artistUid}</p><p className="muted">{lang === 'ru' ? 'Статус:' : '상태:'} {work.status}</p>
+            <div className="acts">
+              <button className="btn" onClick={async () => { try { await F.setDoc(F.doc(F.db, 'artistWorks', work.id), { status: 'approved', reviewedAt: new Date().toISOString() }, { merge: true }); alert(lang === 'ru' ? 'Работа опубликована.' : '작품이 공개되었습니다.') } catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось одобрить работу.' : '승인에 실패했습니다.') } }}>{lang === 'ru' ? 'Одобрить и опубликовать' : '승인 및 공개'}</button>
+              <button className="btn ghost" onClick={async () => { try { await F.setDoc(F.doc(F.db, 'artistWorks', work.id), { status: 'rejected', reviewedAt: new Date().toISOString() }, { merge: true }); alert(lang === 'ru' ? 'Работа возвращена на доработку.' : '수정 요청으로 변경되었습니다.') } catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось изменить статус.' : '상태 변경에 실패했습니다.') } }}>{lang === 'ru' ? 'Отклонить' : '수정 요청'}</button>
+            </div>
+          </div>
+        </div>)}
+      </div>}
             <h2>{lang === 'ru' ? 'Управление товарами' : '상품 관리'}</h2>
 
       <div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
