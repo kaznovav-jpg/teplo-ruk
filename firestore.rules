@@ -80,6 +80,27 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Работы мастеров: публично видны только одобренные; мастер управляет только своими заявками.
+    match /artistWorks/{workId} {
+      allow read: if isAdmin()
+        || resource.data.status == 'approved'
+        || (request.auth != null && resource.data.artistUid == request.auth.uid);
+      allow create: if request.auth != null
+        && request.resource.data.artistUid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && exists(/databases/$(database)/documents/masterProfiles/$(request.auth.uid));
+      allow update: if isAdmin()
+        || (request.auth != null
+          && resource.data.artistUid == request.auth.uid
+          && exists(/databases/$(database)/documents/masterProfiles/$(request.auth.uid))
+          && request.resource.data.artistUid == resource.data.artistUid
+          && request.resource.data.status == 'pending');
+      allow delete: if isAdmin()
+        || (request.auth != null
+          && resource.data.artistUid == request.auth.uid
+          && exists(/databases/$(database)/documents/masterProfiles/$(request.auth.uid)));
+    }
+
     // Статус мастера устанавливается только администратором. Пользователь не может назначить себя мастером.
     match /masterProfiles/{uid} {
       allow read: if isAdmin()
