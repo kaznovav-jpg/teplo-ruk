@@ -172,12 +172,14 @@ const useLines = () => {
   return { L, s, sh, t: s + sh }
 }
 function Summary({ s, sh, t, children, sticky }) {
+  const { lang } = useLanguage()
+  const ru = lang === 'ru'
   return (
     <aside className="sum" style={sticky ? { position: 'sticky', top: 90 } : undefined}>
-      <div className="row"><span>상품금액</span><span>{won(s)}</span></div>
-      <div className="row"><span>배송비</span><span>{sh ? won(sh) : '무료'}</span></div>
-      {s > 0 && s < FREE_SHIP && <p className="muted">{won(FREE_SHIP - s)} 더 담으면 무료배송</p>}
-      <div className="row tot"><span>결제 예정 금액</span><span>{won(t)}</span></div>{children}
+      <div className="row"><span>{ru ? 'Стоимость товаров' : '상품금액'}</span><span>{won(s)}</span></div>
+      <div className="row"><span>{ru ? 'Доставка' : '배송비'}</span><span>{sh ? won(sh) : (ru ? 'Бесплатно' : '무료')}</span></div>
+      {s > 0 && s < FREE_SHIP && <p className="muted">{ru ? 'Добавьте ещё на' : ''} {won(FREE_SHIP - s)} {ru ? 'для бесплатной доставки' : '더 담으면 무료배송'}</p>}
+      <div className="row tot"><span>{ru ? 'Итого к оплате' : '결제 예정 금액'}</span><span>{won(t)}</span></div>{children}
     </aside>
   )
 }
@@ -208,35 +210,38 @@ export function Cart() {
 
 export function Checkout() {
   const { lang } = useLanguage()
-  useTitle(lang === 'ru' ? 'Оформление заказа' : '주문서')
+  const ru = lang === 'ru'
+  useTitle(ru ? 'Оформление заказа' : '주문서')
   const nav = useNavigate(), { saveOrder, clearCart, toast } = useApp(), { L, s, sh, t } = useLines()
-  if (!L.length) return <div className="wrap empty"><p>주문할 상품이 없어요.</p><Link className="btn" to="/category?c=all">상품 보러 가기</Link></div>
+  if (!L.length) return <div className="wrap empty"><p>{ru ? 'В корзине нет товаров.' : '주문할 상품이 없어요.'}</p><Link className="btn" to="/category?c=all">{ru ? 'Перейти к товарам' : '상품 보러 가기'}</Link></div>
   const field = (n, l, type = 'text', req = true) => <label>{l}<input className="field" name={n} type={type} required={req} /></label>
+  const paymentMethods = ru
+    ? [['신용·체크카드', 'Кредитная или дебетовая карта'], ['계좌이체', 'Банковский перевод'], ['무통장입금', 'Оплата банковским переводом без карты'], ['간편결제', 'Быстрая оплата']]
+    : [['신용·체크카드', '신용·체크카드'], ['계좌이체', '계좌이체'], ['무통장입금', '무통장입금'], ['간편결제', '간편결제']]
   const submit = async (e) => {
     e.preventDefault()
     const d = Object.fromEntries(new FormData(e.target))
     try {
       await saveOrder({ no: 'HM' + Date.now().toString().slice(-8), date: new Date().toLocaleDateString('ko-KR'), items: L.map((x) => ({ name: lang === 'ru' ? (x.p.nameRu || x.p.name) : x.p.name, opt: `${x.color}/${x.size}`, qty: x.qty, price: x.p.price })), total: t, ...d })
       clearCart(); nav('/order-complete')
-    } catch (err) { console.error(err); toast('주문을 저장하지 못했어요. 다시 시도해 주세요') }
+    } catch (err) { console.error(err); toast(ru ? 'Не удалось сохранить заказ. Попробуйте ещё раз.' : '주문을 저장하지 못했어요. 다시 시도해 주세요') }
   }
   return (
     <div className="wrap sec">
-      <h1 style={{ fontSize: '1.8rem', marginBottom: 18 }}>주문서</h1>
+      <h1 style={{ fontSize: '1.8rem', marginBottom: 18 }}>{ru ? 'Оформление заказа' : '주문서'}</h1>
       <form className="cl" onSubmit={submit}>
         <div>
-          <div className="form"><h2>주문자 정보</h2>{field('name', '이름')}{field('tel', '연락처', 'tel')}{field('email', '이메일', 'email')}</div>
-          <div className="form"><h2>배송지</h2>{field('zip', '우편번호')}{field('addr', '주소')}{field('addr2', '상세 주소', 'text', false)}
-            <label>배송 요청사항<select className="field" name="memo"><option>문 앞에 놓아 주세요</option><option>경비실에 맡겨 주세요</option><option>배송 전 연락 주세요</option></select></label></div>
-          <div className="form"><h2>결제수단</h2><div className="pay">{['신용·체크카드', '계좌이체', '무통장입금', '간편결제'].map((m, i) => <label key={m}><input type="radio" name="pay" value={m} defaultChecked={!i} />{m}</label>)}</div></div>
-          <div className="form"><label style={{ display: 'flex', gap: 8, alignItems: 'center', minHeight: 44 }}><input type="checkbox" required style={{ width: 20, height: 20, accentColor: 'var(--pt)' }} />주문 내용을 확인했으며 이용약관·개인정보 수집에 동의합니다.</label></div>
+          <div className="form"><h2>{ru ? 'Данные покупателя' : '주문자 정보'}</h2>{field('name', ru ? 'Имя' : '이름')}{field('tel', ru ? 'Телефон' : '연락처', 'tel')}{field('email', ru ? 'Электронная почта' : '이메일', 'email')}</div>
+          <div className="form"><h2>{ru ? 'Адрес доставки' : '배송지'}</h2>{field('zip', ru ? 'Почтовый индекс' : '우편번호')}{field('addr', ru ? 'Адрес' : '주소')}{field('addr2', ru ? 'Квартира, дом, подробности адреса' : '상세 주소', 'text', false)}
+            <label>{ru ? 'Пожелания по доставке' : '배송 요청사항'}<select className="field" name="memo"><option>{ru ? 'Оставить у двери' : '문 앞에 놓아 주세요'}</option><option>{ru ? 'Оставить у охраны' : '경비실에 맡겨 주세요'}</option><option>{ru ? 'Связаться перед доставкой' : '배송 전 연락 주세요'}</option></select></label></div>
+          <div className="form"><h2>{ru ? 'Способ оплаты' : '결제수단'}</h2><div className="pay">{paymentMethods.map(([value, label], i) => <label key={value}><input type="radio" name="pay" value={value} defaultChecked={!i} />{label}</label>)}</div></div>
+          <div className="form"><label style={{ display: 'flex', gap: 8, alignItems: 'center', minHeight: 44 }}><input type="checkbox" required style={{ width: 20, height: 20, accentColor: 'var(--pt)' }} />{ru ? 'Я проверил(а) заказ и согласен(на) с условиями использования и обработкой персональных данных.' : '주문 내용을 확인했으며 이용약관·개인정보 수집에 동의합니다.'}</label></div>
         </div>
-        <Summary s={s} sh={sh} t={t} sticky><button className="btn block" style={{ marginTop: 14 }}>결제하기</button></Summary>
+        <Summary s={s} sh={sh} t={t} sticky><button className="btn block" style={{ marginTop: 14 }}>{ru ? 'Оформить заказ' : '결제하기'}</button></Summary>
       </form>
     </div>
   )
 }
-
 export function Complete() {
   useTitle('주문 완료')
   const o = lastOrder()
