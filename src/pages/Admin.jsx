@@ -366,7 +366,23 @@ const deleteArticle = async (article) => {
 
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
-    const deleteEvent = async (event) => {
+    const deleteArtistWork = async (work) => {
+    const confirmed = window.confirm(lang === 'ru'
+      ? `Удалить работу «${work.titleRu || work.title || 'Без названия'}»? Она исчезнет из каталога мастеров.`
+      : `‘${work.title || work.titleRu || '제목 없음'}’ 작품을 삭제하시겠습니까? 작가 작품 목록에서 사라집니다.`)
+    if (!confirmed) return
+
+    try {
+      await F.deleteDoc(F.doc(F.db, 'artistWorks', work.id))
+      if (previewWork?.id === work.id) setPreviewWork(null)
+      alert(lang === 'ru' ? 'Работа удалена.' : '작품이 삭제되었습니다.')
+    } catch (error) {
+      console.error('Artist work delete error:', error)
+      alert(lang === 'ru' ? 'Не удалось удалить работу.' : '작품 삭제에 실패했습니다.')
+    }
+  }
+
+  const deleteEvent = async (event) => {
     if (!window.confirm(`Удалить занятие "${event.title}"?`)) return
 
     try {
@@ -548,10 +564,32 @@ const deleteArticle = async (article) => {
               <button className="btn ghost" onClick={() => setPreviewWork(work)}>{lang === 'ru' ? 'Предпросмотр' : '미리보기'}</button>
               <button className="btn" onClick={async () => { try { await F.setDoc(F.doc(F.db, 'artistWorks', work.id), { status: 'approved', reviewedAt: new Date().toISOString() }, { merge: true }); alert(lang === 'ru' ? 'Работа опубликована.' : '작품이 공개되었습니다.') } catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось одобрить работу.' : '승인에 실패했습니다.') } }}>{lang === 'ru' ? 'Одобрить и опубликовать' : '승인 및 공개'}</button>
               <button className="btn ghost" onClick={async () => { try { await F.setDoc(F.doc(F.db, 'artistWorks', work.id), { status: 'rejected', reviewedAt: new Date().toISOString() }, { merge: true }); alert(lang === 'ru' ? 'Работа возвращена на доработку.' : '수정 요청으로 변경되었습니다.') } catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось изменить статус.' : '상태 변경에 실패했습니다.') } }}>{lang === 'ru' ? 'Отклонить' : '수정 요청'}</button>
+              <button className="btn ghost" onClick={() => deleteArtistWork(work)}>{lang === 'ru' ? 'Удалить работу' : '작품 삭제'}</button>
             </div>
           </div>
         </div>)}
       </div>}
+      <h2>{lang === 'ru' ? 'Опубликованные работы мастеров' : '공개된 작가 작품'}</h2>
+      {artistWorks.filter((work) => work.status === 'approved').length === 0 ? (
+        <p className="muted">{lang === 'ru' ? 'Опубликованных работ пока нет.' : '공개된 작품이 없습니다.'}</p>
+      ) : (
+        <div style={{ display: 'grid', gap: 12, marginBottom: 30 }}>
+          {artistWorks.filter((work) => work.status === 'approved').map((work) => (
+            <div className="box" key={work.id} style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: 14, padding: 16, alignItems: 'center' }}>
+              {work.image && <img src={work.image} alt={work.title || ''} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 8 }} />}
+              <div>
+                <b>{lang === 'ru' ? (work.titleRu || work.title) : (work.title || work.titleRu)}</b>
+                <p>{lang === 'ru' ? (work.descriptionRu || work.description) : (work.description || work.descriptionRu)}</p>
+                <p>{Number(work.price || 0).toLocaleString('ko-KR')} ₩ · {work.artistName || work.artistUid}</p>
+                <div className="acts">
+                  <button className="btn ghost" onClick={() => setPreviewWork(work)}>{lang === 'ru' ? 'Предпросмотр' : '미리보기'}</button>
+                  <button className="btn ghost" onClick={() => deleteArtistWork(work)}>{lang === 'ru' ? 'Удалить работу' : '작품 삭제'}</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {previewWork && (
         <div role="dialog" aria-modal="true" aria-label={lang === 'ru' ? 'Предпросмотр публикации' : '게시 미리보기'} onClick={() => setPreviewWork(null)} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(30, 25, 22, .65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, overflowY: 'auto' }}>
           <div className="box" onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', padding: 22, background: '#fff' }}>
