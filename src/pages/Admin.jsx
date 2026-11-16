@@ -1404,7 +1404,7 @@ const deleteArticle = async (article) => {
   const monthNamesKo = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
   const getEventParts = (event) => {
     const iso = String(event.ymd || '')
-    if (/^\\d{4}-\\d{2}-\\d{2}$/.test(iso)) return { year: iso.slice(0, 4), month: iso.slice(5, 7) }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return { year: iso.slice(0, 4), month: iso.slice(5, 7) }
     const legacy = String(event.date || '').match(/^(\\d{1,2})\\/(\\d{1,2})$/)
     if (legacy) return { year: String(new Date().getFullYear()), month: legacy[1].padStart(2, '0') }
     return null
