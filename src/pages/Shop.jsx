@@ -216,8 +216,8 @@ export function Checkout() {
   if (!L.length) return <div className="wrap empty"><p>{ru ? 'В корзине нет товаров.' : '주문할 상품이 없어요.'}</p><Link className="btn" to="/category?c=all">{ru ? 'Перейти к товарам' : '상품 보러 가기'}</Link></div>
   const field = (n, l, type = 'text', req = true) => <label>{l}<input className="field" name={n} type={type} required={req} /></label>
   const paymentMethods = ru
-    ? [['신용·체크카드', 'Кредитная или дебетовая карта'], ['계좌이체', 'Банковский перевод'], ['무통장입금', 'Оплата банковским переводом без карты'], ['간편결제', 'Быстрая оплата']]
-    : [['신용·체크카드', '신용·체크카드'], ['계좌이체', '계좌이체'], ['무통장입금', '무통장입금'], ['간편결제', '간편결제']]
+    ? [['신용·체크카드', 'Кредитная или дебетовая карта'], ['무통장입금', 'Оплата банковским переводом без карты']]
+    : [['신용·체크카드', '신용·체크카드'], ['무통장입금', '무통장입금']]
   const submit = async (e) => {
     e.preventDefault()
     const d = Object.fromEntries(new FormData(e.target))
