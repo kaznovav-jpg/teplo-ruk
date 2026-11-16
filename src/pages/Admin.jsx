@@ -56,6 +56,7 @@ const [editingProductId, setEditingProductId] = useState(null)
   published: true
 })
 const [editingArticleId, setEditingArticleId] = useState(null)
+const [selectedArticleView, setSelectedArticleView] = useState('menu')
   const uploadImage = async (file) => {
   if (!file) return ''
 
@@ -232,6 +233,7 @@ const data = {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
   const editArticle = (article) => {
+  setSelectedArticleView('add')
   setEditingArticleId(article.id)
 
   setArticleForm({
@@ -453,6 +455,7 @@ const deleteArticle = async (article) => {
             type="button"
             onClick={() => {
               setActiveSection(item.id)
+              if (item.id === 'articles') setSelectedArticleView('menu')
               window.scrollTo({ top: 0, behavior: 'smooth' })
             }}
             aria-current={activeSection === item.id ? 'page' : undefined}
@@ -965,7 +968,53 @@ const deleteArticle = async (article) => {
       </>}
       {activeSection === 'articles' && <>
       <h2>{lang === 'ru' ? 'Управление статьями' : '아티클 관리'}</h2>
-
+      {selectedArticleView === 'menu' ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12, marginBottom: 28 }}>
+          {[
+            { id: 'add', ru: 'Добавить статью', ko: '아티클 추가', icon: '+' },
+            { id: '정보', ru: 'Информация', ko: '정보', icon: '▤' },
+            { id: '트렌드', ru: 'Тренды', ko: '트렌드', icon: '✦' },
+            { id: '리뷰', ru: 'Обзоры', ko: '리뷰', icon: '☆' }
+          ].map((item) => (
+            <button key={item.id} type="button" onClick={() => {
+              setSelectedArticleView(item.id)
+              if (item.id === 'add') {
+                setEditingArticleId(null)
+                setArticleForm({
+                  title: '', titleRu: '', tag: '정보',
+                  date: new Date().toISOString().slice(0, 10),
+                  excerpt: '', excerptRu: '', thumb: '', images: [],
+                  body: [{ heading: '', text: '', headingRu: '', textRu: '' }],
+                  published: true
+                })
+              }
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }} style={{
+              minHeight: 82, padding: 18, border: '1px solid #E5DCD2',
+              borderRadius: 10, background: '#fff', color: '#2F2B28',
+              textAlign: 'left', cursor: 'pointer', fontWeight: 600
+            }}>
+              <span style={{ color: '#B8593B', marginRight: 10 }}>{item.icon}</span>
+              {lang === 'ru' ? item.ru : item.ko}
+              <div style={{ color: '#746b63', fontSize: 13, fontWeight: 400, marginTop: 7 }}>
+                {item.id === 'add'
+                  ? (lang === 'ru' ? 'Создать новый материал' : '새 콘텐츠 작성')
+                  : (lang === 'ru' ? 'Открыть статьи этого раздела' : '해당 카테고리 아티클 보기')}
+              </div>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <>
+          <button type="button" className="btn ghost" onClick={() => {
+            setSelectedArticleView('menu')
+            setEditingArticleId(null)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }} style={{ marginBottom: 18 }}>
+            {lang === 'ru' ? '← К разделам статей' : '← 아티클 메뉴로'}
+          </button>
+          {selectedArticleView === 'add' ? (
+            <>
 <div style={{ display: 'grid', gap: 10, marginBottom: 30 }}>
   <label>
   {lang === 'ru' ? 'Название статьи (한국어)' : '아티클 제목 (한국어)'}
@@ -1175,10 +1224,17 @@ const deleteArticle = async (article) => {
     : (lang === 'ru' ? 'Добавить статью' : '아티클 추가')}
 </button>
 </div>
-      <h2>{lang === 'ru' ? 'Список статей' : '아티클 목록'}</h2>
+            </>
+          ) : (
+            <>
+      <h2>{lang === 'ru' ? 'Статьи: ' : '아티클: '}{({
+        '정보': lang === 'ru' ? 'Информация' : '정보',
+        '트렌드': lang === 'ru' ? 'Тренды' : '트렌드',
+        '리뷰': lang === 'ru' ? 'Обзоры' : '리뷰'
+      })[selectedArticleView]}</h2>
 
 <div style={{ display: 'grid', gap: 12, marginBottom: 30 }}>
-  {articles.map((article) => (
+  {articles.filter((article) => article.tag === selectedArticleView).map((article) => (
     <div
       key={article.id}
       style={{
@@ -1220,6 +1276,10 @@ const deleteArticle = async (article) => {
     </div>
   ))}
 </div>
+            </>
+          )}
+        </>
+      )}
       </>}
       {activeSection === 'schedule' && <>
 <h2>{lang === 'ru' ? 'Управление расписанием занятий' : '수업 일정 관리'}</h2>
