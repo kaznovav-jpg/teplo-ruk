@@ -498,8 +498,52 @@ const deleteArticle = async (article) => {
 
       {activeSection === 'masters' && <>
       <h2>{lang === 'ru' ? 'Заявки мастеров' : '작가 신청 관리'}</h2>
+      {(() => {
+        const newApplications = masterApplications.filter((application) => application.status === 'pending')
+        const newWorkRequests = artistWorks.filter((work) => work.status === 'pending')
+        const notificationCount = newApplications.length + newWorkRequests.length
+        return (
+          <section style={{ marginBottom: 28 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+              <h3 style={{ margin: 0 }}>{lang === 'ru' ? 'Новые уведомления' : '새 알림'}</h3>
+              <span style={{ borderRadius: 20, padding: '4px 10px', background: notificationCount ? '#F7EEE8' : '#F1F1F1', color: notificationCount ? '#B8593B' : '#746b63', fontWeight: 700 }}>
+                {notificationCount}
+              </span>
+            </div>
+            {notificationCount === 0 ? (
+              <p className="muted">{lang === 'ru' ? 'Новых заявок и запросов на добавление товаров нет.' : '새 작가 신청 및 작품 등록 요청이 없습니다.'}</p>
+            ) : (
+              <div style={{ display: 'grid', gap: 10 }}>
+                {newApplications.map((application) => (
+                  <div key={application.id} className="box" style={{ padding: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                    <div>
+                      <strong>{lang === 'ru' ? 'Новая заявка мастера' : '새 작가 신청'}</strong>
+                      <p style={{ margin: '5px 0 0' }}>{application.name || application.email} · {application.craft || (lang === 'ru' ? 'Направление не указано' : '분야 미입력')}</p>
+                    </div>
+                    <button className="btn" type="button" onClick={() => { setSelectedMasterUid(application.uid); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
+                      {lang === 'ru' ? 'Открыть мастера' : '작가 관리 열기'}
+                    </button>
+                  </div>
+                ))}
+                {newWorkRequests.map((work) => (
+                  <div key={work.id} className="box" style={{ padding: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                    <div>
+                      <strong>{lang === 'ru' ? 'Запрос на добавление товара' : '새 작품 등록 요청'}</strong>
+                      <p style={{ margin: '5px 0 0' }}>{work.artistName || work.artistUid} · {lang === 'ru' ? (work.titleRu || work.title || 'Без названия') : (work.title || work.titleRu || '제목 없음')}</p>
+                    </div>
+                    <button className="btn" type="button" onClick={() => { setSelectedMasterUid(work.artistUid); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
+                      {lang === 'ru' ? 'Проверить товар' : '작품 검토'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )
+      })()}
+      <h3>{lang === 'ru' ? 'Все заявки мастеров' : '전체 작가 신청'}</h3>
       {masterApplications.length === 0 ? (
-        <p>{lang === 'ru' ? 'Новых заявок пока нет.' : '새로운 신청이 없습니다.'}</p>
+        <p>{lang === 'ru' ? 'Заявок пока нет.' : '작가 신청이 없습니다.'}</p>
       ) : (
         <div style={{ display: 'grid', gap: 12, marginBottom: 28 }}>
           {masterApplications.map((application) => (
@@ -510,62 +554,9 @@ const deleteArticle = async (article) => {
               <p>{application.bio || '-'}</p>
               {application.portfolio && <p><a href={application.portfolio} target="_blank" rel="noreferrer">{lang === 'ru' ? 'Портфолио / соцсети' : '포트폴리오 / SNS'}</a></p>}
               <p>{lang === 'ru' ? 'Статус:' : '상태:'} {application.status}</p>
-              {application.status !== 'approved' && (
-                <button className="btn" onClick={async () => {
-                  try {
-                    await F.setDoc(F.doc(F.db, 'masterProfiles', application.uid), {
-                      uid: application.uid,
-                      name: application.name || '',
-                      email: application.email || '',
-                      craft: application.craft || '',
-                      bio: application.bio || '',
-                      portfolio: application.portfolio || '',
-                      status: 'approved',
-                      approvedAt: new Date().toISOString()
-                    })
-                    await F.setDoc(F.doc(F.db, 'masterApplications', application.uid), {
-                      status: 'approved',
-                      reviewedAt: new Date().toISOString()
-                    }, { merge: true })
-                    alert(lang === 'ru' ? 'Мастер одобрен.' : '작가가 승인되었습니다.')
-                  } catch (error) {
-                    console.error('Master approval error:', error)
-                    alert(lang === 'ru' ? 'Не удалось одобрить заявку.' : '승인에 실패했습니다.')
-                  }
-                }}>{lang === 'ru' ? 'Одобрить мастера' : '작가 승인'}</button>
-              )}
-              {application.status === 'approved' && (
-                <button className="btn ghost" onClick={async () => {
-                  const confirmed = window.confirm(lang === 'ru'
-                    ? `Удалить мастера «${application.name || application.email}»? Доступ к кабинету мастера будет закрыт.`
-                    : `‘${application.name || application.email}’ 작가 권한을 해제하시겠습니까? 작가 페이지 접근이 중단됩니다.`)
-                  if (!confirmed) return
-                  try {
-                    await F.deleteDoc(F.doc(F.db, 'masterProfiles', application.uid))
-                    await F.setDoc(F.doc(F.db, 'masterApplications', application.uid), {
-                      status: 'removed',
-                      reviewedAt: new Date().toISOString()
-                    }, { merge: true })
-                    alert(lang === 'ru' ? 'Статус мастера удалён. Заявку можно подать повторно.' : '작가 권한이 해제되었습니다. 다시 신청할 수 있습니다.')
-                  } catch (error) {
-                    console.error('Master removal error:', error)
-                    alert(lang === 'ru' ? 'Не удалось удалить статус мастера.' : '작가 권한 해제에 실패했습니다.')
-                  }
-                }}>{lang === 'ru' ? 'Удалить мастера' : '작가 권한 해제'}</button>
-              )}
-              {application.status === 'pending' && (
-                <button className="btn ghost" onClick={async () => {
-                  try {
-                    await F.setDoc(F.doc(F.db, 'masterApplications', application.uid), {
-                      status: 'rejected',
-                      reviewedAt: new Date().toISOString()
-                    }, { merge: true })
-                  } catch (error) {
-                    console.error('Master rejection error:', error)
-                    alert(lang === 'ru' ? 'Не удалось отклонить заявку.' : '거절에 실패했습니다.')
-                  }
-                }}>{lang === 'ru' ? 'Отклонить' : '거절'}</button>
-              )}
+              <button className="btn ghost" type="button" onClick={() => { setSelectedMasterUid(application.uid); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
+                {lang === 'ru' ? 'Открыть страницу мастера' : '작가 관리 페이지 열기'}
+              </button>
             </div>
           ))}
         </div>
@@ -593,6 +584,63 @@ const deleteArticle = async (article) => {
           <button className="btn ghost" type="button" onClick={() => setSelectedMasterUid(null)} style={{ marginBottom: 18 }}>← {lang === 'ru' ? 'К списку мастеров' : '작가 목록으로'}</button>
           <h2 style={{ marginTop: 0 }}>{selectedMaster?.name || selectedMasterUid}</h2>
           {selectedMaster?.email && <p className="muted">{selectedMaster.email}</p>}
+          {(() => {
+            const application = masterApplications.find((item) => item.uid === selectedMasterUid)
+            const isApproved = application?.status === 'approved'
+            return (
+              <div className="box" style={{ padding: 16, margin: '16px 0', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                <strong style={{ width: '100%' }}>{lang === 'ru' ? 'Статус мастера' : '작가 상태'}: {application?.status || (lang === 'ru' ? 'Профиль мастера' : '작가 프로필')}</strong>
+                {application && !isApproved && (
+                  <button className="btn" type="button" onClick={async () => {
+                    try {
+                      await F.setDoc(F.doc(F.db, 'masterProfiles', application.uid), {
+                        uid: application.uid,
+                        name: application.name || '',
+                        email: application.email || '',
+                        craft: application.craft || '',
+                        bio: application.bio || '',
+                        portfolio: application.portfolio || '',
+                        status: 'approved',
+                        approvedAt: new Date().toISOString()
+                      })
+                      await F.setDoc(F.doc(F.db, 'masterApplications', application.uid), { status: 'approved', reviewedAt: new Date().toISOString() }, { merge: true })
+                      alert(lang === 'ru' ? 'Мастер одобрен.' : '작가가 승인되었습니다.')
+                    } catch (error) {
+                      console.error('Master approval error:', error)
+                      alert(lang === 'ru' ? 'Не удалось одобрить заявку.' : '승인에 실패했습니다.')
+                    }
+                  }}>{lang === 'ru' ? 'Одобрить мастера' : '작가 승인'}</button>
+                )}
+                {application?.status === 'pending' && (
+                  <button className="btn ghost" type="button" onClick={async () => {
+                    try {
+                      await F.setDoc(F.doc(F.db, 'masterApplications', application.uid), { status: 'rejected', reviewedAt: new Date().toISOString() }, { merge: true })
+                      alert(lang === 'ru' ? 'Заявка отклонена.' : '신청이 거절되었습니다.')
+                    } catch (error) {
+                      console.error('Master rejection error:', error)
+                      alert(lang === 'ru' ? 'Не удалось отклонить заявку.' : '거절에 실패했습니다.')
+                    }
+                  }}>{lang === 'ru' ? 'Отклонить заявку' : '신청 거절'}</button>
+                )}
+                {isApproved && (
+                  <button className="btn ghost" type="button" onClick={async () => {
+                    const confirmed = window.confirm(lang === 'ru'
+                      ? `Удалить мастера «${application.name || application.email}»? Доступ к кабинету мастера будет закрыт.`
+                      : `‘${application.name || application.email}’ 작가 권한을 해제하시겠습니까?`)
+                    if (!confirmed) return
+                    try {
+                      await F.deleteDoc(F.doc(F.db, 'masterProfiles', application.uid))
+                      await F.setDoc(F.doc(F.db, 'masterApplications', application.uid), { status: 'removed', reviewedAt: new Date().toISOString() }, { merge: true })
+                      alert(lang === 'ru' ? 'Статус мастера удалён. Заявку можно подать повторно.' : '작가 권한이 해제되었습니다.')
+                    } catch (error) {
+                      console.error('Master removal error:', error)
+                      alert(lang === 'ru' ? 'Не удалось удалить статус мастера.' : '작가 권한 해제에 실패했습니다.')
+                    }
+                  }}>{lang === 'ru' ? 'Удалить мастера' : '작가 권한 해제'}</button>
+                )}
+              </div>
+            )
+          })()}
           <p>{lang === 'ru' ? 'Всего работ: ' : '전체 작품: '}{selectedMasterWorks.length}</p>
           {selectedMasterWorks.length === 0 ? <p className="muted">{lang === 'ru' ? 'У этого мастера пока нет работ.' : '이 작가가 등록한 작품이 없습니다.'}</p> :
             <div style={{ display: 'grid', gap: 14 }}>
