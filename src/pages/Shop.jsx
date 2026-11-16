@@ -188,22 +188,23 @@ export function Cart() {
   const { lang } = useLanguage()
   useTitle(lang === 'ru' ? 'Корзина' : '장바구니')
   const { setQty, removeCart } = useApp(), { L, s, sh, t } = useLines()
+  const ru = lang === 'ru'
   return (
     <div className="wrap sec">
-      <h1 style={{ fontSize: '1.8rem', marginBottom: 12 }}>장바구니</h1>
+      <h1 style={{ fontSize: '1.8rem', marginBottom: 12 }}>{ru ? 'Моя корзина' : '내 장바구니'}</h1>
       {L.length ? (
         <div className="cl">
           <div>{L.map((x) => (
             <div className="item" key={x.i}>
               <Link to={`/product/${x.pid}`}><Img src={x.p.images[0]} alt={x.p.name} seed={x.pid} /></Link>
-              <div><p className="nm"><b>{lang === 'ru' ? (x.p.nameRu || x.p.name) : x.p.name}</b></p><p className="muted">{x.color} / {x.size}</p>
-                <div className="qty" style={{ marginTop: 6 }}><button aria-label="수량 감소" onClick={() => setQty(x.i, x.qty - 1)}>−</button><span>{x.qty}</span><button aria-label="수량 증가" onClick={() => setQty(x.i, x.qty + 1)}>+</button></div></div>
-              <div style={{ textAlign: 'right' }}><p><b>{won(x.p.price * x.qty)}</b></p><button className="ibtn" aria-label="삭제" onClick={() => removeCart(x.i)}>삭제</button></div>
+              <div><p className="nm"><b>{ru ? (x.p.nameRu || x.p.name) : x.p.name}</b></p><p className="muted">{x.color} / {x.size}</p>
+                <div className="qty" style={{ marginTop: 6 }}><button aria-label={ru ? 'Уменьшить количество' : '수량 감소'} onClick={() => setQty(x.i, x.qty - 1)}>−</button><span>{x.qty}</span><button aria-label={ru ? 'Увеличить количество' : '수량 증가'} onClick={() => setQty(x.i, x.qty + 1)}>+</button></div></div>
+              <div style={{ textAlign: 'right' }}><p><b>{won(x.p.price * x.qty)}</b></p><button className="ibtn" aria-label={ru ? 'Удалить товар' : '삭제'} onClick={() => removeCart(x.i)}>{ru ? 'Удалить' : '삭제'}</button></div>
             </div>))}
           </div>
-          <Summary s={s} sh={sh} t={t}><Link className="btn block" style={{ marginTop: 14 }} to="/checkout">주문하기</Link></Summary>
+          <Summary s={s} sh={sh} t={t}><Link className="btn block" style={{ marginTop: 14 }} to="/checkout">{ru ? 'Оформить весь заказ' : '전체 상품 주문하기'}</Link></Summary>
         </div>
-      ) : <div className="empty"><p>장바구니가 비어 있어요.</p><Link className="btn" style={{ marginTop: 14 }} to="/category?c=all">쇼핑 계속하기</Link></div>}
+      ) : <div className="empty"><p>{ru ? 'Ваша корзина пока пуста.' : '장바구니가 비어 있어요.'}</p><Link className="btn" style={{ marginTop: 14 }} to="/category?c=all">{ru ? 'Перейти к покупкам' : '쇼핑 계속하기'}</Link></div>}
     </div>
   )
 }
