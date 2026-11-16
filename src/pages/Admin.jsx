@@ -405,21 +405,20 @@ const deleteArticle = async (article) => {
   }
 
   const events = adminEvents
-  const masterDirectory = Array.from(new Map([
-    ...masterApplications.map((master) => [master.uid, {
-      uid: master.uid,
-      name: master.name || master.email || master.uid,
-      email: master.email || '',
-      craft: master.craft || ''
-    }]),
-    ...artistWorks.map((work) => [work.artistUid, {
-      uid: work.artistUid,
-      name: work.artistName || work.artistUid,
-      email: '',
-      craft: ''
-    }])
-  ].filter(([uid]) => uid).map(([uid, master]) => [uid, master])).values())
-    .sort((a, b) => a.name.localeCompare(b.name, lang === 'ru' ? 'ru' : 'ko'))
+  const masterDirectory = Array.from(new Map(
+    [
+      ...masterApplications.map((master) => [master.uid, {
+        uid: master.uid,
+        name: master.name || master.email || master.uid,
+        email: master.email || ''
+      }]),
+      ...artistWorks.map((work) => [work.artistUid, {
+        uid: work.artistUid,
+        name: work.artistName || work.artistUid,
+        email: ''
+      }])
+    ].filter(([uid]) => uid)
+  ).values()).sort((a, b) => a.name.localeCompare(b.name, lang === 'ru' ? 'ru' : 'ko'))
   const selectedMaster = masterDirectory.find((master) => master.uid === selectedMasterUid)
   const selectedMasterWorks = artistWorks.filter((work) => work.artistUid === selectedMasterUid)
     const updateProductField = (field, value) => {
@@ -551,118 +550,71 @@ const deleteArticle = async (article) => {
                   } catch (error) {
                     console.error('Master removal error:', error)
                     alert(lang === 'ru' ? 'Не удалось удалить статус мастера.' : '작가 권한 해제에 실패했습니다.')
-               <h2>{lang === 'ru' ? 'Заявки мастеров' : '작가 신청 관리'}</h2>
-      <p className="muted">{lang === 'ru' ? 'Сначала выберите мастера, чтобы открыть отдельную страницу управления его работами.' : '작가를 선택하면 해당 작가의 작품 관리 화면이 열립니다.'}</p>
+                  }
+                }}>{lang === 'ru' ? 'Удалить мастера' : '작가 권한 해제'}</button>
+              )}
+              {application.status === 'pending' && (
+                <button className="btn ghost" onClick={async () => {
+                  try {
+                    await F.setDoc(F.doc(F.db, 'masterApplications', application.uid), {
+                      status: 'rejected',
+                      reviewedAt: new Date().toISOString()
+                    }, { merge: true })
+                  } catch (error) {
+                    console.error('Master rejection error:', error)
+                    alert(lang === 'ru' ? 'Не удалось отклонить заявку.' : '거절에 실패했습니다.')
+                  }
+                }}>{lang === 'ru' ? 'Отклонить' : '거절'}</button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      <h2>{lang === 'ru' ? 'Мастера и их работы' : '작가 및 작품 관리'}</h2>
       {!selectedMasterUid ? (
         <>
+          <p className="muted">{lang === 'ru' ? 'Выберите имя мастера, чтобы открыть отдельную страницу управления его работами.' : '작가 이름을 선택하면 해당 작가의 작품 관리 화면이 열립니다.'}</p>
           <div style={{ display: 'grid', gap: 10, marginTop: 18 }}>
-            {masterDirectory.length === 0 ? (
-              <p>{lang === 'ru' ? 'Пока нет мастеров с работами.' : '등록된 작가가 없습니다.'}</p>
-            ) : masterDirectory.map((master) => {
-              const works = artistWorks.filter((work) => work.artistUid === master.uid)
-              const pending = works.filter((work) => work.status !== 'approved').length
-              return (
-                <button key={master.uid} type="button" onClick={() => {
-                  setSelectedMasterUid(master.uid)
-                  window.scrollTo({ top: 0, behavior: 'smooth' })
-                }} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
-                  width: '100%', padding: 17, border: '1px solid #E5DCD2', borderRadius: 10,
-                  background: '#fff', color: '#2F2B28', textAlign: 'left', cursor: 'pointer'
-                }}>
-                  <span>
-                    <strong style={{ display: 'block', fontSize: 16 }}>{master.name}</strong>
-                    {master.email && <small style={{ color: '#746b63' }}>{master.email}</small>}
-                  </span>
-                  <span style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    <strong>{works.length} {lang === 'ru' ? 'работ' : '작품'}</strong>
-                    <small style={{ display: 'block', color: pending ? '#B8593B' : '#746b63' }}>
-                      {lang === 'ru' ? 'На проверке: ' : '검토 중: '}{pending}
-                    </small>
-                  </span>
+            {masterDirectory.length === 0 ? <p>{lang === 'ru' ? 'Пока нет мастеров.' : '등록된 작가가 없습니다.'}</p> :
+              masterDirectory.map((master) => {
+                const works = artistWorks.filter((work) => work.artistUid === master.uid)
+                const pending = works.filter((work) => work.status !== 'approved').length
+                return <button key={master.uid} type="button" onClick={() => { setSelectedMasterUid(master.uid); window.scrollTo({ top: 0, behavior: 'smooth' }) }} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, width: '100%', padding: 17, border: '1px solid #E5DCD2', borderRadius: 10, background: '#fff', color: '#2F2B28', textAlign: 'left', cursor: 'pointer' }}>
+                  <span><strong style={{ display: 'block', fontSize: 16 }}>{master.name}</strong>{master.email && <small style={{ color: '#746b63' }}>{master.email}</small>}</span>
+                  <span style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><strong>{works.length} {lang === 'ru' ? 'работ' : '작품'}</strong><small style={{ display: 'block', color: pending ? '#B8593B' : '#746b63' }}>{lang === 'ru' ? 'На проверке: ' : '검토 중: '}{pending}</small></span>
                   <span aria-hidden="true" style={{ color: '#B8593B', fontSize: 22 }}>›</span>
                 </button>
-              )
-            })}
+              })
+            }
           </div>
         </>
       ) : (
         <section style={{ marginTop: 18 }}>
-          <button className="btn ghost" type="button" onClick={() => setSelectedMasterUid(null)} style={{ marginBottom: 18 }}>
-            ← {lang === 'ru' ? 'К списку мастеров' : '작가 목록으로'}
-          </button>
+          <button className="btn ghost" type="button" onClick={() => setSelectedMasterUid(null)} style={{ marginBottom: 18 }}>← {lang === 'ru' ? 'К списку мастеров' : '작가 목록으로'}</button>
           <h2 style={{ marginTop: 0 }}>{selectedMaster?.name || selectedMasterUid}</h2>
           {selectedMaster?.email && <p className="muted">{selectedMaster.email}</p>}
           <p>{lang === 'ru' ? 'Всего работ: ' : '전체 작품: '}{selectedMasterWorks.length}</p>
-          {selectedMasterWorks.length === 0 ? (
-            <p className="muted">{lang === 'ru' ? 'У этого мастера пока нет работ.' : '이 작가가 등록한 작품이 없습니다.'}</p>
-          ) : (
+          {selectedMasterWorks.length === 0 ? <p className="muted">{lang === 'ru' ? 'У этого мастера пока нет работ.' : '이 작가가 등록한 작품이 없습니다.'}</p> :
             <div style={{ display: 'grid', gap: 14 }}>
-              {selectedMasterWorks.map((work) => (
-                <div className="box" key={work.id} style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 14, padding: 16 }}>
-                  {work.image && <img src={work.image} alt={work.title || ''} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 8 }} />}
-                  <div>
-                    <b>{lang === 'ru' ? (work.titleRu || work.title) : (work.title || work.titleRu)}</b>
-                    <p>{lang === 'ru' ? (work.descriptionRu || work.description) : (work.description || work.descriptionRu)}</p>
-                    <p>{Number(work.price || 0).toLocaleString('ko-KR')} ₩</p>
-                    <p className="muted">{lang === 'ru' ? 'Статус: ' : '상태: '}{work.status === 'approved' ? (lang === 'ru' ? 'Опубликована' : '공개') : work.status === 'rejected' ? (lang === 'ru' ? 'Отклонена' : '수정 요청') : (lang === 'ru' ? 'На проверке' : '검토 중')}</p>
-                    <div className="acts">
-                      <button className="btn ghost" onClick={() => setPreviewWork(work)}>{lang === 'ru' ? 'Предпросмотр' : '미리보기'}</button>
-                      {work.status !== 'approved' && (
-                        <button className="btn" onClick={async () => {
-                          try {
-                            await F.setDoc(F.doc(F.db, 'artistWorks', work.id), { status: 'approved', reviewedAt: new Date().toISOString() }, { merge: true })
-                            alert(lang === 'ru' ? 'Работа опубликована.' : '작품이 공개되었습니다.')
-                          } catch (error) {
-                            console.error(error)
-                            alert(lang === 'ru' ? 'Не удалось одобрить работу.' : '승인에 실패했습니다.')
-                          }
-                        }}>{lang === 'ru' ? 'Одобрить и опубликовать' : '승인 및 공개'}</button>
-                      )}
-                      {work.status === 'approved' && (
-                        <button className="btn ghost" onClick={async () => {
-                          try {
-                            await F.setDoc(F.doc(F.db, 'artistWorks', work.id), { status: 'rejected', reviewedAt: new Date().toISOString() }, { merge: true })
-                            alert(lang === 'ru' ? 'Работа снята с публикации.' : '작품 공개가 중단되었습니다.')
-                          } catch (error) {
-                            console.error(error)
-                            alert(lang === 'ru' ? 'Не удалось изменить статус.' : '상태 변경에 실패했습니다.')
-                          }
-                        }}>{lang === 'ru' ? 'Снять с публикации' : '공개 중단'}</button>
-                      )}
-                      {work.status !== 'rejected' && (
-                        <button className="btn ghost" onClick={async () => {
-                          try {
-                            await F.setDoc(F.doc(F.db, 'artistWorks', work.id), { status: 'rejected', reviewedAt: new Date().toISOString() }, { merge: true })
-                            alert(lang === 'ru' ? 'Работа возвращена на доработку.' : '수정 요청으로 변경되었습니다.')
-                          } catch (error) {
-                            console.error(error)
-                            alert(lang === 'ru' ? 'Не удалось изменить статус.' : '상태 변경에 실패했습니다.')
-                          }
-                        }}>{lang === 'ru' ? 'Отклонить' : '수정 요청'}</button>
-                      )}
-                      <button className="btn ghost" onClick={() => deleteArtistWork(work)}>{lang === 'ru' ? 'Удалить работу' : '작품 삭제'}</button>
-                    </div>
+              {selectedMasterWorks.map((work) => <div className="box" key={work.id} style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 14, padding: 16 }}>
+                {work.image && <img src={work.image} alt={work.title || ''} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 8 }} />}
+                <div>
+                  <b>{lang === 'ru' ? (work.titleRu || work.title) : (work.title || work.titleRu)}</b>
+                  <p>{lang === 'ru' ? (work.descriptionRu || work.description) : (work.description || work.descriptionRu)}</p>
+                  <p>{Number(work.price || 0).toLocaleString('ko-KR')} ₩</p>
+                  <p className="muted">{lang === 'ru' ? 'Статус: ' : '상태: '}{work.status === 'approved' ? (lang === 'ru' ? 'Опубликована' : '공개') : work.status === 'rejected' ? (lang === 'ru' ? 'Отклонена' : '수정 요청') : (lang === 'ru' ? 'На проверке' : '검토 중')}</p>
+                  <div className="acts">
+                    <button className="btn ghost" onClick={() => setPreviewWork(work)}>{lang === 'ru' ? 'Предпросмотр' : '미리보기'}</button>
+                    {work.status !== 'approved' && <button className="btn" onClick={async () => { try { await F.setDoc(F.doc(F.db, 'artistWorks', work.id), { status: 'approved', reviewedAt: new Date().toISOString() }, { merge: true }); alert(lang === 'ru' ? 'Работа опубликована.' : '작품이 공개되었습니다.') } catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось одобрить работу.' : '승인에 실패했습니다.') } }}>{lang === 'ru' ? 'Одобрить и опубликовать' : '승인 및 공개'}</button>}
+                    {work.status === 'approved' && <button className="btn ghost" onClick={async () => { try { await F.setDoc(F.doc(F.db, 'artistWorks', work.id), { status: 'rejected', reviewedAt: new Date().toISOString() }, { merge: true }); alert(lang === 'ru' ? 'Работа снята с публикации.' : '작품 공개가 중단되었습니다.') } catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось изменить статус.' : '상태 변경에 실패했습니다.') } }}>{lang === 'ru' ? 'Снять с публикации' : '공개 중단'}</button>}
+                    {work.status !== 'rejected' && <button className="btn ghost" onClick={async () => { try { await F.setDoc(F.doc(F.db, 'artistWorks', work.id), { status: 'rejected', reviewedAt: new Date().toISOString() }, { merge: true }); alert(lang === 'ru' ? 'Работа возвращена на доработку.' : '수정 요청으로 변경되었습니다.') } catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось изменить статус.' : '상태 변경에 실패했습니다.') } }}>{lang === 'ru' ? 'Отклонить' : '수정 요청'}</button>}
+                    <button className="btn ghost" onClick={() => deleteArtistWork(work)}>{lang === 'ru' ? 'Удалить работу' : '작품 삭제'}</button>
                   </div>
                 </div>
-              ))}
+              </div>)}
             </div>
-          )}
+          }
         </section>
-      )}
-ectRatio: '1', objectFit: 'cover', borderRadius: 8 }} />}
-              <div>
-                <b>{lang === 'ru' ? (work.titleRu || work.title) : (work.title || work.titleRu)}</b>
-                <p>{lang === 'ru' ? (work.descriptionRu || work.description) : (work.description || work.descriptionRu)}</p>
-                <p>{Number(work.price || 0).toLocaleString('ko-KR')} ₩ · {work.artistName || work.artistUid}</p>
-                <div className="acts">
-                  <button className="btn ghost" onClick={() => setPreviewWork(work)}>{lang === 'ru' ? 'Предпросмотр' : '미리보기'}</button>
-                  <button className="btn ghost" onClick={() => deleteArtistWork(work)}>{lang === 'ru' ? 'Удалить работу' : '작품 삭제'}</button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
       )}
       {previewWork && (
         <div role="dialog" aria-modal="true" aria-label={lang === 'ru' ? 'Предпросмотр публикации' : '게시 미리보기'} onClick={() => setPreviewWork(null)} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(30, 25, 22, .65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, overflowY: 'auto' }}>
