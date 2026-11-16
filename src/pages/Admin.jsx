@@ -210,6 +210,7 @@ const data = {
   }
 }
   const editProduct = (product) => {
+  setSelectedProductCategory('add')
   setEditingProductId(product.id)
 
   setProductForm({
@@ -682,7 +683,24 @@ const deleteArticle = async (article) => {
       {activeSection === 'products' && <>
             <h2>{lang === 'ru' ? 'Управление товарами' : '상품 관리'}</h2>
 
-      <div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, margin: '18px 0 24px' }}>
+        <button type="button" className="btn" onClick={() => { setEditingProductId(null); setProductForm({ name: '', nameRu: '', price: '', cat: 'bag', images: [''], desc: '', descRu: '', material: '', colors: [''], sizes: [''], published: true }); setSelectedProductCategory('add') }}>
+          {lang === 'ru' ? '+ Добавить товар' : '+ 상품 추가'}
+        </button>
+        {[
+          ['bag', 'Сумки и шитьё', '가방·바느질'],
+          ['knit', 'Вязание', '뜨개질'],
+          ['felt', 'Фетр и валяние', '펠트·양모펠트'],
+          ['clothes', 'Одежда ручной работы', '수제 옷'],
+          ['deco', 'Декор и декупаж', '데코·데코파주']
+        ].map(([id, ruName, koName]) => (
+          <button key={id} type="button" className={selectedProductCategory === id ? 'btn' : 'btn ghost'} onClick={() => { setSelectedProductCategory(id); setEditingProductId(null) }}>
+            {lang === 'ru' ? ruName : koName}
+          </button>
+        ))}
+      </div>
+      {selectedProductCategory === 'add' ? (
+<div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
 <label>
   {lang === 'ru' ? 'Название товара (한국어)' : '상품명 (한국어)'}
   <input
@@ -882,7 +900,31 @@ const deleteArticle = async (article) => {
           </button>
         )}
             </div>
-
+      ) : (
+        <section>
+          <h3>{({
+            bag: lang === 'ru' ? 'Сумки и шитьё' : '가방·바느질',
+            knit: lang === 'ru' ? 'Вязание' : '뜨개질',
+            felt: lang === 'ru' ? 'Фетр и валяние' : '펠트·양모펠트',
+            clothes: lang === 'ru' ? 'Одежда ручной работы' : '수제 옷',
+            deco: lang === 'ru' ? 'Декор и декупаж' : '데코·데코파주'
+          })[selectedProductCategory]}</h3>
+          <div style={{ display: 'grid', gap: 12, marginBottom: 30 }}>
+            {products.filter((product) => product.cat === selectedProductCategory).map((product) => (
+              <div key={product.id} className="box" style={{ padding: 14, display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+                {product.images?.[0] && <img src={product.images[0]} alt={product.name} style={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 8 }} />}
+                <div style={{ flex: 1, minWidth: 160 }}>
+                  <strong>{lang === 'ru' ? (product.nameRu || product.name) : product.name}</strong>
+                  <p style={{ margin: '5px 0' }}>{Number(product.price || 0).toLocaleString('ko-KR')} ₩</p>
+                </div>
+                <button className="btn" type="button" onClick={() => editProduct(product)}>{lang === 'ru' ? 'Редактировать' : '수정'}</button>
+                <button className="btn ghost" type="button" onClick={() => deleteProduct(product)}>{lang === 'ru' ? 'Удалить' : '삭제'}</button>
+              </div>
+            ))}
+            {products.filter((product) => product.cat === selectedProductCategory).length === 0 && <p className="muted">{lang === 'ru' ? 'В этой категории пока нет товаров.' : '이 카테고리에 등록된 상품이 없습니다.'}</p>}
+          </div>
+        </section>
+      )}
       </>}
       {activeSection === 'articles' && <>
       <h2>{lang === 'ru' ? 'Управление статьями' : '아티클 관리'}</h2>
@@ -1096,52 +1138,6 @@ const deleteArticle = async (article) => {
     : (lang === 'ru' ? 'Добавить статью' : '아티클 추가')}
 </button>
 </div>
-      <h2>{lang === 'ru' ? 'Список товаров' : '상품 목록'}</h2>
-
-<div style={{ display: 'grid', gap: 12, marginBottom: 30 }}>
-  {products.map((product) => (
-    <div
-      key={product.id}
-      style={{
-        padding: 12,
-        border: '1px solid #ddd',
-        borderRadius: 8
-      }}
-    >
-      {product.images?.[0] && (
-        <img
-          src={product.images[0]}
-          alt={product.name}
-          style={{
-            width: 100,
-            height: 100,
-            objectFit: 'cover',
-            borderRadius: 8
-          }}
-        />
-      )}
-
-      <strong>{product.name}</strong>
-      <p>{product.nameRu || ''}</p>
-      <p>{Number(product.price || 0).toLocaleString()} ₩</p>
-
-      <button
-        className="btn"
-        onClick={() => editProduct(product)}
-      >
-        {lang === 'ru' ? 'Редактировать' : '수정'}
-      </button>
-
-      <button
-        className="btn ghost"
-        onClick={() => deleteProduct(product)}
-      >
-        {lang === 'ru' ? 'Удалить' : '삭제'}
-      </button>
-    </div>
-  ))}
-</div>
-
       <h2>{lang === 'ru' ? 'Список статей' : '아티클 목록'}</h2>
 
 <div style={{ display: 'grid', gap: 12, marginBottom: 30 }}>
