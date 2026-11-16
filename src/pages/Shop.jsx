@@ -223,7 +223,12 @@ export function Checkout() {
     const d = Object.fromEntries(new FormData(e.target))
     try {
       await saveOrder({ no: 'HM' + Date.now().toString().slice(-8), date: new Date().toLocaleDateString('ko-KR'), items: L.map((x) => ({ name: lang === 'ru' ? (x.p.nameRu || x.p.name) : x.p.name, opt: `${x.color}/${x.size}`, qty: x.qty, price: x.p.price })), total: t, ...d })
-      clearCart(); nav('/order-complete')
+      clearCart()
+      if (d.pay === '신용·체크카드') {
+        window.location.assign('https://smartstore.naver.com/miniri')
+        return
+      }
+      nav('/order-complete')
     } catch (err) { console.error(err); toast(ru ? 'Не удалось сохранить заказ. Попробуйте ещё раз.' : '주문을 저장하지 못했어요. 다시 시도해 주세요') }
   }
   return (
