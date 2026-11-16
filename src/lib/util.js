@@ -1,5 +1,5 @@
 export const COLORS = { 아이보리: '#F3EBDD', 베이지: '#D9C3A5', 테라코타: '#B5573A', 세이지: '#9AA88A', 차콜: '#3A3733', 머스터드: '#D1A545' }
-export const CATS = [['bag', '가방·바느질', '👜'], ['knit', '뜨개질', '🧶'], ['felt', '펠트·양모펠트', '🐑'], ['clothes', '수제 옷', '👗'], ['deco', '데코·데코파주', '🖼️']]
+export const CATS = [['bag', '가방·바느질', '👜'], ['knit', '뜨개질', '🧶'], ['felt', '펠트·양모펠트', '🐑'], ['clothes', '수제 옷', '👗'], ['deco', '데코·데코파주', '🖼️'], ['accessory', '액세서리', '✨'], ['home', '홈 인테리어', '🏡']]
 export const BOARDS = [['wip', '작업과정(WIP) 포토'], ['show', '자랑하기'], ['qa', '질문·답변'], ['free', '자유게시판']]
 export const isPhoto = (b) => b === 'wip' || b === 'show'
 export const FREE_SHIP = 30000
