@@ -566,9 +566,6 @@ const deleteArticle = async (article) => {
         <section style={{ marginTop: 18 }}>
           <button className="btn ghost" type="button" onClick={() => setSelectedMasterUid(null)} style={{ marginBottom: 18 }}>← {lang === 'ru' ? 'К списку заявок мастеров' : '작가 신청 목록으로'}</button>
           <h2 style={{ marginTop: 0 }}>{selectedMaster?.name || selectedMasterUid}</h2>
-          
-          <button className="btn ghost" type="button" onClick={() => setSelectedMasterUid(null)} style={{ marginBottom: 18 }}>← {lang === 'ru' ? 'К списку мастеров' : '작가 목록으로'}</button>
-          <h2 style={{ marginTop: 0 }}>{selectedMaster?.name || selectedMasterUid}</h2>
           {selectedMaster?.email && <p className="muted">{selectedMaster.email}</p>}
           {(() => {
             const application = masterApplications.find((item) => item.uid === selectedMasterUid)
