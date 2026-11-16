@@ -37,6 +37,7 @@ export default function Admin() {
 
 const [editingProductId, setEditingProductId] = useState(null)
   const [selectedProductCategory, setSelectedProductCategory] = useState('add')
+  const [previewProduct, setPreviewProduct] = useState(false)
   const [articleForm, setArticleForm] = useState({
   title: '',
   titleRu: '',
@@ -870,6 +871,10 @@ const deleteArticle = async (article) => {
   />
 </label>
 
+<button type="button" className="btn ghost" onClick={() => setPreviewProduct(true)}>
+  {lang === 'ru' ? 'Предпросмотр товара' : '상품 미리보기'}
+</button>
+
 <button className="btn" onClick={saveProduct}>
   {editingProductId
     ? (lang === 'ru' ? 'Сохранить изменения' : '수정 사항 저장')
@@ -899,6 +904,32 @@ const deleteArticle = async (article) => {
           >
             Отмена
           </button>
+        )}
+        {previewProduct && (
+          <div role="dialog" aria-modal="true" aria-label={lang === 'ru' ? 'Предпросмотр товара' : '상품 미리보기'} onClick={() => setPreviewProduct(false)} style={{ position: 'fixed', inset: 0, zIndex: 1100, background: 'rgba(30, 25, 22, .65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, overflowY: 'auto' }}>
+            <div className="box" onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', padding: 22, background: '#fff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                <h2 style={{ margin: 0 }}>{lang === 'ru' ? 'Предпросмотр товара' : '상품 미리보기'}</h2>
+                <button type="button" className="btn ghost" onClick={() => setPreviewProduct(false)}>{lang === 'ru' ? 'Закрыть' : '닫기'}</button>
+              </div>
+              <p className="muted">{lang === 'ru' ? 'Так товар будет выглядеть в каталоге магазина. Это предварительный просмотр — товар ещё не сохранён.' : '쇼핑몰 카탈로그에 표시될 모습입니다. 미리보기이며 상품은 아직 저장되지 않았습니다.'}</p>
+              <article className="box" style={{ padding: 14 }}>
+                {productForm.images?.filter(Boolean).length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8 }}>
+                    {productForm.images.filter(Boolean).map((url, index) => <img key={index} src={url} alt={lang === 'ru' ? productForm.nameRu : productForm.name} style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: 8 }} />)}
+                  </div>
+                ) : <div style={{ aspectRatio: '4/3', display: 'grid', placeItems: 'center', background: '#F3EEE8', borderRadius: 8, color: '#766B62' }}>{lang === 'ru' ? 'Фотография товара' : '상품 사진'}</div>}
+                <h3 style={{ marginTop: 14 }}>{lang === 'ru' ? (productForm.nameRu || productForm.name || 'Название товара') : (productForm.name || productForm.nameRu || '상품명')}</h3>
+                <p style={{ whiteSpace: 'pre-wrap' }}>{lang === 'ru' ? (productForm.descRu || productForm.desc || 'Описание пока не добавлено') : (productForm.desc || productForm.descRu || '설명이 아직 없습니다')}</p>
+                <p className="muted">{lang === 'ru' ? 'Категория' : '카테고리'}: {{ bag: lang === 'ru' ? 'Сумки и шитьё' : '가방·바느질', knit: lang === 'ru' ? 'Вязание' : '뜨개질', felt: lang === 'ru' ? 'Фетр и валяние' : '펠트·양모펠트', clothes: lang === 'ru' ? 'Одежда ручной работы' : '수제 옷', deco: lang === 'ru' ? 'Декор и декупаж' : '데코·데코파주', home: lang === 'ru' ? 'Для дома' : '홈 인테리어', accessory: lang === 'ru' ? 'Аксессуары' : '액세서리' }[productForm.cat] || productForm.cat || '—'}</p>
+                <b style={{ fontSize: 20 }}>{productForm.price ? Number(productForm.price).toLocaleString('ko-KR') : '—'} ₩</b>
+                {productForm.material && <p className="muted">{lang === 'ru' ? 'Материал' : '소재'}: {productForm.material}</p>}
+                {productForm.colors?.filter(Boolean).length > 0 && <p className="muted">{lang === 'ru' ? 'Цвета' : '색상'}: {productForm.colors.filter(Boolean).join(', ')}</p>}
+                {productForm.sizes?.filter(Boolean).length > 0 && <p className="muted">{lang === 'ru' ? 'Размеры' : '사이즈'}: {productForm.sizes.filter(Boolean).join(', ')}</p>}
+              </article>
+              <div style={{ marginTop: 16 }}><button type="button" className="btn" onClick={() => setPreviewProduct(false)}>{lang === 'ru' ? 'Вернуться к заполнению' : '작성으로 돌아가기'}</button></div>
+            </div>
+          </div>
         )}
             </div>
       ) : (
