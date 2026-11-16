@@ -16,6 +16,7 @@ export default function Admin() {
   title: '',
   titleRu: '',
   place: '',
+  images: [],
   cap: 8,
   online: false
 })
@@ -315,6 +316,7 @@ const deleteArticle = async (article) => {
       title: '',
       titleRu: '',
       place: '',
+      images: [],
       cap: 8,
       online: false
     })
@@ -1404,6 +1406,7 @@ const deleteArticle = async (article) => {
     <div style={{ display: 'grid', gap: 10, marginBottom: 30 }}>
       {monthEvents.length === 0 ? <p className="muted">{lang === 'ru' ? 'В этом месяце пока нет занятий.' : '이 달에 등록된 수업 일정이 없습니다.'}</p> : monthEvents.map((event) => (
         <div key={event.id} style={{ padding: 16, border: '1px solid #E5DCD2', borderRadius: 10, background: '#fff' }}>
+          {(event.images?.[0] || event.image) && <img src={event.images?.[0] || event.image} alt="" style={{ width: '100%', maxWidth: 260, maxHeight: 150, objectFit: 'cover', borderRadius: 8, marginBottom: 10 }} />}
           <strong>{lang === 'ru' ? (event.titleRu || event.title) : (event.titleKo || event.title)}</strong>
           <p style={{ margin: '7px 0' }}>{event.ymd || event.date} · {event.time}</p>
           <p style={{ margin: '0 0 12px' }}>{event.place || '-'} · {lang === 'ru' ? 'Мест' : '모집'} {event.cap}{lang === 'ru' ? '' : '명'}</p>
@@ -1446,6 +1449,35 @@ const deleteArticle = async (article) => {
   <label>
     {lang === 'ru' ? 'Название по-русски' : '러시아어 제목'}
     <input type="text" value={eventForm.titleRu} onChange={(e) => setEventForm({ ...eventForm, titleRu: e.target.value })} placeholder={lang === 'ru' ? 'Введите русское название' : '러시아어 제목을 입력하세요'} />
+  </label>
+  <label>
+    {lang === 'ru' ? 'Фотографии занятия' : '수업 사진'}
+    <input
+      type="file"
+      className="field"
+      accept="image/png,image/jpeg,image/webp"
+      multiple
+      onChange={async (e) => {
+        const files = Array.from(e.target.files || [])
+        if (!files.length) return
+        const urls = await Promise.all(files.map((file) => uploadImage(file)))
+        setEventForm((prev) => ({ ...prev, images: [...(prev.images || []), ...urls.filter(Boolean)] }))
+        e.target.value = ''
+      }}
+    />
+    <span className="muted">{lang === 'ru' ? 'Можно выбрать несколько фотографий.' : '사진을 여러 장 선택할 수 있습니다.'}</span>
+    {(eventForm.images || []).length > 0 && (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 12 }}>
+        {eventForm.images.map((url, index) => (
+          <div key={url + index} style={{ position: 'relative' }}>
+            <img src={url} alt="" style={{ width: 100, height: 85, objectFit: 'cover', borderRadius: 8 }} />
+            <button type="button" className="btn ghost" onClick={() => setEventForm((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))}>
+              {lang === 'ru' ? 'Удалить' : '삭제'}
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
   </label>
   <label>
     {lang === 'ru' ? 'Место проведения' : '장소'}
