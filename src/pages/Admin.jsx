@@ -36,6 +36,7 @@ export default function Admin() {
 })
 
 const [editingProductId, setEditingProductId] = useState(null)
+  const [selectedProductCategory, setSelectedProductCategory] = useState('add')
   const [articleForm, setArticleForm] = useState({
   title: '',
   titleRu: '',
