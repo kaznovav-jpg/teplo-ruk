@@ -53,7 +53,7 @@ export default function Home() {
         <div className="dots">{slides.map((_, k) => <button key={k} className={k === i ? 'on' : ''} aria-label={`${k + 1}번 배너`} onClick={() => go(k)} />)}</div>
       </section>
 
-      <section className="sec"><div className="wrap quick">{CATS.map((c) => <Link key={c[0]} to={`/category?c=${c[0]}`}><i aria-hidden="true">{c[2]}</i>{ru ? ({ bag: 'Сумки и шитьё', knit: 'Вязание', felt: 'Валяние и шерсть', clothes: 'Одежда ручной работы', deco: 'Декор и декупаж' }[c[0]]) : c[1]}</Link>)}</div></section>
+      <section className="sec"><div className="wrap quick">{CATS.map((c) => <Link key={c[0]} to={`/category?c=${c[0]}`}><i aria-hidden="true">{c[2]}</i>{ru ? ({ bag: 'Сумки и шитьё', knit: 'Вязание', felt: 'Валяние и шерсть', clothes: 'Одежда ручной работы', deco: 'Декор и декупаж', accessory: 'Аксессуары', home: 'Для дома' }[c[0]]) : c[1]}</Link>)}</div></section>
 
       <section className="sec" style={{ paddingTop: 0 }}><div className="wrap">
         <div className="tabs" role="tablist">
