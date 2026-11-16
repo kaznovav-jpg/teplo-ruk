@@ -1416,8 +1416,7 @@ const deleteArticle = async (article) => {
         </div>
       ))}
     </div>
-  </section>
-<div style={{ marginTop: 24, marginBottom: 30 }}>
+  <div style={{ marginTop: 24, marginBottom: 30 }}>
   <button type="button" className="btn ghost" onClick={() => setShowScheduleForm((value) => !value)}>
     {showScheduleForm ? (lang === 'ru' ? 'Скрыть добавление расписания' : '일정 추가 닫기') : (lang === 'ru' ? '+ Добавить расписание' : '+ 일정 추가')}
   </button>
@@ -1467,6 +1466,8 @@ const deleteArticle = async (article) => {
     </div>
   )}
 </div>
+</section>
+
 })()}
       </>}
       {activeSection === 'reservations' && <>
