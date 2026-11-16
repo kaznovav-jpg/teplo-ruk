@@ -57,6 +57,7 @@ const [editingProductId, setEditingProductId] = useState(null)
 })
 const [editingArticleId, setEditingArticleId] = useState(null)
 const [selectedArticleView, setSelectedArticleView] = useState('menu')
+const [previewArticle, setPreviewArticle] = useState(false)
   const uploadImage = async (file) => {
   if (!file) return ''
 
@@ -1214,6 +1215,14 @@ const deleteArticle = async (article) => {
   {lang === 'ru' ? '+ Добавить раздел' : '+ 섹션 추가'}
 </button>
 
+<div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+<button
+  type="button"
+  className="btn ghost"
+  onClick={() => setPreviewArticle(true)}
+>
+  {lang === 'ru' ? 'Предпросмотр статьи' : '아티클 미리보기'}
+</button>
 <button
   type="button"
   className="btn"
@@ -1223,6 +1232,7 @@ const deleteArticle = async (article) => {
     ? (lang === 'ru' ? 'Сохранить изменения' : '수정 사항 저장')
     : (lang === 'ru' ? 'Добавить статью' : '아티클 추가')}
 </button>
+</div>
 </div>
             </>
           ) : (
@@ -1281,6 +1291,67 @@ const deleteArticle = async (article) => {
         </>
       )}
       </>}
+      {previewArticle && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={lang === 'ru' ? 'Предпросмотр статьи' : '아티클 미리보기'}
+          onClick={(e) => { if (e.target === e.currentTarget) setPreviewArticle(false) }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            background: 'rgba(25, 20, 16, 0.68)', overflowY: 'auto',
+            padding: '24px 14px', display: 'flex', justifyContent: 'center', alignItems: 'flex-start'
+          }}
+        >
+          <article style={{
+            width: '100%', maxWidth: 780, background: '#FAF7F2',
+            borderRadius: 14, padding: '24px clamp(16px, 4vw, 38px)',
+            color: '#2F2B28', margin: 'auto'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 18 }}>
+              <strong>{lang === 'ru' ? 'Предпросмотр — статья ещё не опубликована' : '미리보기 — 아직 게시되지 않았습니다'}</strong>
+              <button type="button" className="btn ghost" onClick={() => setPreviewArticle(false)}>
+                {lang === 'ru' ? 'Закрыть' : '닫기'} ×
+              </button>
+            </div>
+            {(articleForm.images || (articleForm.thumb ? [articleForm.thumb] : [])).map((url, index) => (
+              <img key={index} src={url} alt="" style={{
+                width: '100%', maxHeight: 420, objectFit: 'contain',
+                background: '#EDE3D3', borderRadius: 10, marginBottom: 12
+              }} />
+            ))}
+            <p style={{ color: '#B8593B', marginBottom: 8 }}>
+              {({ '정보': lang === 'ru' ? 'Информация' : '정보', '트렌드': lang === 'ru' ? 'Тренды' : '트렌드', '리뷰': lang === 'ru' ? 'Обзоры' : '리뷰' })[articleForm.tag] || articleForm.tag}
+              {' · '}{articleForm.date}
+            </p>
+            <h1 style={{ fontSize: 'clamp(24px, 4vw, 34px)', lineHeight: 1.3, margin: '0 0 14px' }}>
+              {lang === 'ru' ? (articleForm.titleRu || articleForm.title || 'Название статьи') : (articleForm.title || articleForm.titleRu || '아티클 제목')}
+            </h1>
+            {(lang === 'ru' ? articleForm.excerptRu : articleForm.excerpt) && (
+              <p style={{ fontSize: 17, lineHeight: 1.7, color: '#746b63', whiteSpace: 'pre-wrap', marginBottom: 24 }}>
+                {lang === 'ru' ? articleForm.excerptRu : articleForm.excerpt}
+              </p>
+            )}
+            {(articleForm.body || []).filter((s) => s.heading || s.text || s.headingRu || s.textRu).map((section, index) => (
+              <section key={index} style={{ margin: '24px 0' }}>
+                {(lang === 'ru' ? section.headingRu || section.heading : section.heading || section.headingRu) && (
+                  <h2 style={{ fontSize: 21, marginBottom: 10 }}>
+                    {lang === 'ru' ? section.headingRu || section.heading : section.heading || section.headingRu}
+                  </h2>
+                )}
+                <p style={{ lineHeight: 1.85, whiteSpace: 'pre-wrap', margin: 0 }}>
+                  {lang === 'ru' ? section.textRu || section.text : section.text || section.textRu}
+                </p>
+              </section>
+            ))}
+            <div style={{ borderTop: '1px solid #E5DCD2', paddingTop: 18, marginTop: 28 }}>
+              <button type="button" className="btn" onClick={() => setPreviewArticle(false)}>
+                {lang === 'ru' ? 'Вернуться к редактированию' : '편집으로 돌아가기'}
+              </button>
+            </div>
+          </article>
+        </div>
+      )}
       {activeSection === 'schedule' && <>
 <h2>{lang === 'ru' ? 'Управление расписанием занятий' : '수업 일정 관리'}</h2>
 
