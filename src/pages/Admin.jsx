@@ -7,6 +7,7 @@ import * as F from '../lib/firebase.js'
 export default function Admin() {
   const { user, isAdmin, adminReservations, adminEvents, masterApplications, artistWorks, products, articles, isFirebase } = useApp()
     const { lang } = useLanguage()
+  const [activeSection, setActiveSection] = useState('overview')
   const [eventForm, setEventForm] = useState({
   ymd: '',
   time: '',
@@ -393,6 +394,76 @@ const deleteArticle = async (article) => {
   return (
     <main className="page admin-page" style={{ maxWidth: '1100px', margin: '0 auto', padding: '32px 24px' }}>
       <h1>{lang === 'ru' ? 'Панель администратора' : '관리자 페이지'}</h1>
+      <p style={{ color: '#746b63', marginTop: 6, marginBottom: 22 }}>
+        {lang === 'ru' ? 'Выберите раздел, которым хотите управлять.' : '관리할 메뉴를 선택하세요.'}
+      </p>
+
+      <nav aria-label={lang === 'ru' ? 'Меню администратора' : '관리자 메뉴'} style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+        gap: 10,
+        marginBottom: 28
+      }}>
+        {[
+          { id: 'overview', ru: 'Обзор', ko: '대시보드', icon: '⌂' },
+          { id: 'masters', ru: 'Мастера и их работы', ko: '작가 및 작품', icon: '✿' },
+          { id: 'products', ru: 'Товары', ko: '상품 관리', icon: '▧' },
+          { id: 'articles', ru: 'Статьи', ko: '아티클 관리', icon: '▤' },
+          { id: 'schedule', ru: 'Расписание', ko: '수업 일정', icon: '▦' },
+          { id: 'reservations', ru: 'Записи на занятия', ko: '수업 신청', icon: '☷' }
+        ].map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => {
+              setActiveSection(item.id)
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+            aria-current={activeSection === item.id ? 'page' : undefined}
+            style={{
+              minHeight: 58,
+              padding: '13px 15px',
+              borderRadius: 10,
+              border: activeSection === item.id ? '2px solid #B8593B' : '1px solid #E5DCD2',
+              background: activeSection === item.id ? '#F7EEE8' : '#fff',
+              color: '#2F2B28',
+              textAlign: 'left',
+              cursor: 'pointer',
+              fontWeight: activeSection === item.id ? 700 : 500
+            }}
+          >
+            <span style={{ marginRight: 9, color: '#B8593B' }}>{item.icon}</span>
+            {lang === 'ru' ? item.ru : item.ko}
+          </button>
+        ))}
+      </nav>
+
+      {activeSection === 'overview' && (
+        <section>
+          <h2>{lang === 'ru' ? 'Добро пожаловать в панель управления' : '관리자 대시보드'}</h2>
+          <p>{lang === 'ru' ? 'Все инструменты сайта теперь собраны по отдельным разделам.' : '사이트 관리 기능이 메뉴별로 정리되어 있습니다.'}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12, marginTop: 20 }}>
+            {[
+              { id: 'masters', title: lang === 'ru' ? 'Заявки мастеров' : '작가 신청', count: masterApplications.filter((x) => x.status === 'pending').length + artistWorks.filter((x) => x.status !== 'approved').length, note: lang === 'ru' ? 'Требуют проверки' : '검토 필요' },
+              { id: 'products', title: lang === 'ru' ? 'Товары' : '상품', count: products.length, note: lang === 'ru' ? 'В каталоге' : '등록됨' },
+              { id: 'articles', title: lang === 'ru' ? 'Статьи' : '아티클', count: articles.length, note: lang === 'ru' ? 'Материалы' : '콘텐츠' },
+              { id: 'schedule', title: lang === 'ru' ? 'Занятия' : '수업 일정', count: adminEvents.length, note: lang === 'ru' ? 'В расписании' : '등록됨' },
+              { id: 'reservations', title: lang === 'ru' ? 'Записи' : '신청', count: adminReservations.length, note: lang === 'ru' ? 'Участники' : '신청자' }
+            ].map((item) => (
+              <button key={item.id} type="button" onClick={() => setActiveSection(item.id)} style={{
+                padding: 18, border: '1px solid #E5DCD2', borderRadius: 10,
+                background: '#fff', textAlign: 'left', cursor: 'pointer', color: '#2F2B28'
+              }}>
+                <strong>{item.title}</strong>
+                <div style={{ fontSize: 28, fontWeight: 700, color: '#B8593B', margin: '8px 0 2px' }}>{item.count}</div>
+                <small style={{ color: '#746b63' }}>{item.note}</small>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {activeSection === 'masters' && <>
       <h2>{lang === 'ru' ? 'Заявки мастеров' : '작가 신청 관리'}</h2>
       {masterApplications.length === 0 ? (
         <p>{lang === 'ru' ? 'Новых заявок пока нет.' : '새로운 신청이 없습니다.'}</p>
@@ -511,6 +582,8 @@ const deleteArticle = async (article) => {
           </div>
         </div>
       )}
+      </>}
+      {activeSection === 'products' && <>
             <h2>{lang === 'ru' ? 'Управление товарами' : '상품 관리'}</h2>
 
       <div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
@@ -714,6 +787,8 @@ const deleteArticle = async (article) => {
         )}
             </div>
 
+      </>}
+      {activeSection === 'articles' && <>
       <h2>{lang === 'ru' ? 'Управление статьями' : '아티클 관리'}</h2>
 
 <div style={{ display: 'grid', gap: 10, marginBottom: 30 }}>
@@ -1016,7 +1091,8 @@ const deleteArticle = async (article) => {
     </div>
   ))}
 </div>
-    
+      </>}
+      {activeSection === 'schedule' && <>
 <h2>{lang === 'ru' ? 'Управление расписанием занятий' : '수업 일정 관리'}</h2>
 
 <div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
@@ -1151,6 +1227,8 @@ const deleteArticle = async (article) => {
 ))}
 </div>
 
+      </>}
+      {activeSection === 'reservations' && <>
 <h2>{lang === 'ru' ? 'Список записей на занятия' : '수업 신청 목록'}</h2>
 
 {!isFirebase && (
@@ -1202,6 +1280,7 @@ const deleteArticle = async (article) => {
    </div>
 )}
 
+      </>}
 </main>
   )
 }
