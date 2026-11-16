@@ -694,7 +694,9 @@ const deleteArticle = async (article) => {
           ['knit', 'Вязание', '뜨개질'],
           ['felt', 'Фетр и валяние', '펠트·양모펠트'],
           ['clothes', 'Одежда ручной работы', '수제 옷'],
-          ['deco', 'Декор и декупаж', '데코·데코파주']
+          ['deco', 'Декор и декупаж', '데코·데코파주'],
+          ['accessory', 'Аксессуары', '액세서리'],
+          ['home', 'Для дома', '홈 인테리어']
         ].map(([id, ruName, koName]) => (
           <button key={id} type="button" className={selectedProductCategory === id ? 'btn' : 'btn ghost'} onClick={() => { setSelectedProductCategory(id); setEditingProductId(null) }}>
             {lang === 'ru' ? ruName : koName}
@@ -737,10 +739,13 @@ const deleteArticle = async (article) => {
     value={productForm.cat}
     onChange={(e) => updateProductField('cat', e.target.value)}
   >
-    <option value="bag">{lang === 'ru' ? 'Сумки' : '가방'}</option>
-    <option value="home">{lang === 'ru' ? 'Для дома' : '홈 인테리어'}</option>
+    <option value="bag">{lang === 'ru' ? 'Сумки и шитьё' : '가방·바느질'}</option>
+    <option value="knit">{lang === 'ru' ? 'Вязание' : '뜨개질'}</option>
+    <option value="felt">{lang === 'ru' ? 'Фетр и валяние' : '펠트·양모펠트'}</option>
+    <option value="clothes">{lang === 'ru' ? 'Одежда ручной работы' : '수제 옷'}</option>
+    <option value="deco">{lang === 'ru' ? 'Декор и декупаж' : '데코·데코파주'}</option>
     <option value="accessory">{lang === 'ru' ? 'Аксессуары' : '액세서리'}</option>
-    <option value="clothes">{lang === 'ru' ? 'Одежда' : '의류'}</option>
+    <option value="home">{lang === 'ru' ? 'Для дома' : '홈 인테리어'}</option>
   </select>
 </label>
 
