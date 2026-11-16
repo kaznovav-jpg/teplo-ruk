@@ -22,6 +22,7 @@ export default function Admin() {
   const [editingEventId, setEditingEventId] = useState(null)
   const [selectedScheduleYear, setSelectedScheduleYear] = useState(String(new Date().getFullYear()))
   const [selectedScheduleMonth, setSelectedScheduleMonth] = useState(String(new Date().getMonth() + 1).padStart(2, '0'))
+  const [showScheduleForm, setShowScheduleForm] = useState(false)
   const [previewWork, setPreviewWork] = useState(null)
   const [productForm, setProductForm] = useState({
   name: '',
@@ -1357,48 +1358,6 @@ const deleteArticle = async (article) => {
       {activeSection === 'schedule' && <>
 <h2>{lang === 'ru' ? 'Управление расписанием занятий' : '수업 일정 관리'}</h2>
 
-<div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
-  <label>
-    {lang === 'ru' ? 'Дата' : '날짜'}
-    <input type="date" value={eventForm.ymd} onChange={(e) => {
-      const value = e.target.value
-      setEventForm({ ...eventForm, ymd: value })
-      if (value) {
-        const [year, month] = value.split('-')
-        setSelectedScheduleYear(year)
-        setSelectedScheduleMonth(month)
-      }
-    }} />
-  </label>
-  <label>
-    {lang === 'ru' ? 'Время' : '시간'}
-    <input type="text" placeholder="14:00-16:00" value={eventForm.time} onChange={(e) => setEventForm({ ...eventForm, time: e.target.value })} />
-  </label>
-  <label>
-    {lang === 'ru' ? 'Название занятия' : '수업명'}
-    <input type="text" value={eventForm.title} onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })} />
-  </label>
-  <label>
-    {lang === 'ru' ? 'Название по-русски' : '러시아어 제목'}
-    <input type="text" value={eventForm.titleRu} onChange={(e) => setEventForm({ ...eventForm, titleRu: e.target.value })} placeholder={lang === 'ru' ? 'Введите русское название' : '러시아어 제목을 입력하세요'} />
-  </label>
-  <label>
-    {lang === 'ru' ? 'Место проведения' : '장소'}
-    <input type="text" value={eventForm.place} onChange={(e) => setEventForm({ ...eventForm, place: e.target.value })} />
-  </label>
-  <label>
-    {lang === 'ru' ? 'Количество мест' : '모집 인원'}
-    <input type="number" min="1" value={eventForm.cap} onChange={(e) => setEventForm({ ...eventForm, cap: e.target.value })} />
-  </label>
-  <button className="btn" onClick={editingEventId ? updateEvent : addEvent}>
-    {editingEventId ? (lang === 'ru' ? 'Сохранить изменения' : '수정 완료') : (lang === 'ru' ? 'Сохранить расписание' : '일정 저장')}
-  </button>
-  {editingEventId && <button className="btn ghost" onClick={() => {
-    setEditingEventId(null)
-    setEventForm({ ymd: '', time: '', type: '수업', title: '', titleRu: '', place: '', cap: 8, online: false })
-  }}>{lang === 'ru' ? 'Отмена' : '취소'}</button>}
-</div>
-
 {(() => {
   const monthNamesRu = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
   const monthNamesKo = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
@@ -1458,6 +1417,56 @@ const deleteArticle = async (article) => {
       ))}
     </div>
   </section>
+<div style={{ marginTop: 24, marginBottom: 30 }}>
+  <button type="button" className="btn ghost" onClick={() => setShowScheduleForm((value) => !value)}>
+    {showScheduleForm ? (lang === 'ru' ? 'Скрыть добавление расписания' : '일정 추가 닫기') : (lang === 'ru' ? '+ Добавить расписание' : '+ 일정 추가')}
+  </button>
+  {showScheduleForm && (
+    <div style={{ marginTop: 16 }}>
+      <div style={{ display: 'grid', gap: 10, maxWidth: 500, marginBottom: 30 }}>
+  <label>
+    {lang === 'ru' ? 'Дата' : '날짜'}
+    <input type="date" value={eventForm.ymd} onChange={(e) => {
+      const value = e.target.value
+      setEventForm({ ...eventForm, ymd: value })
+      if (value) {
+        const [year, month] = value.split('-')
+        setSelectedScheduleYear(year)
+        setSelectedScheduleMonth(month)
+      }
+    }} />
+  </label>
+  <label>
+    {lang === 'ru' ? 'Время' : '시간'}
+    <input type="text" placeholder="14:00-16:00" value={eventForm.time} onChange={(e) => setEventForm({ ...eventForm, time: e.target.value })} />
+  </label>
+  <label>
+    {lang === 'ru' ? 'Название занятия' : '수업명'}
+    <input type="text" value={eventForm.title} onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })} />
+  </label>
+  <label>
+    {lang === 'ru' ? 'Название по-русски' : '러시아어 제목'}
+    <input type="text" value={eventForm.titleRu} onChange={(e) => setEventForm({ ...eventForm, titleRu: e.target.value })} placeholder={lang === 'ru' ? 'Введите русское название' : '러시아어 제목을 입력하세요'} />
+  </label>
+  <label>
+    {lang === 'ru' ? 'Место проведения' : '장소'}
+    <input type="text" value={eventForm.place} onChange={(e) => setEventForm({ ...eventForm, place: e.target.value })} />
+  </label>
+  <label>
+    {lang === 'ru' ? 'Количество мест' : '모집 인원'}
+    <input type="number" min="1" value={eventForm.cap} onChange={(e) => setEventForm({ ...eventForm, cap: e.target.value })} />
+  </label>
+  <button className="btn" onClick={editingEventId ? updateEvent : addEvent}>
+    {editingEventId ? (lang === 'ru' ? 'Сохранить изменения' : '수정 완료') : (lang === 'ru' ? 'Сохранить расписание' : '일정 저장')}
+  </button>
+  {editingEventId && <button className="btn ghost" onClick={() => {
+    setEditingEventId(null)
+    setEventForm({ ymd: '', time: '', type: '수업', title: '', titleRu: '', place: '', cap: 8, online: false })
+  }}>{lang === 'ru' ? 'Отмена' : '취소'}</button>}
+</div>
+    </div>
+  )}
+</div>
 })()}
       </>}
       {activeSection === 'reservations' && <>
