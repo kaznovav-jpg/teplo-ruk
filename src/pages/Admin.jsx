@@ -498,6 +498,7 @@ const deleteArticle = async (article) => {
 
       {activeSection === 'masters' && <>
       <h2>{lang === 'ru' ? 'Заявки мастеров' : '작가 신청 관리'}</h2>
+      {!selectedMasterUid && <>
       {(() => {
         const newApplications = masterApplications.filter((application) => application.status === 'pending')
         const newWorkRequests = artistWorks.filter((work) => work.status === 'pending')
@@ -542,45 +543,30 @@ const deleteArticle = async (article) => {
         )
       })()}
       <h3>{lang === 'ru' ? 'Все заявки мастеров' : '전체 작가 신청'}</h3>
-      {masterApplications.length === 0 ? (
+      {masterDirectory.length === 0 ? (
         <p>{lang === 'ru' ? 'Заявок пока нет.' : '작가 신청이 없습니다.'}</p>
       ) : (
-        <div style={{ display: 'grid', gap: 12, marginBottom: 28 }}>
-          {masterApplications.map((application) => (
-            <div key={application.id} className="box" style={{ padding: 16 }}>
-              <strong>{application.name || application.email}</strong>
-              <p>{lang === 'ru' ? 'Направление:' : '공예 분야:'} {application.craft || '-'}</p>
-              <p>{lang === 'ru' ? 'Контакт:' : '연락처:'} {application.phone || '-'}</p>
-              <p>{application.bio || '-'}</p>
-              {application.portfolio && <p><a href={application.portfolio} target="_blank" rel="noreferrer">{lang === 'ru' ? 'Портфолио / соцсети' : '포트폴리오 / SNS'}</a></p>}
-              <p>{lang === 'ru' ? 'Статус:' : '상태:'} {application.status}</p>
-              <button className="btn ghost" type="button" onClick={() => { setSelectedMasterUid(application.uid); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
-                {lang === 'ru' ? 'Открыть страницу мастера' : '작가 관리 페이지 열기'}
+        <div style={{ display: 'grid', gap: 8, marginBottom: 28 }}>
+          {masterDirectory.map((master) => {
+            const application = masterApplications.find((item) => item.uid === master.uid)
+            const works = artistWorks.filter((work) => work.artistUid === master.uid)
+            const waiting = works.filter((work) => work.status === 'pending').length
+            return (
+              <button key={master.uid} type="button" onClick={() => { setSelectedMasterUid(master.uid); window.scrollTo({ top: 0, behavior: 'smooth' }) }} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, width: '100%', padding: '13px 16px', border: '1px solid #E5DCD2', borderRadius: 9, background: '#fff', color: '#2F2B28', textAlign: 'left', cursor: 'pointer' }}>
+                <span><strong>{master.name}</strong>{master.email && <small style={{ display: 'block', color: '#746b63', marginTop: 3 }}>{master.email}</small>}</span>
+                <span style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><small>{application?.status || (lang === 'ru' ? 'Мастер' : '작가')}</small><small style={{ display: 'block', color: waiting ? '#B8593B' : '#746b63' }}>{lang === 'ru' ? 'Новых работ: ' : '새 작품: '}{waiting}</small></span>
+                <span aria-hidden="true" style={{ color: '#B8593B', fontSize: 22 }}>›</span>
               </button>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
-      <h2>{lang === 'ru' ? 'Мастера и их работы' : '작가 및 작품 관리'}</h2>
-      {!selectedMasterUid ? (
-        <>
-          <p className="muted">{lang === 'ru' ? 'Выберите имя мастера, чтобы открыть отдельную страницу управления его работами.' : '작가 이름을 선택하면 해당 작가의 작품 관리 화면이 열립니다.'}</p>
-          <div style={{ display: 'grid', gap: 10, marginTop: 18 }}>
-            {masterDirectory.length === 0 ? <p>{lang === 'ru' ? 'Пока нет мастеров.' : '등록된 작가가 없습니다.'}</p> :
-              masterDirectory.map((master) => {
-                const works = artistWorks.filter((work) => work.artistUid === master.uid)
-                const pending = works.filter((work) => work.status !== 'approved').length
-                return <button key={master.uid} type="button" onClick={() => { setSelectedMasterUid(master.uid); window.scrollTo({ top: 0, behavior: 'smooth' }) }} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, width: '100%', padding: 17, border: '1px solid #E5DCD2', borderRadius: 10, background: '#fff', color: '#2F2B28', textAlign: 'left', cursor: 'pointer' }}>
-                  <span><strong style={{ display: 'block', fontSize: 16 }}>{master.name}</strong>{master.email && <small style={{ color: '#746b63' }}>{master.email}</small>}</span>
-                  <span style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><strong>{works.length} {lang === 'ru' ? 'работ' : '작품'}</strong><small style={{ display: 'block', color: pending ? '#B8593B' : '#746b63' }}>{lang === 'ru' ? 'На проверке: ' : '검토 중: '}{pending}</small></span>
-                  <span aria-hidden="true" style={{ color: '#B8593B', fontSize: 22 }}>›</span>
-                </button>
-              })
-            }
-          </div>
-        </>
-      ) : (
+      </>}
+      {selectedMasterUid && <>
         <section style={{ marginTop: 18 }}>
+          <button className="btn ghost" type="button" onClick={() => setSelectedMasterUid(null)} style={{ marginBottom: 18 }}>← {lang === 'ru' ? 'К списку заявок мастеров' : '작가 신청 목록으로'}</button>
+          <h2 style={{ marginTop: 0 }}>{selectedMaster?.name || selectedMasterUid}</h2>
+          
           <button className="btn ghost" type="button" onClick={() => setSelectedMasterUid(null)} style={{ marginBottom: 18 }}>← {lang === 'ru' ? 'К списку мастеров' : '작가 목록으로'}</button>
           <h2 style={{ marginTop: 0 }}>{selectedMaster?.name || selectedMasterUid}</h2>
           {selectedMaster?.email && <p className="muted">{selectedMaster.email}</p>}
@@ -664,6 +650,7 @@ const deleteArticle = async (article) => {
           }
         </section>
       )}
+      </>}
       {previewWork && (
         <div role="dialog" aria-modal="true" aria-label={lang === 'ru' ? 'Предпросмотр публикации' : '게시 미리보기'} onClick={() => setPreviewWork(null)} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(30, 25, 22, .65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, overflowY: 'auto' }}>
           <div className="box" onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', padding: 22, background: '#fff' }}>
