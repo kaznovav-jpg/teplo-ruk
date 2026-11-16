@@ -133,7 +133,8 @@ setS({ ...EMPTY, ...pickState(d) })
     )
   }, [user, isAdmin])
 
-   // Работы мастеров: администратор видит все, мастер — свои, остальные — только опубликованные.
+   // Работы мастеров: администратор видит все; остальные — опубликованные,
+  // а вошедший мастер дополнительно видит собственные заявки на проверке.
   useEffect(() => {
     if (!F.isFirebase) {
       setArtistWorks([])
@@ -141,17 +142,47 @@ setS({ ...EMPTY, ...pickState(d) })
     }
 
     const worksRef = F.collection(F.db, 'artistWorks')
-    const worksQuery = isAdmin
-      ? worksRef
-      : user
-        ? F.query(worksRef, F.where('artistUid', '==', user.uid))
-        : F.query(worksRef, F.where('status', '==', 'approved'))
+    if (isAdmin) {
+      return F.onSnapshot(
+        worksRef,
+        (s) => setArtistWorks(s.docs.map((d) => ({ ...d.data(), id: d.id }))),
+        (e) => console.error('Artist works admin error:', e)
+      )
+    }
 
-    return F.onSnapshot(
-      worksQuery,
-      (s) => setArtistWorks(s.docs.map((d) => ({ ...d.data(), id: d.id }))),
-      (e) => console.error('Artist works error:', e)
+    let approvedWorks = []
+    let ownWorks = []
+    const publish = () => {
+      const merged = new Map()
+      approvedWorks.forEach((work) => merged.set(work.id, work))
+      ownWorks.forEach((work) => merged.set(work.id, work))
+      setArtistWorks(Array.from(merged.values()))
+    }
+
+    const unsubApproved = F.onSnapshot(
+      F.query(worksRef, F.where('status', '==', 'approved')),
+      (s) => {
+        approvedWorks = s.docs.map((d) => ({ ...d.data(), id: d.id }))
+        publish()
+      },
+      (e) => console.error('Approved artist works error:', e)
     )
+
+    const unsubOwn = user
+      ? F.onSnapshot(
+          F.query(worksRef, F.where('artistUid', '==', user.uid)),
+          (s) => {
+            ownWorks = s.docs.map((d) => ({ ...d.data(), id: d.id }))
+            publish()
+          },
+          (e) => console.error('Own artist works error:', e)
+        )
+      : () => {}
+
+    return () => {
+      unsubApproved()
+      unsubOwn()
+    }
   }, [user, isAdmin])
 
   // Расписание занятий из Firebase
