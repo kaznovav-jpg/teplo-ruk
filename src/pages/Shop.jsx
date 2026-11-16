@@ -21,9 +21,10 @@ export function Category() {
   const [sp] = useSearchParams(), c = sp.get('c') || 'all', s = sp.get('s') || ''
     const { products } = useApp()
 const { lang } = useLanguage()
+  const categoryNamesRu = { bag: 'Сумки и шитьё', knit: 'Вязание', felt: 'Фетр и валяние', clothes: 'Одежда ручной работы', deco: 'Декор и декупаж', accessory: 'Аксессуары', home: 'Для дома' }
   const name = c === 'all'
   ? (lang === 'ru' ? 'Все товары' : '전체 상품')
-  : CATS.find((x) => x[0] === c)?.[1] || (lang === 'ru' ? 'Все товары' : '전체 상품')
+  : (lang === 'ru' ? (categoryNamesRu[c] || 'Все товары') : (CATS.find((x) => x[0] === c)?.[1] || '전체 상품'))
   useTitle(name)
   const base = useMemo(() => products.filter((p) => (c === 'all' || p.cat === c) && (!s || p.name.includes(s))), [c, s])
   const [f, setF] = useState({ pr: [], m: [], c: [], a: [] }), [onlyNew, setNew] = useState(false), [inStock, setStock] = useState(false), [sort, setSort] = useState('pop'), [sheet, setSheet] = useState(false)
