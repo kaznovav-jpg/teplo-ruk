@@ -218,6 +218,7 @@ function EventModal({ e, joined, onClose }) {
   return (
     <div className="modal" onClick={(ev) => ev.target === ev.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-label={e.title}>
+        {(e.images?.length ? e.images : (e.image ? [e.image] : [])).map((url, index) => <img key={url + index} src={url} alt={e.title} style={{ width: '100%', maxHeight: 340, objectFit: 'cover', borderRadius: 10, marginBottom: 12 }} />)}
         <span className="badge line">{e.type}</span><h2 style={{ fontSize: '1.3rem', margin: '8px 0' }}>{e.title}</h2>
         <p><b>일시</b> {e.ymd.replace(/-/g, '.')} {e.time}</p>
         <p><b>장소</b> {e.online ? '온라인 (신청 후 접속 링크를 안내해 드려요)' : e.place}</p>
@@ -302,6 +303,7 @@ const isFull = (event) =>
       ) : list.length ? (
         <ul className="list">{list.map((e) => (
           <li key={e.id} style={{ padding: '10px 0', flexWrap: 'wrap' }}>
+            {(e.images?.[0] || e.image) && <img src={e.images?.[0] || e.image} alt="" style={{ width: 76, height: 64, objectFit: 'cover', borderRadius: 7 }} />}
             <span className="chip">{e.date}</span><span className="badge line">{typeLabel(e.type)}</span>
             <span style={{ flex: 1, minWidth: 160 }}><b>{eventTitle(e)}</b><br /><span className="muted">{e.time} · {e.online ? (ru ? 'Онлайн' : '온라인') : e.place}</span></span>
             <span className="badge line">
