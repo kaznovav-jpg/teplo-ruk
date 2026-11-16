@@ -352,6 +352,7 @@ const deleteArticle = async (article) => {
       title: '',
       titleRu: '',
       place: '',
+      images: [],
       cap: 8,
       online: false
     })
@@ -1492,7 +1493,7 @@ const deleteArticle = async (article) => {
   </button>
   {editingEventId && <button className="btn ghost" onClick={() => {
     setEditingEventId(null)
-    setEventForm({ ymd: '', time: '', type: '수업', title: '', titleRu: '', place: '', cap: 8, online: false })
+    setEventForm({ ymd: '', time: '', type: '수업', title: '', titleRu: '', place: '', images: [], cap: 8, online: false })
   }}>{lang === 'ru' ? 'Отмена' : '취소'}</button>}
 </div>
     </div>
