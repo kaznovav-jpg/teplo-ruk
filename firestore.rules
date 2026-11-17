@@ -50,8 +50,14 @@ service cloud.firestore {
       allow create: if request.auth != null
         && request.resource.data.uid == request.auth.uid;
       allow update: if isAdmin()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paymentStatus', 'paidAt'])
-        && request.resource.data.paymentStatus == 'paid';
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['paymentStatus', 'paidAt', 'fulfillmentStatus', 'fulfillmentUpdatedAt'])
+        && (
+          (request.resource.data.paymentStatus == 'paid'
+            && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['paymentStatus', 'paidAt']))
+          || request.resource.data.fulfillmentStatus in ['preparing', 'shipped', 'delivered']
+        );
     }
 
     match /posts/{id} {
