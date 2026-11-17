@@ -20,14 +20,19 @@ export function Sitemap() {
 
 export function Info() {
   const [sp] = useSearchParams(), t = sp.get('t') || '안내', { toast } = useApp()
-  useTitle(t)
+  const { lang } = useLanguage()
+  const ru = lang === 'ru'
+  const customTitle = ru ? 'Индивидуальный заказ' : '주문제작 문의'
+  useTitle(t === '주문제작 문의' && ru ? customTitle : t)
   if (t === '주문제작 문의') {
     return (
       <div className="wrap sec" style={{ maxWidth: 560 }}>
-        <h1 style={{ fontSize: '1.7rem', marginBottom: 12 }}>주문제작 문의</h1>
-        <form className="form" onSubmit={(e) => { e.preventDefault(); toast('문의가 접수되었어요 (샘플)'); e.target.reset() }}>
-          <label>이름<input className="field" required /></label><label>연락처<input className="field" type="tel" required /></label>
-          <label>원하는 작품과 요청사항<textarea className="field" rows={5} required style={{ padding: 10 }} /></label><button className="btn">문의 보내기</button>
+        <h1 style={{ fontSize: '1.7rem', marginBottom: 12 }}>{customTitle}</h1>
+        <form className="form" onSubmit={(e) => { e.preventDefault(); toast(ru ? 'Ваш запрос отправлен (демо).' : '문의가 접수되었어요 (샘플)'); e.target.reset() }}>
+          <label>{ru ? 'Имя' : '이름'}<input className="field" required /></label>
+          <label>{ru ? 'Контактный телефон' : '연락처'}<input className="field" type="tel" required /></label>
+          <label>{ru ? 'Какое изделие вы хотите заказать и ваши пожелания' : '원하는 작품과 요청사항'}<textarea className="field" rows={5} required style={{ padding: 10 }} /></label>
+          <button className="btn">{ru ? 'Отправить запрос' : '문의 보내기'}</button>
         </form>
       </div>
     )
