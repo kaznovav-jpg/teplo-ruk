@@ -45,7 +45,7 @@ function AuthForms({ tab, go }) {
   )
 }
 
-const stepOf = (o) => { const h = (Date.now() - o.at) / 36e5; return 2 + (h < 1 ? 0 : h < 24 ? 1 : h < 72 ? 2 : 3) }
+const stepOf = (o) => { if (o.pay === '무통장입금' && o.paymentStatus !== 'paid') return 1; const base = o.pay === '무통장입금' && o.paymentStatus === 'paid' ? (o.paidAt || o.at) : o.at; const h = (Date.now() - base) / 36e5; return 2 + (h < 1 ? 0 : h < 24 ? 1 : h < 72 ? 2 : 3) }
 
 export default function MyPage() {
   useTitle('마이페이지')
