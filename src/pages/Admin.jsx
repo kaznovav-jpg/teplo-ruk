@@ -538,15 +538,16 @@ const deleteArticle = async (article) => {
         <h2>{lang === 'ru' ? 'Заказы и подтверждение оплаты' : '주문 및 입금 확인'}</h2>
         <p className="muted">{lang === 'ru' ? 'После фактического поступления денег на счёт подтвердите оплату заказа. Покупатель увидит обновление в личном кабинете.' : '계좌 입금 확인 후 결제를 승인해 주세요. 고객 마이페이지에 상태가 반영됩니다.'}</p>
         {!isFirebase && <p>{lang === 'ru' ? 'Для управления заказами необходимо подключение Firebase.' : '주문 관리를 위해 Firebase 연결이 필요합니다.'}</p>}
-        <p>{lang === 'ru' ? 'Всего заказов:' : '전체 주문:'} {adminOrders.length} · {lang === 'ru' ? 'Ожидают оплаты:' : '입금 대기:'} {adminOrders.filter((o) => o.pay === '무통장입금' && o.paymentStatus !== 'paid').length}</p>
+        <p>{lang === 'ru' ? 'Всего заказов:' : '전체 주문:'} {adminOrders.length} · {lang === 'ru' ? 'Ожидают оплаты:' : '입금 대기:'} {adminOrders.filter((o) => o.paymentStatus !== 'paid' && o.orderStatus !== 'cancelled').length}</p>
         {adminOrders.length === 0 ? <p>{lang === 'ru' ? 'Заказов пока нет.' : '아직 주문이 없습니다.'}</p> : <div style={{ display: 'grid', gap: 14 }}>
           {adminOrders.map((o) => {
             const isBank = o.pay === '무통장입금'
             const isPaid = o.paymentStatus === 'paid'
+            const isCancelled = o.orderStatus === 'cancelled'
             return <div className="box" key={o.id} style={{ padding: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
                 <strong>{o.no || o.id}</strong>
-                <span className="badge line">{isPaid ? (lang === 'ru' ? 'Оплата завершена' : '결제 완료') : (isBank ? (lang === 'ru' ? 'Ожидание оплаты' : '입금 대기') : (lang === 'ru' ? 'Статус оплаты не подтверждён' : '결제 상태 미확인'))}</span>
+                <span className="badge line">{isPaid ? (lang === 'ru' ? 'Оплата завершена' : '결제 완료') : (lang === 'ru' ? 'Ожидание оплаты' : '결제 대기')}</span>
               </div>
               <p style={{ margin: '8px 0 4px' }}>{o.name || '-'} · {o.email || '-'} · {o.tel || '-'}</p>
               <p style={{ margin: '4px 0' }}><b>{Number(o.total || 0).toLocaleString('ko-KR')}원</b> · {o.pay || '-'} · {o.depositor ? (lang === 'ru' ? 'Отправитель: ' : '입금자: ') + o.depositor : ''}</p>
@@ -570,7 +571,7 @@ const deleteArticle = async (article) => {
                 </div>
               </div>}
               {o.orderStatus === 'cancelled' && <p className="badge line" style={{ marginTop: 10 }}>{lang === 'ru' ? 'Заказ отменён' : '주문 취소 완료'}</p>}
-              {isBank && !isPaid && <button type="button" className="btn" style={{ marginTop: 10 }} onClick={async () => {
+              {!isCancelled && !isPaid && <button type="button" className="btn" style={{ marginTop: 10 }} onClick={async () => {
                 if (!window.confirm(lang === 'ru' ? 'Подтвердить, что деньги по этому заказу поступили на счёт?' : '이 주문의 입금이 완료된 것을 확인하시겠습니까?')) return
                 try {
                   await confirmOrderPayment(o.id)
@@ -579,9 +580,9 @@ const deleteArticle = async (article) => {
                   console.error('Order payment confirmation error:', error)
                   alert(lang === 'ru' ? 'Не удалось подтвердить оплату.' : '입금 확인에 실패했습니다.')
                 }
-              }}>{lang === 'ru' ? 'Подтвердить получение оплаты' : '입금 확인 및 결제 완료 처리'}</button>}
+              }}>{lang === 'ru' ? 'Подтвердить фактическое получение оплаты' : '실제 결제 확인 및 완료 처리'}</button>}
               {isPaid && o.paidAt && <p className="muted" style={{ marginTop: 8 }}>{lang === 'ru' ? 'Оплата подтверждена:' : '입금 확인:'} {new Date(o.paidAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR')}</p>}
-              {isPaid && (() => {
+              {isPaid && !isCancelled && (() => {
                 const stages = [
                   { id: 'preparing', ru: 'Изготавливается', ko: '제작중' },
                   { id: 'shipped', ru: 'В пути', ko: '배송중' },
