@@ -27,6 +27,7 @@ export function AppProvider({ children }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [S, setS] = useState(() => ({ ...EMPTY, ...rd('hm_guest', {}) }))
   const [orders, setOrders] = useState([])
+  const [adminOrders, setAdminOrders] = useState([])
   const [posts, setPosts] = useState([])
  const [adminReservations, setAdminReservations] = useState([])
   const [masterApplications, setMasterApplications] = useState([])
@@ -103,6 +104,19 @@ setS({ ...EMPTY, ...pickState(d) })
     wr('hm_last', o)
   }
   
+  // Admin: live order list for bank-transfer payment checks
+  useEffect(() => {
+    if (!user || !isAdmin || !F.isFirebase) { setAdminOrders([]); return }
+    return F.onSnapshot(F.collection(F.db, 'orders'),
+      (snap) => setAdminOrders(snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort((x, y) => y.at - x.at)),
+      (error) => console.error('Admin orders error:', error))
+  }, [user, isAdmin])
+
+  const confirmOrderPayment = async (orderId) => {
+    if (!F.isFirebase) throw new Error('Firebase 연결이 필요합니다.')
+    await F.setDoc(F.doc(F.db, 'orders', orderId), { paymentStatus: 'paid', paidAt: Date.now() }, { merge: true })
+  }
+
   // 관리자: 전체 수업 신청 목록
   useEffect(() => {
     if (!user || !isAdmin || !F.isFirebase) {
@@ -288,7 +302,7 @@ setS({ ...EMPTY, ...pickState(d) })
   }
 
   const api = {
-   user, isAdmin, S, orders, posts, adminReservations, adminEvents, masterApplications, artistWorks, products, articles, toast, isFirebase: F.isFirebase,
+   user, isAdmin, S, orders, adminOrders, posts, adminReservations, adminEvents, masterApplications, artistWorks, products, articles, toast, isFirebase: F.isFirebase,
     cartCount: S.cart.reduce((a, b) => a + b.qty, 0),
     addCart: (it) => upd((s) => {
       const c = [...s.cart], f = c.find((x) => x.pid === it.pid && x.color === it.color && x.size === it.size)
@@ -376,7 +390,7 @@ cancelRes: async (id) => {
   }
 },
 
-    saveOrder, addPost, uploadImages, signup, login, loginGoogle, logout, resetPw, updateUser,
+    saveOrder, confirmOrderPayment, addPost, uploadImages, signup, login, loginGoogle, logout, resetPw, updateUser,
   }
   return <Ctx.Provider value={api}>{children}{msg && <div className="toast" role="status">{msg}</div>}</Ctx.Provider>
 }
