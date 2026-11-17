@@ -6,9 +6,10 @@ import { useLanguage } from '../lib/language.jsx'
 import { CATS, COLORS, FREE_SHIP, SHIP, won, artistName } from '../lib/util.js'
 import useTitle from '../lib/useTitle.js'
 import { Img, Crumb, Heart, ProductCard } from '../components/Cards.jsx'
+import * as F from '../lib/firebase.js'
 
 const PR = [['~3만원', 0, 30000], ['3~7만원', 30000, 70000], ['7만원~', 70000, 1e9]]
-const BANK_DETAILS = { bank: '신한은행 / Shinhan Bank', account: '110 318 981600', holder: '가즈노바빅토리아' }
+const DEFAULT_BANK_DETAILS = { bank: '신한은행 / Shinhan Bank', account: '110 318 981600', holder: '가즈노바빅토리아' }
 
 function Group({ title, items, sel, onFlip }) {
   return (
@@ -216,6 +217,13 @@ export function Checkout() {
   useTitle(ru ? 'Оформление заказа' : '주문서')
   const nav = useNavigate(), { saveOrder, clearCart, toast } = useApp(), { L, s, sh, t } = useLines()
   const [pay, setPay] = useState('신용·체크카드')
+  const [bankDetails, setBankDetails] = useState(DEFAULT_BANK_DETAILS)
+  useEffect(() => {
+    if (!F.isFirebase) return
+    F.getDoc(F.doc(F.db, 'siteSettings', 'payment')).then((snap) => {
+      if (snap.exists()) setBankDetails((prev) => ({ ...prev, ...snap.data() }))
+    }).catch((error) => console.error('Bank details load error:', error))
+  }, [])
   if (!L.length) return <div className="wrap empty"><p>{ru ? 'В корзине нет товаров.' : '주문할 상품이 없어요.'}</p><Link className="btn" to="/category?c=all">{ru ? 'Перейти к товарам' : '상품 보러 가기'}</Link></div>
   const field = (n, l, type = 'text', req = true) => <label>{l}<input className="field" name={n} type={type} required={req} /></label>
   const paymentMethods = ru
@@ -225,7 +233,7 @@ export function Checkout() {
     e.preventDefault()
     const d = Object.fromEntries(new FormData(e.target))
     try {
-      await saveOrder({ no: 'HM' + Date.now().toString().slice(-8), date: new Date().toLocaleDateString('ko-KR'), items: L.map((x) => ({ name: lang === 'ru' ? (x.p.nameRu || x.p.name) : x.p.name, opt: `${x.color}/${x.size}`, qty: x.qty, price: x.p.price })), total: t, ...d })
+      await saveOrder({ no: 'HM' + Date.now().toString().slice(-8), date: new Date().toLocaleDateString('ko-KR'), bankDetails: d.pay === '무통장입금' ? bankDetails : null, items: L.map((x) => ({ name: lang === 'ru' ? (x.p.nameRu || x.p.name) : x.p.name, opt: `${x.color}/${x.size}`, qty: x.qty, price: x.p.price })), total: t, ...d })
       clearCart()
       if (d.pay === '신용·체크카드') {
         window.location.assign('https://smartstore.naver.com/miniri')
@@ -242,7 +250,7 @@ export function Checkout() {
           <div className="form"><h2>{ru ? 'Данные покупателя' : '주문자 정보'}</h2>{field('name', ru ? 'Имя' : '이름')}{field('tel', ru ? 'Телефон' : '연락처', 'tel')}{field('email', ru ? 'Электронная почта' : '이메일', 'email')}</div>
           <div className="form"><h2>{ru ? 'Адрес доставки' : '배송지'}</h2>{field('zip', ru ? 'Почтовый индекс' : '우편번호')}{field('addr', ru ? 'Адрес' : '주소')}{field('addr2', ru ? 'Квартира, дом, подробности адреса' : '상세 주소', 'text', false)}
             <label>{ru ? 'Пожелания по доставке' : '배송 요청사항'}<select className="field" name="memo"><option>{ru ? 'Оставить у двери' : '문 앞에 놓아 주세요'}</option><option>{ru ? 'Оставить у охраны' : '경비실에 맡겨 주세요'}</option><option>{ru ? 'Связаться перед доставкой' : '배송 전 연락 주세요'}</option></select></label></div>
-          <div className="form"><h2>{ru ? 'Способ оплаты' : '결제수단'}</h2><div className="pay">{paymentMethods.map(([value, label]) => <label key={value}><input type="radio" name="pay" value={value} checked={pay === value} onChange={() => setPay(value)} />{label}</label>)}</div>{pay === '무통장입금' && <div className="lead" style={{ marginTop: 14 }}><b>{ru ? 'Банковские реквизиты для перевода' : '무통장 입금 계좌 안내'}</b><p>{ru ? 'Банк:' : '은행:'} {BANK_DETAILS.bank}</p><p>{ru ? 'Номер счёта:' : '계좌번호:'} <b>{BANK_DETAILS.account}</b></p><p>{ru ? 'Получатель:' : '예금주:'} {BANK_DETAILS.holder}</p><p>{ru ? 'Сумма к переводу:' : '입금하실 금액:'} <b>{won(t)}</b></p><p>{ru ? 'Пожалуйста, укажите номер заказа в назначении перевода.' : '입금 시 주문번호를 입금자명 또는 메모에 기재해 주세요.'}</p></div>}</div>
+          <div className="form"><h2>{ru ? 'Способ оплаты' : '결제수단'}</h2><div className="pay">{paymentMethods.map(([value, label]) => <label key={value}><input type="radio" name="pay" value={value} checked={pay === value} onChange={() => setPay(value)} />{label}</label>)}</div>{pay === '무통장입금' && <div className="lead" style={{ marginTop: 14 }}><b>{ru ? 'Банковские реквизиты для перевода' : '무통장 입금 계좌 안내'}</b><p>{ru ? 'Банк:' : '은행:'} {(o.bankDetails || currentBankDetails).bank}</p><p>{ru ? 'Номер счёта:' : '계좌번호:'} <b>{(o.bankDetails || currentBankDetails).account}</b></p><p>{ru ? 'Получатель:' : '예금주:'} {(o.bankDetails || currentBankDetails).holder}</p><p>{ru ? 'Сумма к переводу:' : '입금하실 금액:'} <b>{won(t)}</b></p><p>{ru ? 'Пожалуйста, укажите номер заказа в назначении перевода.' : '입금 시 주문번호를 입금자명 또는 메모에 기재해 주세요.'}</p></div>}</div>
           <div className="form"><label style={{ display: 'flex', gap: 8, alignItems: 'center', minHeight: 44 }}><input type="checkbox" required style={{ width: 20, height: 20, accentColor: 'var(--pt)' }} />{ru ? 'Я проверил(а) заказ и согласен(на) с условиями использования и обработкой персональных данных.' : '주문 내용을 확인했으며 이용약관·개인정보 수집에 동의합니다.'}</label></div>
         </div>
         <Summary s={s} sh={sh} t={t} sticky><button className="btn block" style={{ marginTop: 14 }}>{ru ? 'Оформить заказ' : '결제하기'}</button></Summary>
@@ -254,6 +262,13 @@ export function Complete() {
   const { lang } = useLanguage()
   const ru = lang === 'ru'
   useTitle(ru ? 'Заказ оформлен' : '주문 완료')
+  const [currentBankDetails, setCurrentBankDetails] = useState(DEFAULT_BANK_DETAILS)
+  useEffect(() => {
+    if (!F.isFirebase) return
+    F.getDoc(F.doc(F.db, 'siteSettings', 'payment')).then((snap) => {
+      if (snap.exists()) setCurrentBankDetails((prev) => ({ ...prev, ...snap.data() }))
+    }).catch((error) => console.error('Bank details load error:', error))
+  }, [])
   const o = lastOrder()
   if (!o) return <div className="wrap empty"><p>{ru ? 'Недавний заказ не найден.' : '최근 주문 내역이 없어요.'}</p><Link className="btn" to="/">{ru ? 'На главную' : '홈으로'}</Link></div>
   return (
