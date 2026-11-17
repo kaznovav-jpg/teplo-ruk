@@ -49,15 +49,39 @@ service cloud.firestore {
         || (request.auth != null && resource.data.uid == request.auth.uid);
       allow create: if request.auth != null
         && request.resource.data.uid == request.auth.uid;
-      allow update: if isAdmin()
-        && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['paymentStatus', 'paidAt', 'fulfillmentStatus', 'fulfillmentUpdatedAt'])
+      allow update: if (
+        isAdmin()
         && (
-          (request.resource.data.paymentStatus == 'paid'
-            && request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(['paymentStatus', 'paidAt']))
-          || request.resource.data.fulfillmentStatus in ['preparing', 'shipped', 'delivered']
-        );
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paymentStatus', 'paidAt'])
+            && request.resource.data.paymentStatus == 'paid'
+          )
+          || (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['fulfillmentStatus', 'fulfillmentUpdatedAt'])
+            && request.resource.data.fulfillmentStatus in ['preparing', 'shipped', 'delivered']
+          )
+          || (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cancellationRequest', 'orderStatus', 'cancellationReviewedAt'])
+            && resource.data.cancellationRequest.status == 'pending'
+            && request.resource.data.cancellationRequest.status in ['approved', 'rejected']
+            && (
+              (request.resource.data.cancellationRequest.status == 'approved' && request.resource.data.orderStatus == 'cancelled')
+              || request.resource.data.cancellationRequest.status == 'rejected'
+            )
+          )
+        )
+      ) || (
+        request.auth != null
+        && resource.data.uid == request.auth.uid
+        && resource.data.fulfillmentStatus == 'preparing'
+        && resource.data.paymentStatus == 'paid'
+        && !('cancellationRequest' in resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cancellationRequest'])
+        && request.resource.data.cancellationRequest.status == 'pending'
+        && request.resource.data.cancellationRequest.requesterUid == request.auth.uid
+        && request.resource.data.cancellationRequest.reason is string
+        && request.resource.data.cancellationRequest.reason.size() > 0
+      );
     }
 
     match /posts/{id} {
