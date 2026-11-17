@@ -282,7 +282,7 @@ export function Complete() {
         <p className="muted" style={{ marginTop: 10 }}>{ru ? 'Адрес доставки:' : '배송지:'} {o.addr} {o.addr2 || ''}</p>
       </div>
       {o.pay === '무통장입금' && <div className="lead" style={{ textAlign: 'left', marginBottom: 20 }}><b>{ru ? 'Реквизиты для оплаты' : '입금 계좌 안내'}</b>{o.depositor && <p>{ru ? 'Имя отправителя перевода:' : '입금자명:'} <b>{o.depositor}</b></p>}<p>{ru ? 'Банк:' : '은행:'} {(o.bankDetails || currentBankDetails).bank}</p><p>{ru ? 'Номер счёта:' : '계좌번호:'} <b>{(o.bankDetails || currentBankDetails).account}</b></p><p>{ru ? 'Получатель:' : '예금주:'} {(o.bankDetails || currentBankDetails).holder}</p><p>{ru ? 'Сумма к переводу:' : '입금하실 금액:'} <b>{won(o.total)}</b></p><p>{ru ? 'Пожалуйста, переведите указанную сумму и укажите номер заказа в назначении платежа.' : '위 금액을 입금해 주시고, 입금 메모에 주문번호를 기재해 주세요.'}</p></div>}
-      <p className="lead">{ru ? 'Изготовление изделий ручной работы занимает 2–14 рабочих дней в зависимости от наличия и сложности заказа.' : '핸드메이드 상품은 제작 기간(재고 2~3일, 주문제작 7~30일)이 지난 뒤 발송돼요.'}</p>
+      <p className="lead">{ru ? 'Товары в наличии отправляются через 2–3 дня, изделия на заказ — через 7–30 дней.' : '핸드메이드 상품은 제작 기간(재고 2~3일, 주문제작 7~30일)이 지난 뒤 발송돼요.'}</p>
       <div className="acts"><Link className="btn" to="/category?c=all">{ru ? 'Продолжить покупки' : '쇼핑 계속하기'}</Link><Link className="btn ghost" to="/mypage?tab=orders">{ru ? 'Мои заказы' : '주문내역 보기'}</Link></div>
     </div>
   )
