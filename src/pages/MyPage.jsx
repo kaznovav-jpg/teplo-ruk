@@ -45,14 +45,16 @@ function AuthForms({ tab, go }) {
   )
 }
 
-const STEPS = ['결제완료', '제작중', '배송중', '배송완료']
-const stepOf = (o) => { const h = (Date.now() - o.at) / 36e5; return h < 1 ? 0 : h < 24 ? 1 : h < 72 ? 2 : 3 }
+const stepOf = (o) => { const h = (Date.now() - o.at) / 36e5; return 2 + (h < 1 ? 0 : h < 24 ? 1 : h < 72 ? 2 : 3) }
 
 export default function MyPage() {
   useTitle('마이페이지')
   const [sp, setSp] = useSearchParams()
   const { lang } = useLanguage()
   const isRu = lang === 'ru'
+  const STEPS = isRu
+    ? ['Заказ оформлен', 'Ожидание оплаты', 'Оплата завершена', 'Изготавливается', 'В пути', 'Доставлено']
+    : ['주문 접수', '결제 대기', '결제 완료', '제작중', '배송중', '배송완료']
   const NAV = isRu
     ? [['dash', 'Обзор'], ['master', 'Стать мастером'], ['orders', 'Мои заказы'], ['class', 'Мои курсы и записи'], ['fav', 'Избранное'], ['act', 'Моя активность'], ['coupon', 'Купоны и баллы'], ['profile', 'Профиль']]
     : [['dash', '요약'], ['master', '작가 신청'], ['orders', '주문내역'], ['class', '내 클래스·예약'], ['fav', '즐겨찾기'], ['act', '내 활동'], ['coupon', '쿠폰·적립금'], ['profile', '프로필 관리']]
