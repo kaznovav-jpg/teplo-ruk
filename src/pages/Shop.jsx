@@ -8,6 +8,7 @@ import useTitle from '../lib/useTitle.js'
 import { Img, Crumb, Heart, ProductCard } from '../components/Cards.jsx'
 
 const PR = [['~3만원', 0, 30000], ['3~7만원', 30000, 70000], ['7만원~', 70000, 1e9]]
+const BANK_DETAILS = { bank: '신한은행 / Shinhan Bank', account: '110 318 981600', holder: '가즈노바빅토리아' }
 
 function Group({ title, items, sel, onFlip }) {
   return (
@@ -214,6 +215,7 @@ export function Checkout() {
   const ru = lang === 'ru'
   useTitle(ru ? 'Оформление заказа' : '주문서')
   const nav = useNavigate(), { saveOrder, clearCart, toast } = useApp(), { L, s, sh, t } = useLines()
+  const [pay, setPay] = useState('신용·체크카드')
   if (!L.length) return <div className="wrap empty"><p>{ru ? 'В корзине нет товаров.' : '주문할 상품이 없어요.'}</p><Link className="btn" to="/category?c=all">{ru ? 'Перейти к товарам' : '상품 보러 가기'}</Link></div>
   const field = (n, l, type = 'text', req = true) => <label>{l}<input className="field" name={n} type={type} required={req} /></label>
   const paymentMethods = ru
@@ -240,7 +242,7 @@ export function Checkout() {
           <div className="form"><h2>{ru ? 'Данные покупателя' : '주문자 정보'}</h2>{field('name', ru ? 'Имя' : '이름')}{field('tel', ru ? 'Телефон' : '연락처', 'tel')}{field('email', ru ? 'Электронная почта' : '이메일', 'email')}</div>
           <div className="form"><h2>{ru ? 'Адрес доставки' : '배송지'}</h2>{field('zip', ru ? 'Почтовый индекс' : '우편번호')}{field('addr', ru ? 'Адрес' : '주소')}{field('addr2', ru ? 'Квартира, дом, подробности адреса' : '상세 주소', 'text', false)}
             <label>{ru ? 'Пожелания по доставке' : '배송 요청사항'}<select className="field" name="memo"><option>{ru ? 'Оставить у двери' : '문 앞에 놓아 주세요'}</option><option>{ru ? 'Оставить у охраны' : '경비실에 맡겨 주세요'}</option><option>{ru ? 'Связаться перед доставкой' : '배송 전 연락 주세요'}</option></select></label></div>
-          <div className="form"><h2>{ru ? 'Способ оплаты' : '결제수단'}</h2><div className="pay">{paymentMethods.map(([value, label], i) => <label key={value}><input type="radio" name="pay" value={value} defaultChecked={!i} />{label}</label>)}</div></div>
+          <div className="form"><h2>{ru ? 'Способ оплаты' : '결제수단'}</h2><div className="pay">{paymentMethods.map(([value, label]) => <label key={value}><input type="radio" name="pay" value={value} checked={pay === value} onChange={() => setPay(value)} />{label}</label>)}</div>{pay === '무통장입금' && <div className="lead" style={{ marginTop: 14 }}><b>{ru ? 'Банковские реквизиты для перевода' : '무통장 입금 계좌 안내'}</b><p>{ru ? 'Банк:' : '은행:'} {BANK_DETAILS.bank}</p><p>{ru ? 'Номер счёта:' : '계좌번호:'} <b>{BANK_DETAILS.account}</b></p><p>{ru ? 'Получатель:' : '예금주:'} {BANK_DETAILS.holder}</p><p>{ru ? 'Сумма к переводу:' : '입금하실 금액:'} <b>{won(t)}</b></p><p>{ru ? 'Пожалуйста, укажите номер заказа в назначении перевода.' : '입금 시 주문번호를 입금자명 또는 메모에 기재해 주세요.'}</p></div>}</div>
           <div className="form"><label style={{ display: 'flex', gap: 8, alignItems: 'center', minHeight: 44 }}><input type="checkbox" required style={{ width: 20, height: 20, accentColor: 'var(--pt)' }} />{ru ? 'Я проверил(а) заказ и согласен(на) с условиями использования и обработкой персональных данных.' : '주문 내용을 확인했으며 이용약관·개인정보 수집에 동의합니다.'}</label></div>
         </div>
         <Summary s={s} sh={sh} t={t} sticky><button className="btn block" style={{ marginTop: 14 }}>{ru ? 'Оформить заказ' : '결제하기'}</button></Summary>
@@ -249,20 +251,23 @@ export function Checkout() {
   )
 }
 export function Complete() {
-  useTitle('주문 완료')
+  const { lang } = useLanguage()
+  const ru = lang === 'ru'
+  useTitle(ru ? 'Заказ оформлен' : '주문 완료')
   const o = lastOrder()
-  if (!o) return <div className="wrap empty"><p>최근 주문 내역이 없어요.</p><Link className="btn" to="/">홈으로</Link></div>
+  if (!o) return <div className="wrap empty"><p>{ru ? 'Недавний заказ не найден.' : '최근 주문 내역이 없어요.'}</p><Link className="btn" to="/">{ru ? 'На главную' : '홈으로'}</Link></div>
   return (
     <div className="wrap sec" style={{ maxWidth: 640, textAlign: 'center' }}>
-      <p style={{ fontSize: '2.4rem' }} aria-hidden="true">🧶</p><h1 style={{ fontSize: '1.8rem', margin: '8px 0' }}>주문이 완료되었어요</h1>
-      <p className="muted">주문번호 {o.no} · {o.date}</p>
+      <p style={{ fontSize: '2.4rem' }} aria-hidden="true">🧶</p><h1 style={{ fontSize: '1.8rem', margin: '8px 0' }}>{ru ? 'Заказ оформлен' : '주문이 완료되었어요'}</h1>
+      <p className="muted">{ru ? 'Номер заказа' : '주문번호'} {o.no} · {o.date}</p>
       <div className="sum" style={{ margin: '24px 0', textAlign: 'left' }}>
         {o.items.map((i, k) => <div className="row" key={k}><span>{i.name} ({i.opt}) × {i.qty}</span><span>{won(i.price * i.qty)}</span></div>)}
-        <div className="row tot"><span>결제금액 ({o.pay})</span><span>{won(o.total)}</span></div>
-        <p className="muted" style={{ marginTop: 10 }}>배송지: {o.addr} {o.addr2 || ''}</p>
+        <div className="row tot"><span>{ru ? 'Общая сумма' : '총 주문금액'} ({o.pay === '무통장입금' ? (ru ? 'Банковский перевод' : '무통장입금') : (ru ? 'Карта' : '카드')})</span><span>{won(o.total)}</span></div>
+        <p className="muted" style={{ marginTop: 10 }}>{ru ? 'Адрес доставки:' : '배송지:'} {o.addr} {o.addr2 || ''}</p>
       </div>
-      <p className="lead">핸드메이드 상품은 제작 기간(재고 2~3일, 주문제작 7~14일)이 지난 뒤 발송돼요.</p>
-      <div className="acts"><Link className="btn" to="/category?c=all">쇼핑 계속하기</Link><Link className="btn ghost" to="/mypage?tab=orders">주문내역 보기</Link></div>
+      {o.pay === '무통장입금' && <div className="lead" style={{ textAlign: 'left', marginBottom: 20 }}><b>{ru ? 'Реквизиты для оплаты' : '입금 계좌 안내'}</b><p>{ru ? 'Банк:' : '은행:'} {BANK_DETAILS.bank}</p><p>{ru ? 'Номер счёта:' : '계좌번호:'} <b>{BANK_DETAILS.account}</b></p><p>{ru ? 'Получатель:' : '예금주:'} {BANK_DETAILS.holder}</p><p>{ru ? 'Сумма к переводу:' : '입금하실 금액:'} <b>{won(o.total)}</b></p><p>{ru ? 'Пожалуйста, переведите указанную сумму и укажите номер заказа в назначении платежа.' : '위 금액을 입금해 주시고, 입금 메모에 주문번호를 기재해 주세요.'}</p></div>}
+      <p className="lead">{ru ? 'Изготовление изделий ручной работы занимает 2–14 рабочих дней в зависимости от наличия и сложности заказа.' : '핸드메이드 상품은 제작 기간(재고 2~3일, 주문제작 7~14일)이 지난 뒤 발송돼요.'}</p>
+      <div className="acts"><Link className="btn" to="/category?c=all">{ru ? 'Продолжить покупки' : '쇼핑 계속하기'}</Link><Link className="btn ghost" to="/mypage?tab=orders">{ru ? 'Мои заказы' : '주문내역 보기'}</Link></div>
     </div>
   )
 }
