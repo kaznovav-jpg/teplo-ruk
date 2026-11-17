@@ -126,6 +126,23 @@ setS({ ...EMPTY, ...pickState(d) })
     }, { merge: true })
   }
 
+  const requestOrderCancellation = async (orderId, reason) => {
+    if (!F.isFirebase || !UR.current?.uid) throw new Error('Firebase 로그인 필요')
+    if (!reason?.trim()) throw new Error('Cancellation reason required')
+    await F.updateDoc(F.doc(F.db, 'orders', orderId), {
+      cancellationRequest: { reason: reason.trim(), status: 'pending', submittedAt: Date.now(), requesterUid: UR.current.uid }
+    })
+  }
+
+  const reviewOrderCancellation = async (orderId, decision) => {
+    if (!F.isFirebase) throw new Error('Firebase 연결이 필요합니다.')
+    if (!['approved', 'rejected'].includes(decision)) throw new Error('Invalid cancellation decision')
+    const patch = decision === 'approved'
+      ? { 'cancellationRequest.status': 'approved', orderStatus: 'cancelled', cancellationReviewedAt: Date.now() }
+      : { 'cancellationRequest.status': 'rejected', cancellationReviewedAt: Date.now() }
+    await F.updateDoc(F.doc(F.db, 'orders', orderId), patch)
+  }
+
   // 관리자: 전체 수업 신청 목록
   useEffect(() => {
     if (!user || !isAdmin || !F.isFirebase) {
@@ -399,7 +416,7 @@ cancelRes: async (id) => {
   }
 },
 
-    saveOrder, confirmOrderPayment, updateOrderFulfillment, addPost, uploadImages, signup, login, loginGoogle, logout, resetPw, updateUser,
+    saveOrder, confirmOrderPayment, updateOrderFulfillment, requestOrderCancellation, reviewOrderCancellation, addPost, uploadImages, signup, login, loginGoogle, logout, resetPw, updateUser,
   }
   return <Ctx.Provider value={api}>{children}{msg && <div className="toast" role="status">{msg}</div>}</Ctx.Provider>
 }
