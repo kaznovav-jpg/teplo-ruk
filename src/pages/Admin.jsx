@@ -5,7 +5,7 @@ import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 
 export default function Admin() {
-  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, adminEvents, masterApplications, artistWorks, products, articles, isFirebase } = useApp()
+  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, adminEvents, masterApplications, artistWorks, products, articles, isFirebase } = useApp()
     const { lang } = useLanguage()
   const [activeSection, setActiveSection] = useState('overview')
   const [bankForm, setBankForm] = useState({ bank: '신한은행 / Shinhan Bank', account: '110 318 981600', holder: '가즈노바빅토리아' })
@@ -563,6 +563,28 @@ const deleteArticle = async (article) => {
                 }
               }}>{lang === 'ru' ? 'Подтвердить получение оплаты' : '입금 확인 및 결제 완료 처리'}</button>}
               {isPaid && o.paidAt && <p className="muted" style={{ marginTop: 8 }}>{lang === 'ru' ? 'Оплата подтверждена:' : '입금 확인:'} {new Date(o.paidAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR')}</p>}
+              {isPaid && (() => {
+                const stages = [
+                  { id: 'preparing', ru: 'Изготавливается', ko: '제작중' },
+                  { id: 'shipped', ru: 'В пути', ko: '배송중' },
+                  { id: 'delivered', ru: 'Доставлено', ko: '배송완료' }
+                ]
+                const current = stages.findIndex((stage) => stage.id === o.fulfillmentStatus)
+                return <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+                  {stages.map((stage, index) => (
+                    <button key={stage.id} type="button" className={current >= index ? 'btn ghost' : 'btn'} disabled={index > current + 1 || current >= index} onClick={async () => {
+                      if (!window.confirm(lang === 'ru' ? `Изменить статус заказа на «${stage.ru}»?` : `주문 상태를 ‘${stage.ko}’(으)로 변경하시겠습니까?`)) return
+                      try {
+                        await updateOrderFulfillment(o.id, stage.id)
+                        alert(lang === 'ru' ? 'Статус заказа обновлён.' : '주문 상태가 업데이트되었습니다.')
+                      } catch (error) {
+                        console.error('Order fulfillment update error:', error)
+                        alert(lang === 'ru' ? 'Не удалось изменить статус заказа.' : '주문 상태 변경에 실패했습니다.')
+                      }
+                    }}>{lang === 'ru' ? stage.ru : stage.ko}</button>
+                  ))}
+                </div>
+              })()}
             </div>
           })}
         </div>}
