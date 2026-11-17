@@ -45,7 +45,15 @@ function AuthForms({ tab, go }) {
   )
 }
 
-const stepOf = (o) => { if (o.pay === '무통장입금' && o.paymentStatus !== 'paid') return 1; const base = o.pay === '무통장입금' && o.paymentStatus === 'paid' ? (o.paidAt || o.at) : o.at; const h = (Date.now() - base) / 36e5; return 2 + (h < 1 ? 0 : h < 24 ? 1 : h < 72 ? 2 : 3) }
+const stepOf = (o) => {
+  if (o.pay === '무통장입금' && o.paymentStatus !== 'paid') return 1
+  if (o.fulfillmentStatus === 'delivered') return 5
+  if (o.fulfillmentStatus === 'shipped') return 4
+  if (o.fulfillmentStatus === 'preparing') return 3
+  const base = o.pay === '무통장입금' && o.paymentStatus === 'paid' ? (o.paidAt || o.at) : o.at
+  const h = (Date.now() - base) / 36e5
+  return 2 + (h < 1 ? 0 : h < 24 ? 1 : h < 72 ? 2 : 3)
+}
 
 export default function MyPage() {
   useTitle('마이페이지')
