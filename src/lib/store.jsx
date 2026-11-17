@@ -117,6 +117,15 @@ setS({ ...EMPTY, ...pickState(d) })
     await F.setDoc(F.doc(F.db, 'orders', orderId), { paymentStatus: 'paid', paidAt: Date.now() }, { merge: true })
   }
 
+  const updateOrderFulfillment = async (orderId, fulfillmentStatus) => {
+    if (!F.isFirebase) throw new Error('Firebase 연결이 필요합니다.')
+    if (!['preparing', 'shipped', 'delivered'].includes(fulfillmentStatus)) throw new Error('Invalid order status')
+    await F.setDoc(F.doc(F.db, 'orders', orderId), {
+      fulfillmentStatus,
+      fulfillmentUpdatedAt: Date.now()
+    }, { merge: true })
+  }
+
   // 관리자: 전체 수업 신청 목록
   useEffect(() => {
     if (!user || !isAdmin || !F.isFirebase) {
@@ -390,7 +399,7 @@ cancelRes: async (id) => {
   }
 },
 
-    saveOrder, confirmOrderPayment, addPost, uploadImages, signup, login, loginGoogle, logout, resetPw, updateUser,
+    saveOrder, confirmOrderPayment, updateOrderFulfillment, addPost, uploadImages, signup, login, loginGoogle, logout, resetPw, updateUser,
   }
   return <Ctx.Provider value={api}>{children}{msg && <div className="toast" role="status">{msg}</div>}</Ctx.Provider>
 }
