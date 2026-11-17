@@ -338,7 +338,7 @@ export function CancelOrderPage() {
       navigate('/mypage?tab=orders')
     } catch (error) {
       console.error('Order cancellation request error:', error)
-      toast(isRu ? 'Не удалось отправить запрос. Возможно, заказ уже отправлен.' : '요청을 보내지 못했습니다. 이미 배송이 시작되었을 수 있습니다.')
+      toast(isRu ? `Не удалось отправить запрос: ${error?.code || error?.message || 'неизвестная ошибка'}` : `요청 전송 실패: ${error?.code || error?.message || '알 수 없는 오류'}`)
     } finally {
       setSaving(false)
     }
