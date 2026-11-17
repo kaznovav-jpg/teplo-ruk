@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useApp } from '../lib/store.jsx'
 import { useLanguage } from '../lib/language.jsx'
 import { D } from '../lib/data.js'
@@ -8,6 +8,29 @@ export default function Admin() {
   const { user, isAdmin, adminReservations, adminEvents, masterApplications, artistWorks, products, articles, isFirebase } = useApp()
     const { lang } = useLanguage()
   const [activeSection, setActiveSection] = useState('overview')
+  const [bankForm, setBankForm] = useState({ bank: '신한은행 / Shinhan Bank', account: '110 318 981600', holder: '가즈노바빅토리아' })
+  const [bankSaving, setBankSaving] = useState(false)
+  useEffect(() => {
+    if (!isFirebase) return
+    F.getDoc(F.doc(F.db, 'siteSettings', 'payment')).then((snap) => {
+      if (snap.exists()) setBankForm((prev) => ({ ...prev, ...snap.data() }))
+    }).catch((error) => console.error('Bank settings load error:', error))
+  }, [isFirebase])
+  const saveBankDetails = async () => {
+    if (!bankForm.bank.trim() || !bankForm.account.trim() || !bankForm.holder.trim()) {
+      alert(lang === 'ru' ? 'Заполните все банковские реквизиты.' : '은행 정보를 모두 입력해 주세요.')
+      return
+    }
+    if (!isFirebase) { alert('Firebase 연결이 필요합니다.'); return }
+    setBankSaving(true)
+    try {
+      await F.setDoc(F.doc(F.db, 'siteSettings', 'payment'), bankForm, { merge: true })
+      alert(lang === 'ru' ? 'Банковские реквизиты сохранены.' : '입금 계좌 정보가 저장되었습니다.')
+    } catch (error) {
+      console.error('Bank settings save error:', error)
+      alert(lang === 'ru' ? 'Не удалось сохранить реквизиты.' : '계좌 정보 저장에 실패했습니다.')
+    } finally { setBankSaving(false) }
+  }
   const [selectedMasterUid, setSelectedMasterUid] = useState(null)
   const [eventForm, setEventForm] = useState({
   ymd: '',
@@ -455,7 +478,8 @@ const deleteArticle = async (article) => {
           { id: 'products', ru: 'Товары', ko: '상품 관리', icon: '▧' },
           { id: 'articles', ru: 'Статьи', ko: '아티클 관리', icon: '▤' },
           { id: 'schedule', ru: 'Расписание', ko: '수업 일정', icon: '▦' },
-          { id: 'reservations', ru: 'Записи на занятия', ko: '수업 신청', icon: '☷' }
+          { id: 'reservations', ru: 'Записи на занятия', ko: '수업 신청', icon: '☷' },
+          { id: 'bank', ru: 'Банковские реквизиты', ko: '입금 계좌 관리', icon: '₩' }
         ].map((item) => (
           <button
             key={item.id}
@@ -1503,6 +1527,22 @@ const deleteArticle = async (article) => {
 
 })()}
       </>}
+      {activeSection === 'bank' && <section style={{ maxWidth: 620 }}>
+        <h2>{lang === 'ru' ? 'Банковские реквизиты получателя' : '입금 계좌 정보 관리'}</h2>
+        <p className="muted">{lang === 'ru' ? 'Эти данные будут показаны покупателям при выборе банковского перевода.' : '무통장 입금을 선택한 고객에게 표시되는 정보입니다.'}</p>
+        <div style={{ display: 'grid', gap: 14, marginTop: 18 }}>
+          <label>{lang === 'ru' ? 'Название банка' : '은행명'}
+            <input className="field" value={bankForm.bank} onChange={(e) => setBankForm((prev) => ({ ...prev, bank: e.target.value }))} />
+          </label>
+          <label>{lang === 'ru' ? 'Номер счёта' : '계좌번호'}
+            <input className="field" value={bankForm.account} onChange={(e) => setBankForm((prev) => ({ ...prev, account: e.target.value }))} />
+          </label>
+          <label>{lang === 'ru' ? 'Имя получателя / владельца счёта' : '예금주'}
+            <input className="field" value={bankForm.holder} onChange={(e) => setBankForm((prev) => ({ ...prev, holder: e.target.value }))} />
+          </label>
+          <button type="button" className="btn" disabled={bankSaving} onClick={saveBankDetails}>{bankSaving ? (lang === 'ru' ? 'Сохранение…' : '저장 중…') : (lang === 'ru' ? 'Сохранить реквизиты' : '계좌 정보 저장')}</button>
+        </div>
+      </section>}
       {activeSection === 'reservations' && <>
 <h2>{lang === 'ru' ? 'Список записей на занятия' : '수업 신청 목록'}</h2>
 
