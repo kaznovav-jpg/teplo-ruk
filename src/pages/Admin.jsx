@@ -5,7 +5,7 @@ import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 
 export default function Admin() {
-  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, adminEvents, masterApplications, artistWorks, products, articles, isFirebase } = useApp()
+  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, adminEvents, masterApplications, artistWorks, products, articles, isFirebase } = useApp()
     const { lang } = useLanguage()
   const [activeSection, setActiveSection] = useState('overview')
   const [bankForm, setBankForm] = useState({ bank: '신한은행 / Shinhan Bank', account: '110 318 981600', holder: '가즈노바빅토리아' })
@@ -552,6 +552,24 @@ const deleteArticle = async (article) => {
               <p style={{ margin: '4px 0' }}><b>{Number(o.total || 0).toLocaleString('ko-KR')}원</b> · {o.pay || '-'} · {o.depositor ? (lang === 'ru' ? 'Отправитель: ' : '입금자: ') + o.depositor : ''}</p>
               <p className="muted" style={{ margin: '4px 0' }}>{o.addr || ''} {o.addr2 || ''}</p>
               {o.items?.map((item, index) => <p key={index} style={{ margin: '3px 0' }}>{lang === 'ru' ? (item.nameRu || item.name) : item.name} ({item.opt}) × {item.qty}</p>)}
+              {o.cancellationRequest?.status === 'pending' && <div className="box" style={{ marginTop: 12, border: '1px solid #B8593B' }}>
+                <strong>{lang === 'ru' ? 'Запрос на отмену заказа' : '주문 취소 요청'}</strong>
+                <p style={{ whiteSpace: 'pre-wrap' }}>{o.cancellationRequest.reason}</p>
+                <p className="muted">{o.cancellationRequest.submittedAt ? new Date(o.cancellationRequest.submittedAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR') : ''}</p>
+                <div className="acts">
+                  <button type="button" className="btn" onClick={async () => {
+                    if (!window.confirm(lang === 'ru' ? 'Подтвердить отмену этого заказа?' : '이 주문의 취소를 승인하시겠습니까?')) return
+                    try { await reviewOrderCancellation(o.id, 'approved'); alert(lang === 'ru' ? 'Заказ отменён.' : '주문이 취소되었습니다.') }
+                    catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось подтвердить отмену.' : '취소 승인에 실패했습니다.') }
+                  }}>{lang === 'ru' ? 'Подтвердить отмену' : '취소 승인'}</button>
+                  <button type="button" className="btn ghost" onClick={async () => {
+                    if (!window.confirm(lang === 'ru' ? 'Отклонить запрос на отмену?' : '취소 요청을 거절하시겠습니까?')) return
+                    try { await reviewOrderCancellation(o.id, 'rejected'); alert(lang === 'ru' ? 'Запрос отклонён.' : '요청이 거절되었습니다.') }
+                    catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось отклонить запрос.' : '요청 거절에 실패했습니다.') }
+                  }}>{lang === 'ru' ? 'Отклонить' : '거절'}</button>
+                </div>
+              </div>}
+              {o.orderStatus === 'cancelled' && <p className="badge line" style={{ marginTop: 10 }}>{lang === 'ru' ? 'Заказ отменён' : '주문 취소 완료'}</p>}
               {isBank && !isPaid && <button type="button" className="btn" style={{ marginTop: 10 }} onClick={async () => {
                 if (!window.confirm(lang === 'ru' ? 'Подтвердить, что деньги по этому заказу поступили на счёт?' : '이 주문의 입금이 완료된 것을 확인하시겠습니까?')) return
                 try {
