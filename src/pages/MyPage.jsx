@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams, useNavigate, useParams } from 'react-router-dom'
 import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 import { useApp, useMyComments } from '../lib/store.jsx'
@@ -225,13 +225,20 @@ export default function MyPage() {
         </>
       )}
     </section>,
-    orders: orders.length ? orders.map((o, k) => (
-      <div className="box" key={o.id || k}>
+    orders: orders.length ? orders.map((o, k) => {
+      const canRequestCancel = o.fulfillmentStatus === 'preparing' && !o.cancellationRequest && o.orderStatus !== 'cancelled'
+      return <div className="box" key={o.id || k}>
         <p><b>{o.no}</b> <span className="muted">{o.date}</span></p>
         <div className="steps" aria-label="배송 상태">{STEPS.map((s, i) => <span key={s} className={i === stepOf(o) ? 'on' : ''}>{s}</span>)}</div>
+        {o.orderStatus === 'cancelled' && <p className="badge line">{isRu ? 'Заказ отменён' : '주문 취소 완료'}</p>}
+        {o.cancellationRequest?.status === 'pending' && <p className="muted">{isRu ? 'Запрос на отмену отправлен администратору. Ожидается решение.' : '취소 요청이 관리자에게 전달되어 검토 중입니다.'}</p>}
+        {o.cancellationRequest?.status === 'rejected' && <p className="muted">{isRu ? 'Администратор отклонил запрос на отмену.' : '관리자가 주문 취소 요청을 거절했습니다.'}</p>}
         {o.items.map((i, n) => <p key={n}>{isRu ? (i.nameRu || ({ kokoshnik: 'Кокошник', '일번': 'Изделие № 1' }[i.name] || i.name)) : i.name} ({i.opt}) × {i.qty}</p>)}
         <p style={{ marginTop: 6 }}><b>{won(o.total)}</b> <span className="muted">· {o.pay} · {o.addr}</span></p>
-      </div>)) : <p className="empty">주문 내역이 없어요.<br /><Link className="more" to="/category?c=all">쇼핑하러 가기</Link></p>,
+        {canRequestCancel && <Link className="btn ghost" style={{ display: 'inline-block', marginTop: 10 }} to={`/cancel-order/${o.id}`}>{isRu ? 'Отменить заказ' : '주문 취소'}</Link>}
+        {o.fulfillmentStatus === 'shipped' && <p className="muted" style={{ marginTop: 8 }}>{isRu ? 'После отправки заказ нельзя отменить через личный кабинет.' : '배송이 시작된 주문은 마이페이지에서 취소할 수 없습니다.'}</p>}
+      </div>
+    }) : <p className="empty">주문 내역이 없어요.<br /><Link className="more" to="/category?c=all">쇼핑하러 가기</Link></p>,
     class: <>
   <h2 style={{ fontSize: '1.2rem', marginBottom: 10 }}>수강 중인 클래스</h2>
   {S.enrolled.length ? S.enrolled.map((x) => {
@@ -300,4 +307,55 @@ export default function MyPage() {
       </div>
     </div>
   )
+}
+
+
+export function CancelOrderPage() {
+  const { orderId } = useParams()
+  const navigate = useNavigate()
+  const { lang } = useLanguage()
+  const isRu = lang === 'ru'
+  const { user, orders, requestOrderCancellation, toast, isFirebase } = useApp()
+  const [reason, setReason] = useState('')
+  const [saving, setSaving] = useState(false)
+  const order = orders.find((item) => item.id === orderId)
+  const canCancel = order?.fulfillmentStatus === 'preparing' && !order?.cancellationRequest && order?.orderStatus !== 'cancelled'
+
+  const submit = async (event) => {
+    event.preventDefault()
+    if (!reason.trim()) {
+      toast(isRu ? 'Пожалуйста, подробно укажите причину отмены.' : '취소 사유를 자세히 입력해 주세요.')
+      return
+    }
+    if (!isFirebase) {
+      toast(isRu ? 'Для отправки запроса необходимо подключение Firebase.' : '취소 요청을 보내려면 Firebase 연결이 필요합니다.')
+      return
+    }
+    setSaving(true)
+    try {
+      await requestOrderCancellation(orderId, reason.trim())
+      toast(isRu ? 'Запрос отправлен администратору.' : '취소 요청이 관리자에게 전송되었습니다.')
+      navigate('/mypage?tab=orders')
+    } catch (error) {
+      console.error('Order cancellation request error:', error)
+      toast(isRu ? 'Не удалось отправить запрос. Возможно, заказ уже отправлен.' : '요청을 보내지 못했습니다. 이미 배송이 시작되었을 수 있습니다.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!user) return <div className="wrap sec"><p>{isRu ? 'Войдите, чтобы отправить запрос.' : '로그인 후 취소 요청을 보내 주세요.'} <Link className="more" to="/mypage?tab=login">{isRu ? 'Войти' : '로그인'}</Link></p></div>
+  if (!order) return <div className="wrap sec"><h1>{isRu ? 'Заказ не найден' : '주문을 찾을 수 없습니다'}</h1><Link className="more" to="/mypage?tab=orders">{isRu ? 'Вернуться к заказам' : '주문 내역으로 돌아가기'}</Link></div>
+
+  return <div className="wrap sec">
+    <div className="box" style={{ maxWidth: 680, margin: '0 auto' }}>
+      <h1 style={{ fontSize: '1.6rem' }}>{isRu ? 'Причина отмены заказа' : '주문 취소 사유'}</h1>
+      <p className="muted">{isRu ? `Заказ № ${order.no || order.id}` : `주문번호 ${order.no || order.id}`}</p>
+      {!canCancel ? <><p>{order.cancellationRequest?.status === 'pending' ? (isRu ? 'Запрос уже отправлен и ожидает решения администратора.' : '취소 요청이 이미 접수되어 관리자 검토 중입니다.') : (isRu ? 'Отмена через личный кабинет сейчас недоступна. Заказ можно отменить только до отправки.' : '현재 마이페이지에서 취소할 수 없습니다. 배송 시작 전까지만 취소 요청이 가능합니다.')}</p><Link className="btn ghost" to="/mypage?tab=orders">{isRu ? 'Вернуться к заказам' : '주문 내역으로 돌아가기'}</Link></> : <form className="form" onSubmit={submit}>
+        <label>{isRu ? 'Опишите подробнее, почему вы хотите отменить заказ' : '주문을 취소하려는 이유를 자세히 작성해 주세요'}<textarea className="field" rows={7} value={reason} onChange={(event) => setReason(event.target.value)} placeholder={isRu ? 'Напишите причину отмены…' : '취소 사유를 입력해 주세요…'} required /></label>
+        <p className="muted">{isRu ? 'После отправки администратор рассмотрит запрос. Заказ не будет отменён автоматически.' : '요청을 보내면 관리자가 검토합니다. 자동으로 주문이 취소되지는 않습니다.'}</p>
+        <div className="acts"><button className="btn" disabled={saving || !reason.trim()}>{saving ? (isRu ? 'Отправка…' : '전송 중…') : (isRu ? 'Отправить администратору' : '관리자에게 보내기')}</button><Link className="btn ghost" to="/mypage?tab=orders">{isRu ? 'Назад' : '뒤로'}</Link></div>
+      </form>}
+    </div>
+  </div>
 }
