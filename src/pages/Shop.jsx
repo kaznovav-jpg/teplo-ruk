@@ -233,7 +233,7 @@ export function Checkout() {
     e.preventDefault()
     const d = Object.fromEntries(new FormData(e.target))
     try {
-      await saveOrder({ no: 'HM' + Date.now().toString().slice(-8), date: new Date().toLocaleDateString('ko-KR'), bankDetails: d.pay === '무통장입금' ? bankDetails : null, items: L.map((x) => ({ name: lang === 'ru' ? (x.p.nameRu || x.p.name) : x.p.name, opt: `${x.color}/${x.size}`, qty: x.qty, price: x.p.price })), total: t, ...d })
+      await saveOrder({ no: 'HM' + Date.now().toString().slice(-8), date: new Date().toLocaleDateString('ko-KR'), bankDetails: d.pay === '무통장입금' ? bankDetails : null, items: L.map((x) => ({ name: x.p.name, nameRu: x.p.nameRu || ({ kokoshnik: 'Кокошник', '일번': 'Изделие № 1' }[x.p.name] || x.p.name), opt: `${x.color}/${x.size}`, qty: x.qty, price: x.p.price })), total: t, ...d })
       clearCart()
       if (d.pay === '신용·체크카드') {
         window.location.assign('https://smartstore.naver.com/miniri')
@@ -277,7 +277,7 @@ export function Complete() {
       <p style={{ fontSize: '2.4rem' }} aria-hidden="true">🧶</p><h1 style={{ fontSize: '1.8rem', margin: '8px 0' }}>{ru ? 'Заказ оформлен' : '주문이 완료되었어요'}</h1>
       <p className="muted">{ru ? 'Номер заказа' : '주문번호'} {o.no} · {o.date}</p>
       <div className="sum" style={{ margin: '24px 0', textAlign: 'left' }}>
-        {o.items.map((i, k) => <div className="row" key={k}><span>{i.name} ({i.opt}) × {i.qty}</span><span>{won(i.price * i.qty)}</span></div>)}
+        {o.items.map((i, k) => <div className="row" key={k}><span>{ru ? (i.nameRu || ({ kokoshnik: 'Кокошник', '일번': 'Изделие № 1' }[i.name] || i.name)) : i.name} ({i.opt}) × {i.qty}</span><span>{won(i.price * i.qty)}</span></div>)}
         <div className="row tot"><span>{ru ? 'Общая сумма' : '총 주문금액'} ({o.pay === '무통장입금' ? (ru ? 'Банковский перевод' : '무통장입금') : (ru ? 'Карта' : '카드')})</span><span>{won(o.total)}</span></div>
         <p className="muted" style={{ marginTop: 10 }}>{ru ? 'Адрес доставки:' : '배송지:'} {o.addr} {o.addr2 || ''}</p>
       </div>
