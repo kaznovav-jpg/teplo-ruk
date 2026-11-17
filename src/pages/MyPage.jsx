@@ -219,7 +219,7 @@ export default function MyPage() {
       <div className="box" key={o.id || k}>
         <p><b>{o.no}</b> <span className="muted">{o.date}</span></p>
         <div className="steps" aria-label="배송 상태">{STEPS.map((s, i) => <span key={s} className={i === stepOf(o) ? 'on' : ''}>{s}</span>)}</div>
-        {o.items.map((i, n) => <p key={n}>{i.name} ({i.opt}) × {i.qty}</p>)}
+        {o.items.map((i, n) => <p key={n}>{isRu ? (i.nameRu || ({ kokoshnik: 'Кокошник', '일번': 'Изделие № 1' }[i.name] || i.name)) : i.name} ({i.opt}) × {i.qty}</p>)}
         <p style={{ marginTop: 6 }}><b>{won(o.total)}</b> <span className="muted">· {o.pay} · {o.addr}</span></p>
       </div>)) : <p className="empty">주문 내역이 없어요.<br /><Link className="more" to="/category?c=all">쇼핑하러 가기</Link></p>,
     class: <>
