@@ -243,7 +243,7 @@ export function Checkout() {
     e.preventDefault()
     const d = Object.fromEntries(new FormData(e.target))
     try {
-      await saveOrder({ no: 'HM' + Date.now().toString().slice(-8), date: new Date().toLocaleDateString('ko-KR'), bankDetails: d.pay === '무통장입금' ? bankDetails : null, items: L.map((x) => ({ name: x.p.name, nameRu: x.p.nameRu || ({ kokoshnik: 'Кокошник', '일번': 'Изделие № 1' }[x.p.name] || x.p.name), opt: `${x.color}/${x.size}`, qty: x.qty, price: x.p.price })), total: t, ...d })
+      await saveOrder({ paymentStatus: d.pay === '무통장입금' ? 'awaiting_payment' : 'unconfirmed_external', no: 'HM' + Date.now().toString().slice(-8), date: new Date().toLocaleDateString('ko-KR'), bankDetails: d.pay === '무통장입금' ? bankDetails : null, items: L.map((x) => ({ name: x.p.name, nameRu: x.p.nameRu || ({ kokoshnik: 'Кокошник', '일번': 'Изделие № 1' }[x.p.name] || x.p.name), opt: `${x.color}/${x.size}`, qty: x.qty, price: x.p.price })), total: t, ...d })
       clearCart()
       if (d.pay === '신용·체크카드') {
         window.location.assign('https://smartstore.naver.com/miniri')
