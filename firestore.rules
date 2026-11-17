@@ -45,10 +45,13 @@ service cloud.firestore {
     }
 
     match /orders/{id} {
-      allow read: if request.auth != null
-        && resource.data.uid == request.auth.uid;
+      allow read: if isAdmin()
+        || (request.auth != null && resource.data.uid == request.auth.uid);
       allow create: if request.auth != null
         && request.resource.data.uid == request.auth.uid;
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paymentStatus', 'paidAt'])
+        && request.resource.data.paymentStatus == 'paid';
     }
 
     match /posts/{id} {
