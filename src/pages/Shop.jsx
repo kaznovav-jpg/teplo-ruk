@@ -101,8 +101,17 @@ const p = {
   badges: Array.isArray(originalProduct.badges) ? originalProduct.badges : [],
   sizeTable: Array.isArray(originalProduct.sizeTable) ? originalProduct.sizeTable : []
 }
-  const productName = lang === 'ru' ? (p.nameRu || p.name) : p.name
-  const productDesc = lang === 'ru' ? (p.descRu || p.desc) : p.desc
+  const ru = lang === 'ru'
+  const fallbackNames = { kokoshnik: 'Кокошник', '일번': 'Изделие № 1', nomer1: 'Изделие № 1' }
+  const productName = ru ? (p.nameRu || fallbackNames[p.name] || p.name) : p.name
+  const productDesc = ru ? (p.descRu || p.descRuText || p.desc || '') : p.desc
+  const colorNamesRu = { red: 'Красный', 레드: 'Красный', blue: 'Синий', 블루: 'Синий', black: 'Чёрный', white: 'Белый', 화이트: 'Белый', 아이보리: 'Слоновая кость', 베이지: 'Бежевый', 테라코타: 'Терракотовый', 차콜: 'Графитовый', 세이지: 'Шалфейный', 머스터드: 'Горчичный' }
+  const materialNamesRu = { silk: 'Шёлк', 실크: 'Шёлк', 린넨: 'Лён', 면: 'Хлопок', 캔버스: 'Канвас', 울: 'Шерсть', 양모: 'Шерсть', 나무: 'Дерево' }
+  const categoryNamesRu = { bag: 'Сумки и шитьё', knit: 'Вязание', felt: 'Фетр и валяние', clothes: 'Одежда', deco: 'Декор', accessory: 'Аксессуары', home: 'Для дома' }
+  const colorLabel = (value) => ru ? (colorNamesRu[value] || value) : value
+  const sizeLabel = (value) => ru ? ({ sml: 'S / M / L', 'sml': 'S / M / L' }[value] || value) : value
+  const careText = ru ? (p.careRu || ({ '손세탁 권장, 그늘에서 건조해 주세요.': 'Рекомендуется ручная стирка. Сушить в тени.' }[p.care] || p.care || 'Уход уточняйте у мастера.')) : p.care
+  const sizeCell = (value) => ru ? ({ 사이즈: 'Размер', 가로: 'Ширина', 세로: 'Высота', 길이: 'Длина' }[value] || value) : value
   useTitle(productName)
   const [img, setImg] = useState(0), [color, setColor] = useState(p.colors[0] || ''), [size, setSize] = useState(p.sizes[0] || ''), [qty, setQty] = useState(1), [zoom, setZoom] = useState(false), [tab, setTab] = useState('i')
   useEffect(() => {
@@ -115,47 +124,47 @@ const p = {
   const add = () => addCart({ pid: p.id, color, size, qty })
   const related = products.filter((x) => x.id !== p.id && (x.cat === p.cat || x.artist === p.artist)).slice(0, 4)
   const T = {
-    i: <><table><tbody><tr><th>소재</th><td>{p.material}</td></tr><tr><th>세탁법</th><td>{p.care}</td></tr></tbody></table>
-      <h3 style={{ margin: '20px 0 8px' }}>사이즈표</h3>
-      <table><tbody>{p.sizeTable.map((r, i) => <tr key={i}>{r.map((c, k) => (i ? <td key={k}>{c}</td> : <th key={k}>{c}</th>))}</tr>)}</tbody></table></>,
-    r: <ul className="rvs">{D.extras.reviews.map((r) => <li key={r.name}>★★★★★ <b>{r.name}</b><p>{r.text}</p></li>)}</ul>,
-    q: <ul className="qa"><li><b>Q. 주문제작도 가능한가요?</b><p className="muted">A. 가능합니다. 주문제작 문의 버튼으로 요청해 주세요.</p></li><li><b>Q. 선물 포장이 되나요?</b><p className="muted">A. 기본 포장으로 발송되며, 선물 포장은 문의 시 안내드려요.</p></li></ul>,
-    d: <><p>배송비 {won(SHIP)} ({won(FREE_SHIP)} 이상 무료). 제작 기간 포함 영업일 기준 2~14일 소요됩니다.</p><p>수령 후 7일 이내 교환·반품 가능하나, 주문제작 상품은 제작 시작 후 변경·취소가 어렵습니다.</p></>,
+    i: <><table><tbody><tr><th>{ru ? 'Материал' : '소재'}</th><td>{ru ? (materialNamesRu[p.material] || p.material) : p.material}</td></tr><tr><th>{ru ? 'Уход' : '세탁법'}</th><td>{careText}</td></tr></tbody></table>
+      <h3 style={{ margin: '20px 0 8px' }}>{ru ? 'Таблица размеров' : '사이즈표'}</h3>
+      <table><tbody>{p.sizeTable.map((r, i) => <tr key={i}>{r.map((c, k) => (i ? <td key={k}>{sizeCell(c)}</td> : <th key={k}>{sizeCell(c)}</th>))}</tr>)}</tbody></table></>,
+    r: <>{ru ? <p className="muted">Отзывы с фотографиями появятся после первых покупок.</p> : <ul className="rvs">{D.extras.reviews.map((r) => <li key={r.name}>★★★★★ <b>{r.name}</b><p>{r.text}</p></li>)}</ul>}</>,
+    q: <ul className="qa"><li><b>{ru ? 'Возможно ли изготовление на заказ?' : 'Q. 주문제작도 가능한가요?'}</b><p className="muted">{ru ? 'Да. Отправьте запрос через кнопку «Индивидуальный заказ».' : 'A. 가능합니다. 주문제작 문의 버튼으로 요청해 주세요.'}</p></li><li><b>{ru ? 'Есть ли подарочная упаковка?' : 'Q. 선물 포장이 되나요?'}</b><p className="muted">{ru ? 'По умолчанию отправляем в обычной упаковке. По поводу подарочной упаковки свяжитесь с нами.' : 'A. 기본 포장으로 발송되며, 선물 포장은 문의 시 안내드려요.'}</p></li></ul>,
+    d: <>{ru ? <><p>Доставка: {won(SHIP)}. Бесплатно при заказе от {won(FREE_SHIP)}.</p><p>Обмен и возврат возможны в течение 7 дней после получения. Для изделий на заказ отмена и изменение после начала изготовления затруднены.</p></> : <><p>배송비 {won(SHIP)} ({won(FREE_SHIP)} 이상 무료). 제작 기간 포함 영업일 기준 2~14일 소요됩니다.</p><p>수령 후 7일 이내 교환·반품 가능하나, 주문제작 상품은 제작 시작 후 변경·취소가 어렵습니다.</p></>}</>,
   }
   return (
     <div className="wrap">
-      <Crumb items={[<Link to={`/category?c=${p.cat}`}>{CATS.find((c) => c[0] === p.cat)?.[1] || 'Товары'}</Link>, p.name]} />
+      <Crumb items={[<Link to={`/category?c=${p.cat}`}>{ru ? (categoryNamesRu[p.cat] || 'Товары') : (CATS.find((c) => c[0] === p.cat)?.[1] || '상품')}</Link>, productName]} />
       <div className="pd">
         <div>
           <div className="main-img" role="button" tabIndex={0} aria-label="이미지 확대" onClick={() => setZoom(true)} onKeyDown={(e) => e.key === 'Enter' && setZoom(true)}>
-            <Img src={p.images[img]} alt={`${p.name} 이미지 ${img + 1}`} seed={p.id + img} loading="eager" />
+            <Img src={p.images[img]} alt={ru ? `${productName} — изображение ${img + 1}` : `${p.name} 이미지 ${img + 1}`} seed={p.id + img} loading="eager" />
           </div>
           <div className="ths">{p.images.map((s, i) => <button key={i} className={i === img ? 'on' : ''} aria-label={`이미지 ${i + 1} 보기`} onClick={() => setImg(i)}><Img src={s} alt="" seed={p.id + i} /></button>)}</div>
         </div>
         <div>
-          <Link className="muted" to={`/artists/${p.artist}`}>{artistName(D, p.artist)} 작가</Link>
+          <Link className="muted" to={`/artists/${p.artist}`}>{ru ? artistName(D, p.artist, 'ru') : artistName(D, p.artist, lang) + ' 작가'}</Link>
           <h1 style={{ fontSize: '1.7rem', margin: '4px 0' }}>{productName}</h1>
           <p>{p.badges.map((b) => <span key={b} className="badge">{b}</span>)}</p>
           <p className="pr serif" style={{ fontSize: '1.5rem', margin: '10px 0' }}>{won(p.price)}</p>
           <p>{productDesc}</p>
-          <div className="opt"><b>색상: {color}</b>
+          <div className="opt"><b>{ru ? 'Цвет' : '색상'}: {colorLabel(color)}</b>
             <div className="sw">{p.colors.map((c) => <button key={c} className={c === color ? 'on' : ''} style={{ background: COLORS[c] }} aria-label={c} onClick={() => setColor(c)} />)}</div></div>
-          <div className="opt"><b>사이즈</b><select className="field" aria-label="사이즈" value={size} onChange={(e) => setSize(e.target.value)}>{p.sizes.map((s) => <option key={s}>{s}</option>)}</select></div>
-          <div className="opt"><b>수량</b><div className="qty"><button aria-label="수량 감소" onClick={() => setQty(Math.max(1, qty - 1))}>−</button><span>{qty}</span><button aria-label="수량 증가" onClick={() => setQty(qty + 1)}>+</button></div></div>
-          <div className="lead"><b>{lang === 'ru' ? 'Сроки изготовления и отправки' : '핸드메이드 상품 발송 안내'}</b><br />{lang === 'ru' ? 'Товары в наличии отправляются через 2–3 дня, изделия на заказ — через 7–30 дней.' : '핸드메이드 상품은 제작 기간(재고 2~3일, 주문제작 7~30일)이 지난 뒤 발송돼요.'}<br />{p.lead} 소요됩니다. 하나하나 손으로 만들어 색감·크기에 1~2cm 정도 차이가 있을 수 있어요.</div>
+          <div className="opt"><b>{ru ? 'Размер' : '사이즈'}</b><select className="field" aria-label={ru ? 'Размер' : '사이즈'} value={size} onChange={(e) => setSize(e.target.value)}>{p.sizes.map((s) => <option key={s} value={s}>{sizeLabel(s)}</option>)}</select></div>
+          <div className="opt"><b>{ru ? 'Количество' : '수량'}</b><div className="qty"><button aria-label="수량 감소" onClick={() => setQty(Math.max(1, qty - 1))}>−</button><span>{qty}</span><button aria-label="수량 증가" onClick={() => setQty(qty + 1)}>+</button></div></div>
+          <div className="lead"><b>{lang === 'ru' ? 'Сроки изготовления и отправки' : '핸드메이드 상품 발송 안내'}</b><br />{lang === 'ru' ? 'Товары в наличии отправляются через 2–3 дня, изделия на заказ — через 7–30 дней.' : '핸드메이드 상품은 제작 기간(재고 2~3일, 주문제작 7~30일)이 지난 뒤 발송돼요.'}<br />{ru ? (p.leadRu || 'Срок зависит от наличия и сложности изделия.') : (p.lead || '')} {ru ? 'Каждое изделие создаётся вручную, поэтому возможна разница в цвете и размере около 1–2 см.' : '하나하나 손으로 만들어 색감·크기에 1~2cm 정도 차이가 있을 수 있어요.'}</div>
           <div className="acts">
-            <button className="btn ghost" disabled={p.soldOut} onClick={() => { add(); toast('장바구니에 담았어요') }}>장바구니</button>
-            <button className="btn" disabled={p.soldOut} onClick={() => { add(); nav('/checkout') }}>{p.soldOut ? '품절' : '바로구매'}</button>
+            <button className="btn ghost" disabled={p.soldOut} onClick={() => { add(); toast(ru ? 'Товар добавлен в корзину.' : '장바구니에 담았어요') }}>장바구니</button>
+            <button className="btn" disabled={p.soldOut} onClick={() => { add(); nav('/checkout') }}>{p.soldOut ? (ru ? 'Нет в наличии' : '품절') : (ru ? 'Купить сейчас' : '바로구매')}</button>
           </div>
-          <div className="acts" style={{ marginTop: 10 }}><Heart id={p.id} text /><Link className="btn ghost" to="/info?t=주문제작 문의">주문제작 문의</Link></div>
+          <div className="acts" style={{ marginTop: 10 }}><Heart id={p.id} text label={productName} /><Link className="btn ghost" to="/info?t=주문제작 문의">{ru ? 'Индивидуальный заказ' : '주문제작 문의'}</Link></div>
         </div>
       </div>
       <div style={{ marginTop: 48 }}>
-        <div className="tabs" role="tablist">{[['i', '소재·세탁·사이즈'], ['r', '사진후기'], ['q', 'Q&A'], ['d', '배송·교환']].map(([k, l]) => <button key={k} role="tab" className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</div>
+        <div className="tabs" role="tablist">{(ru ? [['i', 'Материал · уход · размеры'], ['r', 'Отзывы с фото'], ['q', 'Вопросы и ответы'], ['d', 'Доставка и возврат']] : [['i', '소재·세탁·사이즈'], ['r', '사진후기'], ['q', 'Q&A'], ['d', '배송·교환']]).map(([k, l]) => <button key={k} role="tab" className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</div>
         <div className="tp">{T[tab]}</div>
       </div>
-      <div className="sec"><div className="sec-h"><h2>관련 상품</h2></div><div className="grid g4">{related.map((x) => <ProductCard key={x.id} p={x} D={D} />)}</div></div>
-      {zoom && <div className="lb" onClick={() => setZoom(false)}><Img src={p.images[img]} alt={`${p.name} 확대 이미지`} seed={p.id + img} loading="eager" /></div>}
+      <div className="sec"><div className="sec-h"><h2>{ru ? 'Похожие товары' : '관련 상품'}</h2></div><div className="grid g4">{related.map((x) => <ProductCard key={x.id} p={x} D={D} />)}</div></div>
+      {zoom && <div className="lb" onClick={() => setZoom(false)}><Img src={p.images[img]} alt={ru ? `${productName} — увеличенное изображение` : `${p.name} 확대 이미지`} seed={p.id + img} loading="eager" /></div>}
     </div>
   )
 }
