@@ -17,11 +17,13 @@ export function Crumb({ items }) {
 
 // 찜 하트. text=true면 "♡ 찜하기" 버튼 형태
 export function Heart({ id, label, text }) {
+  const { lang } = useLanguage()
+  const ru = lang === 'ru'
   const { S, toggleWish, toast } = useApp()
   const on = S.wish.includes(id)
-  const click = () => toast(toggleWish(id) ? '찜 목록에 담았어요' : '찜을 해제했어요')
-  if (text) return <button className={'heart btn' + (on ? ' on' : '')} aria-pressed={on} onClick={click}>{on ? '♥ 찜함' : '♡ 찜하기'}</button>
-  return <button className={'heart' + (on ? ' on' : '')} aria-label={`${label} 찜하기`} aria-pressed={on} onClick={click}>♥</button>
+  const click = () => toast(toggleWish(id) ? (ru ? 'Добавлено в избранное.' : '찜 목록에 담았어요') : (ru ? 'Удалено из избранного.' : '찜을 해제했어요'))
+  if (text) return <button className={'heart btn' + (on ? ' on' : '')} aria-pressed={on} onClick={click}>{on ? (ru ? '♥ В избранном' : '♥ 찜함') : (ru ? '♡ В избранное' : '♡ 찜하기')}</button>
+  return <button className={'heart' + (on ? ' on' : '')} aria-label={`${label} ${ru ? 'добавить в избранное' : '찜하기'}`} aria-pressed={on} onClick={click}>♥</button>
 }
 
 export function FollowBtn({ a }) {
