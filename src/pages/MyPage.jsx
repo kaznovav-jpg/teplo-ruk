@@ -46,13 +46,12 @@ function AuthForms({ tab, go }) {
 }
 
 const stepOf = (o) => {
-  if (o.pay === '무통장입금' && o.paymentStatus !== 'paid') return 1
+  if (o.orderStatus === 'cancelled') return -1
+  if (o.paymentStatus !== 'paid') return 1
   if (o.fulfillmentStatus === 'delivered') return 5
   if (o.fulfillmentStatus === 'shipped') return 4
   if (o.fulfillmentStatus === 'preparing') return 3
-  const base = o.pay === '무통장입금' && o.paymentStatus === 'paid' ? (o.paidAt || o.at) : o.at
-  const h = (Date.now() - base) / 36e5
-  return 2 + (h < 1 ? 0 : h < 24 ? 1 : h < 72 ? 2 : 3)
+  return 2
 }
 
 export default function MyPage() {
@@ -229,7 +228,7 @@ export default function MyPage() {
       const canRequestCancel = o.fulfillmentStatus === 'preparing' && !o.cancellationRequest && o.orderStatus !== 'cancelled'
       return <div className="box" key={o.id || k}>
         <p><b>{o.no}</b> <span className="muted">{o.date}</span></p>
-        <div className="steps" aria-label="배송 상태">{STEPS.map((s, i) => <span key={s} className={i === stepOf(o) ? 'on' : ''}>{s}</span>)}</div>
+        {o.orderStatus !== 'cancelled' && <div className="steps" aria-label="배송 상태">{STEPS.map((s, i) => <span key={s} className={i === stepOf(o) ? 'on' : ''}>{s}</span>)}</div>}
         {o.orderStatus === 'cancelled' && <p className="badge line">{isRu ? 'Заказ отменён' : '주문 취소 완료'}</p>}
         {o.cancellationRequest?.status === 'pending' && <p className="muted">{isRu ? 'Запрос на отмену отправлен администратору. Ожидается решение.' : '취소 요청이 관리자에게 전달되어 검토 중입니다.'}</p>}
         {o.cancellationRequest?.status === 'rejected' && <p className="muted">{isRu ? 'Администратор отклонил запрос на отмену.' : '관리자가 주문 취소 요청을 거절했습니다.'}</p>}
