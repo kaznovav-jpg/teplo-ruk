@@ -12,7 +12,7 @@ const AUTH = ['login', 'signup', 'find']
 const errMsg = (e) => ({ 'auth/invalid-credential': '이메일 또는 비밀번호가 맞지 않아요', 'auth/email-already-in-use': '이미 가입된 이메일이에요', 'auth/weak-password': '비밀번호는 6자 이상이어야 해요', 'auth/popup-closed-by-user': '로그인 창이 닫혔어요' }[e?.code] || '처리하지 못했어요. 잠시 후 다시 시도해 주세요')
 
 function AuthForms({ tab, go }) {
-  const { login, signup, resetPw, loginGoogle, toast } = useApp()
+  const { login, signup, resetPw, toast } = useApp()
   const submit = async (e) => {
     e.preventDefault()
     const f = e.target, email = f.email.value.trim()
@@ -24,7 +24,6 @@ function AuthForms({ tab, go }) {
       } else { await resetPw(email); toast('재설정 안내를 보냈어요') }
     } catch (err) { console.error(err); toast(errMsg(err)) }
   }
-  const soc = async (g) => { if (!g) { toast('카카오·네이버 로그인은 서버 연동이 필요해요 (README 참고)'); return } try { await loginGoogle(); go('dash') } catch (err) { toast(errMsg(err)) } }
   return (
     <div className="wrap sec">
       <h1 style={{ fontSize: '1.6rem', textAlign: 'center' }}>{{ login: '로그인', signup: '회원가입', find: '비밀번호 찾기' }[tab]}</h1>
@@ -36,7 +35,6 @@ function AuthForms({ tab, go }) {
         {tab === 'signup' && <label>비밀번호 확인<input className="field" type="password" name="pw2" required minLength={8} /></label>}
         {tab === 'signup' && <label style={{ display: 'flex', gap: 8, alignItems: 'center', minHeight: 44 }}><input type="checkbox" required style={{ width: 20, height: 20, accentColor: 'var(--pt)' }} />이용약관과 개인정보 수집에 동의합니다.</label>}
         <button className="btn">{{ login: '로그인', signup: '가입하기', find: '안내 메일 받기' }[tab]}</button>
-        {tab === 'login' && <div className="soc"><button type="button" onClick={() => soc(false)}>카카오로 시작하기</button><button type="button" onClick={() => soc(false)}>네이버로 시작하기</button><button type="button" onClick={() => soc(true)}>Google로 시작하기</button></div>}
         <p style={{ textAlign: 'center' }}>
           {tab === 'login' ? <><Link className="more" to="/mypage?tab=signup">회원가입</Link> · <Link className="more" to="/mypage?tab=find">비밀번호 찾기</Link></> : <Link className="more" to="/mypage?tab=login">{tab === 'signup' ? '이미 회원이에요' : '로그인으로 돌아가기'}</Link>}
         </p>
