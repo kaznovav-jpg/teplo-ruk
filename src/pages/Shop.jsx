@@ -242,15 +242,24 @@ export function Checkout() {
   const submit = async (e) => {
     e.preventDefault()
     const d = Object.fromEntries(new FormData(e.target))
+    const storeTab = d.pay === '신용·체크카드' ? window.open('about:blank', '_blank') : null
     try {
       await saveOrder({ paymentStatus: 'awaiting_payment', no: 'HM' + Date.now().toString().slice(-8), date: new Date().toLocaleDateString('ko-KR'), bankDetails: d.pay === '무통장입금' ? bankDetails : null, items: L.map((x) => ({ name: x.p.name, nameRu: x.p.nameRu || ({ kokoshnik: 'Кокошник', '일번': 'Изделие № 1' }[x.p.name] || x.p.name), opt: `${x.color}/${x.size}`, qty: x.qty, price: x.p.price })), total: t, ...d })
       clearCart()
       if (d.pay === '신용·체크카드') {
-        window.location.assign('https://smartstore.naver.com/miniri')
+        if (storeTab) {
+          storeTab.location.href = 'https://smartstore.naver.com/miniri'
+        } else {
+          toast(ru ? 'Браузер заблокировал новую вкладку. Разрешите всплывающие окна для этого сайта и повторите попытку.' : '새 탭이 차단되었어요. 이 사이트의 팝업을 허용한 뒤 다시 시도해 주세요.')
+        }
         return
       }
       nav('/order-complete')
-    } catch (err) { console.error(err); toast(ru ? 'Не удалось сохранить заказ. Попробуйте ещё раз.' : '주문을 저장하지 못했어요. 다시 시도해 주세요') }
+    } catch (err) {
+      if (storeTab) storeTab.close()
+      console.error(err)
+      toast(ru ? 'Не удалось сохранить заказ. Попробуйте ещё раз.' : '주문을 저장하지 못했어요. 다시 시도해 주세요')
+    }
   }
   return (
     <div className="wrap sec">
