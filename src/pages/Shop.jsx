@@ -216,7 +216,7 @@ export function Cart() {
             <div className="item" key={x.i}>
               <Link to={`/product/${x.pid}`}><Img src={x.p.images[0]} alt={x.p.name} seed={x.pid} /></Link>
               <div><p className="nm"><b>{ru ? (x.p.nameRu || x.p.name) : x.p.name}</b></p><p className="muted">{x.color} / {x.size}</p>
-                <div className="qty" style={{ marginTop: 6 }}><button aria-label={ru ? 'Уменьшить количество' : '수량 감소'} onClick={() => setQty(x.i, x.qty - 1)}>−</button><span>{x.qty}</span><button aria-label={ru ? 'Увеличить количество' : '수량 증가'} onClick={() => setQty(x.i, x.qty + 1)}>+</button></div></div>
+                <div className="qty" style={{ marginTop: 6 }}><button aria-label={ru ? 'Уменьшить количество' : '수량 감소'} onClick={() => setQty(x.i, x.qty - 1)}>−</button><span>{x.qty}</span><button aria-label={ru ? 'Увеличить количество' : '수량 증가'} disabled={x.qty >= Number(x.p.stock || 0)} onClick={() => setQty(x.i, x.qty + 1)}>+</button></div></div>
               <div style={{ textAlign: 'right' }}><p><b>{won(x.p.price * x.qty)}</b></p><button className="ibtn" aria-label={ru ? 'Удалить товар' : '삭제'} onClick={() => removeCart(x.i)}>{ru ? 'Удалить' : '삭제'}</button></div>
             </div>))}
           </div>
@@ -265,7 +265,7 @@ export function Checkout() {
     } catch (err) {
       if (storeTab) storeTab.close()
       console.error(err)
-      toast(ru ? 'Не удалось сохранить заказ. Попробуйте ещё раз.' : '주문을 저장하지 못했어요. 다시 시도해 주세요')
+      toast(ru ? (err.message || 'Не удалось сохранить заказ. Попробуйте ещё раз.') : (err.message || '주문을 저장하지 못했어요. 다시 시도해 주세요'))
     }
   }
   return (
