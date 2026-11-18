@@ -228,14 +228,14 @@ export default function MyPage() {
       )}
     </section>,
     orders: orders.length ? orders.map((o, k) => {
-      const canRequestCancel = o.fulfillmentStatus === 'preparing' && !o.cancellationRequest && o.orderStatus !== 'cancelled'
+      const canRequestCancel = !['shipped', 'delivered'].includes(o.fulfillmentStatus) && !['pending', 'approved'].includes(o.cancellationRequest?.status) && o.orderStatus !== 'cancelled'
       return <div className="box" key={o.id || k}>
         <p><b>{o.no}</b> <span className="muted">{o.date}</span></p>
         {o.orderStatus !== 'cancelled' && <div className="steps" aria-label="배송 상태">{STEPS.map((s, i) => <span key={s} className={i === stepOf(o) ? 'on' : ''}>{s}</span>)}</div>}
         {o.orderStatus === 'cancelled' && <p className="badge line">{isRu ? 'Заказ отменён' : '주문 취소 완료'}</p>}
         {o.cancellationRequest?.status === 'pending' && <p className="muted">{isRu ? 'Запрос на отмену отправлен администратору. Ожидается решение.' : '취소 요청이 관리자에게 전달되어 검토 중입니다.'}</p>}
         {o.cancellationRequest?.status === 'rejected' && <p className="muted">{isRu ? 'Администратор отклонил запрос на отмену.' : '관리자가 주문 취소 요청을 거절했습니다.'}</p>}
-        {o.items.map((i, n) => <p key={n}>{isRu ? (i.nameRu || ({ kokoshnik: 'Кокошник', '일번': 'Изделие № 1' }[i.name] || i.name)) : i.name} ({i.opt}) × {i.qty}</p>)}
+        {o.items.map((i, n) => <p key={n}>{isRu ? (i.nameRu || ({ kokoshnik: 'Кокошник', nomer1: 'Изделие № 1', '일번': 'Изделие № 1' }[i.name] || i.name)) : i.name} ({i.opt}) × {i.qty}</p>)}
         <p style={{ marginTop: 6 }}><b>{won(o.total)}</b> <span className="muted">· {o.pay} · {o.addr}</span></p>
         {canRequestCancel && <Link className="btn ghost" style={{ display: 'inline-block', marginTop: 10 }} to={`/cancel-order/${o.id}`}>{isRu ? 'Отменить заказ' : '주문 취소'}</Link>}
         {o.fulfillmentStatus === 'shipped' && <p className="muted" style={{ marginTop: 8 }}>{isRu ? 'После отправки заказ нельзя отменить через личный кабинет.' : '배송이 시작된 주문은 마이페이지에서 취소할 수 없습니다.'}</p>}
@@ -321,7 +321,7 @@ export function CancelOrderPage() {
   const [reason, setReason] = useState('')
   const [saving, setSaving] = useState(false)
   const order = orders.find((item) => item.id === orderId)
-  const canCancel = order?.fulfillmentStatus === 'preparing' && !order?.cancellationRequest && order?.orderStatus !== 'cancelled'
+  const canCancel = !!order && !['shipped', 'delivered'].includes(order.fulfillmentStatus) && !['pending', 'approved'].includes(order.cancellationRequest?.status) && order.orderStatus !== 'cancelled'
 
   const submit = async (event) => {
     event.preventDefault()
