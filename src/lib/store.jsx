@@ -54,7 +54,17 @@ export function AppProvider({ children }) {
 }
         const ref = F.doc(F.db, 'users', fu.uid)
         let d = null
-        try { const snap = await F.getDoc(ref); d = snap.exists() ? snap.data() : null } catch (e) { console.error(e) }
+        let profileExists = false
+        try { const snap = await F.getDoc(ref); profileExists = snap.exists(); d = profileExists ? snap.data() : null } catch (e) { console.error(e) }
+        // New accounts must verify their email before a profile is created or access is granted.
+        // Existing accounts with an existing profile remain compatible.
+        if (!fu.emailVerified && !profileExists) {
+          setUser(null)
+          setIsAdmin(false)
+          setS({ ...EMPTY, ...rd('hm_guest', {}) })
+          await F.signOut(F.auth).catch(console.error)
+          return
+        }
         if (!d) {
           d = { name: fu.displayName || (fu.email || '').split('@')[0], email: fu.email, points: 1000, coupons: [WELCOME], ...EMPTY, ...rd('hm_guest', {}) }
           try { await F.setDoc(ref, d) } catch (e) { console.error(e) }
@@ -299,8 +309,9 @@ setS({ ...EMPTY, ...pickState(d) })
       try {
         const c = await F.createUserWithEmailAndPassword(F.auth, email, pw)
         await F.updateProfile(c.user, { displayName: name })
-        await F.setDoc(F.doc(F.db, 'users', c.user.uid), { ...prof, ...EMPTY, ...rd('hm_guest', {}) })
-        setUser({ uid: c.user.uid, ...prof }); setS({ ...EMPTY, ...rd('hm_guest', {}) })
+        await F.sendEmailVerification(c.user)
+        // Do not create the Firestore profile or sign the user in until the email is verified.
+        await F.signOut(F.auth)
       } finally { busy.current = false }
     } else {
       wr('hm_accts', [...rd('hm_accts', []).filter((x) => x.email !== email), prof]); wr('hm_user', prof)
@@ -308,9 +319,33 @@ setS({ ...EMPTY, ...pickState(d) })
     }
   }
   const login = async (email, pw) => {
-    if (F.isFirebase) { await F.signInWithEmailAndPassword(F.auth, email, pw); return }
+    if (F.isFirebase) {
+      const c = await F.signInWithEmailAndPassword(F.auth, email, pw)
+      await F.reload(c.user)
+      if (!c.user.emailVerified) {
+        const profile = await F.getDoc(F.doc(F.db, 'users', c.user.uid))
+        if (!profile.exists()) {
+          await F.signOut(F.auth)
+          const error = new Error('Email verification required')
+          error.code = 'auth/email-not-verified'
+          throw error
+        }
+      }
+      return
+    }
     const u = rd('hm_accts', []).find((x) => x.email === email) || { name: email.split('@')[0], email, points: 0, coupons: [] }
     wr('hm_user', u); setUser(u); setS({ ...EMPTY, ...rd(sk(u), {}) })
+  }
+  const resendVerification = async (email, pw) => {
+    if (!F.isFirebase) throw new Error('Firebase 연결이 필요합니다.')
+    busy.current = true
+    try {
+      const c = await F.signInWithEmailAndPassword(F.auth, email, pw)
+      await F.reload(c.user)
+      if (c.user.emailVerified) throw new Error('이미 인증된 이메일입니다. 로그인해 주세요.')
+      await F.sendEmailVerification(c.user)
+      await F.signOut(F.auth)
+    } finally { busy.current = false }
   }
   const logout = async () => {
     if (F.isFirebase) await F.signOut(F.auth)
@@ -412,7 +447,7 @@ cancelRes: async (id) => {
   }
 },
 
-    saveOrder, confirmOrderPayment, updateOrderFulfillment, requestOrderCancellation, reviewOrderCancellation, addPost, uploadImages, signup, login, logout, resetPw, updateUser,
+    saveOrder, confirmOrderPayment, updateOrderFulfillment, requestOrderCancellation, reviewOrderCancellation, addPost, uploadImages, signup, login, logout, resetPw, resendVerification, updateUser,
   }
   return <Ctx.Provider value={api}>{children}{msg && <div className="toast" role="status">{msg}</div>}</Ctx.Provider>
 }
