@@ -105,6 +105,7 @@ export default async function handler(req, res) {
         if (!orderSnap.exists) throw new Error('ORDER_NOT_FOUND')
         const order = orderSnap.data()
         if (order.cancellationRequest?.status !== 'pending') throw new Error('CANCELLATION_NOT_PENDING')
+        if (decision === 'approved' && ['shipped', 'delivered'].includes(order.fulfillmentStatus)) throw new Error('ALREADY_SHIPPED')
 
         const productTotals = new Map()
         for (const item of (order.items || [])) {
@@ -145,7 +146,8 @@ export default async function handler(req, res) {
       SOLD_OUT: 'Товар закончился. Обновите корзину.',
       INSUFFICIENT_STOCK: 'На складе осталось меньше товара, чем вы заказали. Измените количество.',
       ORDER_NOT_FOUND: 'Заказ не найден',
-      CANCELLATION_NOT_PENDING: 'Запрос на отмену уже обработан'
+      CANCELLATION_NOT_PENDING: 'Запрос на отмену уже обработан',
+      ALREADY_SHIPPED: 'Нельзя вернуть товар на склад после отправки заказа'
     }
     const message = messages[error.message]
     return fail(res, message ? 409 : 500, message || 'Не удалось обработать заказ')
