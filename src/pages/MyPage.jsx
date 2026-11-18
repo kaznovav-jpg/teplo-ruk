@@ -9,20 +9,21 @@ import useTitle from '../lib/useTitle.js'
 import { ProductCard, ClassCard, ArtistCard } from '../components/Cards.jsx'
 
 const AUTH = ['login', 'signup', 'find']
-const errMsg = (e) => ({ 'auth/invalid-credential': '이메일 또는 비밀번호가 맞지 않아요', 'auth/email-already-in-use': '이미 가입된 이메일이에요', 'auth/weak-password': '비밀번호는 6자 이상이어야 해요', 'auth/popup-closed-by-user': '로그인 창이 닫혔어요' }[e?.code] || '처리하지 못했어요. 잠시 후 다시 시도해 주세요')
+const errMsg = (e) => ({ 'auth/email-not-verified': '이메일 인증이 필요해요. 받은 메일의 링크를 눌러 주세요.', 'auth/invalid-credential': '이메일 또는 비밀번호가 맞지 않아요', 'auth/email-already-in-use': '이미 가입된 이메일이에요', 'auth/weak-password': '비밀번호는 6자 이상이어야 해요', 'auth/popup-closed-by-user': '로그인 창이 닫혔어요' }[e?.code] || '처리하지 못했어요. 잠시 후 다시 시도해 주세요')
 
 function AuthForms({ tab, go }) {
-  const { login, signup, resetPw, toast } = useApp()
+  const { login, signup, resetPw, resendVerification, toast } = useApp()
+  const [pendingVerification, setPendingVerification] = useState(false)
   const submit = async (e) => {
     e.preventDefault()
     const f = e.target, email = f.email.value.trim()
     try {
-      if (tab === 'login') { await login(email, f.pw.value); toast('로그인되었어요'); go('dash') }
+      if (tab === 'login') { setPendingVerification(false); await login(email, f.pw.value); toast('로그인되었어요'); go('dash') }
       else if (tab === 'signup') {
         if (f.pw.value !== f.pw2.value) { toast('비밀번호가 서로 달라요'); return }
-        await signup(f.nm.value.trim(), email, f.pw.value); toast('가입이 완료되었어요. 신규 쿠폰이 지급됐어요'); go('dash')
+        await signup(f.nm.value.trim(), email, f.pw.value); toast('인증 메일을 보냈어요. 이메일의 링크를 누른 뒤 로그인해 주세요.'); go('login')
       } else { await resetPw(email); toast('재설정 안내를 보냈어요') }
-    } catch (err) { console.error(err); toast(errMsg(err)) }
+    } catch (err) { console.error(err); setPendingVerification(err?.code === 'auth/email-not-verified'); toast(errMsg(err)) }
   }
   return (
     <div className="wrap sec">
@@ -35,6 +36,7 @@ function AuthForms({ tab, go }) {
         {tab === 'signup' && <label>비밀번호 확인<input className="field" type="password" name="pw2" required minLength={8} /></label>}
         {tab === 'signup' && <label style={{ display: 'flex', gap: 8, alignItems: 'center', minHeight: 44 }}><input type="checkbox" required style={{ width: 20, height: 20, accentColor: 'var(--pt)' }} />이용약관과 개인정보 수집에 동의합니다.</label>}
         <button className="btn">{{ login: '로그인', signup: '가입하기', find: '안내 메일 받기' }[tab]}</button>
+        {pendingVerification && <button type="button" className="btn ghost" onClick={async (e) => { const form = e.currentTarget.form; try { await resendVerification(form.email.value.trim(), form.pw.value); toast('인증 메일을 다시 보냈어요. 받은편지함과 스팸함을 확인해 주세요.') } catch (err) { console.error(err); toast(err?.message || '인증 메일을 보내지 못했어요.') } }}>{'인증 메일 다시 보내기'}</button>}
         <p style={{ textAlign: 'center' }}>
           {tab === 'login' ? <><Link className="more" to="/mypage?tab=signup">회원가입</Link> · <Link className="more" to="/mypage?tab=find">비밀번호 찾기</Link></> : <Link className="more" to="/mypage?tab=login">{tab === 'signup' ? '이미 회원이에요' : '로그인으로 돌아가기'}</Link>}
         </p>
