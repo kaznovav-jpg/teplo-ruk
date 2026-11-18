@@ -42,7 +42,7 @@ export function ProductCard({ p, D }) {
       <Link to={`/product/${p.id}`}>
         <div className="thumb">
           {p.images.slice(0, 2).map((s, i) => <Img key={i} src={s} alt={`${p.name} ${i ? '두 번째 컷' : '대표 이미지'}`} seed={p.id + i} />)}
-          {p.soldOut && <div className="so">{lang === 'ru' ? 'Нет в наличии' : '품절'}</div>}
+          {(p.soldOut || Number(p.stock || 0) <= 0) && <div className="so">{lang === 'ru' ? 'Нет в наличии' : '품절'}</div>}
         </div>
       </Link>
      <div className="bd">{p.badges.map((b) => <span key={b} className="badge">{lang === 'ru' ? ({ 주문제작: 'На заказ', 품절: 'Нет в наличии' }[b] || b) : b}</span>)}</div>
