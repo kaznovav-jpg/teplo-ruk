@@ -73,8 +73,9 @@ service cloud.firestore {
       ) || (
         request.auth != null
         && resource.data.uid == request.auth.uid
-        && resource.data.fulfillmentStatus == 'preparing'
-        && resource.data.paymentStatus == 'paid'
+        && (!('fulfillmentStatus' in resource.data)
+          || !(resource.data.fulfillmentStatus in ['shipped', 'delivered']))
+        && (!('orderStatus' in resource.data) || resource.data.orderStatus != 'cancelled')
         && !('cancellationRequest' in resource.data)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cancellationRequest'])
         && request.resource.data.cancellationRequest.status == 'pending'
