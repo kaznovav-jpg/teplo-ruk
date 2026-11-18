@@ -39,7 +39,7 @@ export function AppProvider({ children }) {
   const SR = useRef(S), UR = useRef(user), busy = useRef(false), tm = useRef(0)
   SR.current = S; UR.current = user
 
-  const toast = useCallback((m) => { setMsg(m); clearTimeout(tm.current); tm.current = setTimeout(() => setMsg(''), 1800) }, [])
+  const toast = useCallback((m) => { setMsg(m) }, [])
 
   // 로그인 상태 복원
   useEffect(() => {
@@ -447,7 +447,7 @@ cancelRes: async (id) => {
 
     saveOrder, confirmOrderPayment, updateOrderFulfillment, requestOrderCancellation, reviewOrderCancellation, addPost, uploadImages, signup, login, logout, resetPw, resendVerification, updateUser,
   }
-  return <Ctx.Provider value={api}>{children}{msg && <div className="toast" role="status">{msg}</div>}</Ctx.Provider>
+  return <Ctx.Provider value={api}>{children}{msg && <div className="toast" role="status"><span>{msg}</span><button type="button" className="toast-close" aria-label="Закрыть уведомление" onClick={() => setMsg('')}>×</button></div>}</Ctx.Provider>
 }
 
 // 댓글: Firestore(comments 컬렉션) 또는 로컬 저장
