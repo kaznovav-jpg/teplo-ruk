@@ -106,10 +106,13 @@ setS({ ...EMPTY, ...pickState(d) })
     setOrders(rd('hm_orders_' + sk(user), []))
   }, [user])
   const saveOrder = async (o) => {
-    o = { ...o, at: Date.now() }
     const u = UR.current
-    if (u && F.isFirebase) await F.addDoc(F.collection(F.db, 'orders'), { ...o, uid: u.uid })
-    else { const k = 'hm_orders_' + sk(u), l = [o, ...rd(k, [])]; wr(k, l); if (u) setOrders(l) }
+    const authUser = F.isFirebase ? F.auth.currentUser : null
+    if (!F.isFirebase || !u?.uid || !authUser || !authUser.emailVerified) {
+      throw new Error('Для оформления заказа необходимо войти в подтверждённый аккаунт.')
+    }
+    o = { ...o, at: Date.now(), uid: u.uid }
+    await F.addDoc(F.collection(F.db, 'orders'), o)
     wr('hm_last', o)
   }
   
