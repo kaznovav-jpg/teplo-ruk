@@ -56,9 +56,8 @@ export function AppProvider({ children }) {
         let d = null
         let profileExists = false
         try { const snap = await F.getDoc(ref); profileExists = snap.exists(); d = profileExists ? snap.data() : null } catch (e) { console.error(e) }
-        // New accounts must verify their email before a profile is created or access is granted.
-        // Existing accounts with an existing profile remain compatible.
-        if (!fu.emailVerified && !profileExists) {
+        // Require Firebase email verification for every account before restoring a signed-in session.
+        if (!fu.emailVerified) {
           setUser(null)
           setIsAdmin(false)
           setS({ ...EMPTY, ...rd('hm_guest', {}) })
@@ -322,14 +321,13 @@ setS({ ...EMPTY, ...pickState(d) })
     if (F.isFirebase) {
       const c = await F.signInWithEmailAndPassword(F.auth, email, pw)
       await F.reload(c.user)
+      console.info('[Email verification diagnostic] Firebase emailVerified:', c.user.emailVerified)
       if (!c.user.emailVerified) {
-        const profile = await F.getDoc(F.doc(F.db, 'users', c.user.uid))
-        if (!profile.exists()) {
-          await F.signOut(F.auth)
-          const error = new Error('Email verification required')
-          error.code = 'auth/email-not-verified'
-          throw error
-        }
+        await F.signOut(F.auth)
+        const error = new Error('Firebase reports emailVerified=false. Email verification is required.')
+        error.code = 'auth/email-not-verified'
+        error.emailVerified = c.user.emailVerified
+        throw error
       }
       return
     }
