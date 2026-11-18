@@ -52,6 +52,7 @@ export default function Admin() {
   name: '',
   nameRu: '',
   price: '',
+  stock: '0',
   cat: 'bag',
   images: [''],
   desc: '',
@@ -129,6 +130,7 @@ const [previewArticle, setPreviewArticle] = useState(false)
   const data = {
     ...productForm,
     price: Number(productForm.price),
+    stock: Math.max(0, Math.floor(Number(productForm.stock || 0))),
     images: productForm.images.filter(Boolean),
     colors: productForm.colors.filter(Boolean),
     sizes: productForm.sizes.filter(Boolean),
@@ -151,6 +153,7 @@ const [previewArticle, setPreviewArticle] = useState(false)
       name: '',
       nameRu: '',
       price: '',
+      stock: '0',
       cat: 'bag',
       images: [''],
       desc: '',
@@ -248,6 +251,7 @@ const data = {
     name: product.name || '',
     nameRu: product.nameRu || '',
     price: product.price || '',
+    stock: String(Math.max(0, Number(product.stock || 0))),
     cat: product.cat || 'bag',
     images: product.images?.length ? product.images : [''],
     desc: product.desc || '',
@@ -795,7 +799,7 @@ const deleteArticle = async (article) => {
             <h2>{lang === 'ru' ? 'Управление товарами' : '상품 관리'}</h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, margin: '18px 0 24px' }}>
-        <button type="button" className="btn" onClick={() => { setEditingProductId(null); setProductForm({ name: '', nameRu: '', price: '', cat: 'bag', images: [''], desc: '', descRu: '', material: '', colors: [''], sizes: [''], published: true }); setSelectedProductCategory('add') }}>
+        <button type="button" className="btn" onClick={() => { setEditingProductId(null); setProductForm({ name: '', nameRu: '', price: '', stock: '0', cat: 'bag', images: [''], desc: '', descRu: '', material: '', colors: [''], sizes: [''], published: true }); setSelectedProductCategory('add') }}>
           {lang === 'ru' ? '+ Добавить товар' : '+ 상품 추가'}
         </button>
         {[
@@ -839,6 +843,19 @@ const deleteArticle = async (article) => {
     value={productForm.price}
     onChange={(e) => updateProductField('price', e.target.value)}
     placeholder="100000"
+  />
+</label>
+
+<label>
+  {lang === 'ru' ? 'Количество на складе' : '재고 수량'}
+  <input
+    type="number"
+    min="0"
+    step="1"
+    required
+    value={productForm.stock}
+    onChange={(e) => updateProductField('stock', e.target.value)}
+    placeholder="0"
   />
 </label>
 
@@ -1005,6 +1022,7 @@ const deleteArticle = async (article) => {
                 name: '',
                 nameRu: '',
                 price: '',
+                stock: '0',
                 cat: 'bag',
                 images: [''],
                 desc: '',
@@ -1062,6 +1080,7 @@ const deleteArticle = async (article) => {
                 <div style={{ flex: 1, minWidth: 160 }}>
                   <strong>{lang === 'ru' ? (product.nameRu || product.name) : product.name}</strong>
                   <p style={{ margin: '5px 0' }}>{Number(product.price || 0).toLocaleString('ko-KR')} ₩</p>
+                  <p style={{ margin: '5px 0', color: Number(product.stock || 0) > 0 ? '#54734A' : '#B8593B', fontWeight: 600 }}>{lang === 'ru' ? 'Остаток: ' : '재고: '}{Number(product.stock || 0)}{lang === 'ru' ? ' шт.' : '개'}{Number(product.stock || 0) <= 0 ? (lang === 'ru' ? ' · Нет в наличии' : ' · 품절') : ''}</p>
                 </div>
                 <button className="btn" type="button" onClick={() => editProduct(product)}>{lang === 'ru' ? 'Редактировать' : '수정'}</button>
                 <button className="btn ghost" type="button" onClick={() => deleteProduct(product)}>{lang === 'ru' ? 'Удалить' : '삭제'}</button>
