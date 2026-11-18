@@ -36,7 +36,7 @@ const { lang } = useLanguage()
     const l = base.filter((p) =>
       (!f.pr.length || f.pr.some((i) => p.price >= PR[i][1] && p.price < PR[i][2])) && (!f.m.length || f.m.includes(p.material)) &&
       (!f.c.length || p.colors.some((x) => f.c.includes(x))) && (!f.a.length || f.a.includes(p.artist)) &&
-      (!onlyNew || p.badges.includes('NEW')) && (!inStock || !p.soldOut))
+      (!onlyNew || p.badges.includes('NEW')) && (!inStock || (Number(p.stock) > 0 && !p.soldOut)))
     return l.sort(sort === 'new' ? (x, y) => x.daysAgo - y.daysAgo : sort === 'lo' ? (x, y) => x.price - y.price : sort === 'hi' ? (x, y) => y.price - x.price : (x, y) => y.popularity - x.popularity)
   }, [base, f, onlyNew, inStock, sort])
   const uniq = (fn) => [...new Set(base.flatMap(fn))]
@@ -122,7 +122,13 @@ const p = {
   setQty(1)
 }, [p.id])
   useEffect(() => { if (!zoom) return; const k = (e) => e.key === 'Escape' && setZoom(false); addEventListener('keydown', k); return () => removeEventListener('keydown', k) }, [zoom])
-  const add = () => addCart({ pid: p.id, color, size, qty })
+  const availableStock = Math.max(0, Number(p.stock || 0))
+  const soldOut = p.soldOut || availableStock <= 0
+  const add = () => {
+    if (soldOut) { toast(ru ? 'Нет в наличии.' : '품절된 상품입니다.'); return }
+    if (qty > availableStock) { toast(ru ? `Доступно только ${availableStock} шт.` : `재고는 ${availableStock}개입니다.`); return }
+    addCart({ pid: p.id, color, size, qty })
+  }
   const related = products.filter((x) => x.id !== p.id && (x.cat === p.cat || x.artist === p.artist)).slice(0, 4)
   const T = {
     i: <><table><tbody><tr><th>{ru ? 'Материал' : '소재'}</th><td>{ru ? (materialNamesRu[p.material] || p.material) : p.material}</td></tr><tr><th>{ru ? 'Уход' : '세탁법'}</th><td>{careText}</td></tr></tbody></table>
@@ -151,11 +157,11 @@ const p = {
           <div className="opt"><b>{ru ? 'Цвет' : '색상'}: {colorLabel(color)}</b>
             <div className="sw">{p.colors.map((c) => <button key={c} className={c === color ? 'on' : ''} style={{ background: COLORS[c] }} aria-label={c} onClick={() => setColor(c)} />)}</div></div>
           <div className="opt"><b>{ru ? 'Размер' : '사이즈'}</b><select className="field" aria-label={ru ? 'Размер' : '사이즈'} value={size} onChange={(e) => setSize(e.target.value)}>{p.sizes.map((s) => <option key={s} value={s}>{sizeLabel(s)}</option>)}</select></div>
-          <div className="opt"><b>{ru ? 'Количество' : '수량'}</b><div className="qty"><button aria-label={ru ? 'Уменьшить количество' : '수량 감소'} onClick={() => setQty(Math.max(1, qty - 1))}>−</button><span>{qty}</span><button aria-label={ru ? 'Увеличить количество' : '수량 증가'} onClick={() => setQty(qty + 1)}>+</button></div></div>
+          <div className="opt"><b>{ru ? 'Количество' : '수량'}</b><div className="qty"><button aria-label={ru ? 'Уменьшить количество' : '수량 감소'} onClick={() => setQty(Math.max(1, qty - 1))}>−</button><span>{qty}</span><button aria-label={ru ? 'Увеличить количество' : '수량 증가'} disabled={soldOut || qty >= availableStock} onClick={() => setQty(Math.min(availableStock, qty + 1))}>+</button></div><small className="muted">{ru ? `В наличии: ${availableStock} шт.` : `재고: ${availableStock}개`}</small></div>
           <div className="lead"><b>{lang === 'ru' ? 'Сроки изготовления и отправки' : '핸드메이드 상품 발송 안내'}</b><br />{lang === 'ru' ? 'Товары в наличии отправляются через 2–3 дня, изделия на заказ — через 7–30 дней.' : '핸드메이드 상품은 제작 기간(재고 2~3일, 주문제작 7~30일)이 지난 뒤 발송돼요.'}<br />{ru ? (p.leadRu || 'Срок зависит от наличия и сложности изделия.') : (p.lead || '')} {ru ? 'Каждое изделие создаётся вручную, поэтому возможна разница в цвете и размере около 1–2 см.' : '하나하나 손으로 만들어 색감·크기에 1~2cm 정도 차이가 있을 수 있어요.'}</div>
           <div className="acts">
-            <button className="btn ghost" disabled={p.soldOut} onClick={() => { add(); toast(ru ? 'Товар добавлен в корзину.' : '장바구니에 담았어요') }}>{ru ? 'В корзину' : '장바구니'}</button>
-            <button className="btn" disabled={p.soldOut} onClick={() => { add(); nav('/checkout') }}>{p.soldOut ? (ru ? 'Нет в наличии' : '품절') : (ru ? 'Купить сейчас' : '바로구매')}</button>
+            <button className="btn ghost" disabled={soldOut} onClick={() => { add(); if (!soldOut) toast(ru ? 'Товар добавлен в корзину.' : '장바구니에 담았어요') }}>{soldOut ? (ru ? 'Нет в наличии' : '품절') : (ru ? 'В корзину' : '장바구니')}</button>
+            <button className="btn" disabled={soldOut} onClick={() => { add(); if (!soldOut) nav('/checkout') }}>{soldOut ? (ru ? 'Нет в наличии' : '품절') : (ru ? 'Купить сейчас' : '바로구매')}</button>
           </div>
           <div className="acts" style={{ marginTop: 10 }}><Heart id={p.id} text label={productName} /><Link className="btn ghost" to="/info?t=주문제작 문의">{ru ? 'Индивидуальный заказ' : '주문제작 문의'}</Link></div>
         </div>
@@ -245,7 +251,7 @@ export function Checkout() {
     const d = Object.fromEntries(new FormData(e.target))
     const storeTab = d.pay === '신용·체크카드' ? window.open('about:blank', '_blank') : null
     try {
-      await saveOrder({ paymentStatus: 'awaiting_payment', no: 'HM' + Date.now().toString().slice(-8), date: new Date().toLocaleDateString('ko-KR'), bankDetails: d.pay === '무통장입금' ? bankDetails : null, items: L.map((x) => ({ name: x.p.name, nameRu: x.p.nameRu || ({ kokoshnik: 'Кокошник', '일번': 'Изделие № 1' }[x.p.name] || x.p.name), opt: `${x.color}/${x.size}`, qty: x.qty, price: x.p.price })), total: t, ...d })
+      await saveOrder({ paymentStatus: 'awaiting_payment', no: 'HM' + Date.now().toString().slice(-8), date: new Date().toLocaleDateString('ko-KR'), bankDetails: d.pay === '무통장입금' ? bankDetails : null, items: L.map((x) => ({ pid: x.pid, color: x.color, size: x.size, qty: x.qty })), total: t, bankDetails: d.pay === '무통장입금' ? bankDetails : null, ...d })
       clearCart()
       if (d.pay === '신용·체크카드') {
         if (storeTab) {
