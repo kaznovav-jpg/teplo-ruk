@@ -13,6 +13,8 @@ const errMsg = (e) => ({ 'auth/email-not-verified': '이메일 인증이 필요�
 
 function AuthForms({ tab, go }) {
   const { login, signup, resetPw, resendVerification, toast } = useApp()
+  const { lang } = useLanguage()
+  const isRu = lang === 'ru'
   const [pendingVerification, setPendingVerification] = useState(false)
   const submit = async (e) => {
     e.preventDefault()
@@ -28,6 +30,7 @@ function AuthForms({ tab, go }) {
   return (
     <div className="wrap sec">
       <h1 style={{ fontSize: '1.6rem', textAlign: 'center' }}>{{ login: '로그인', signup: '회원가입', find: '비밀번호 찾기' }[tab]}</h1>
+      {tab === 'signup' && <p className="auth-verification-note">{isRu ? 'После регистрации мы отправим письмо на вашу электронную почту. Чтобы подтвердить адрес и войти в личный кабинет, откройте письмо и нажмите ссылку подтверждения.' : '회원가입 후 이메일로 인증 메일을 보내드립니다. 이메일 주소를 인증하고 로그인하려면 메일을 열어 인증 링크를 눌러 주세요.'}</p>}
       <form className="auth" onSubmit={submit}>
         {tab === 'signup' && <label>이름<input className="field" name="nm" required /></label>}
         {tab === 'find' && <p className="muted">가입한 이메일로 재설정 안내를 보내드려요.</p>}
