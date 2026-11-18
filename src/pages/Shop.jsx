@@ -225,7 +225,7 @@ export function Checkout() {
   const { lang } = useLanguage()
   const ru = lang === 'ru'
   useTitle(ru ? 'Оформление заказа' : '주문서')
-  const nav = useNavigate(), { saveOrder, clearCart, toast } = useApp(), { L, s, sh, t } = useLines()
+  const nav = useNavigate(), { user, isFirebase, saveOrder, clearCart, toast } = useApp(), { L, s, sh, t } = useLines()
   const [pay, setPay] = useState('신용·체크카드')
   const [bankDetails, setBankDetails] = useState(DEFAULT_BANK_DETAILS)
   useEffect(() => {
@@ -235,6 +235,7 @@ export function Checkout() {
     }).catch((error) => console.error('Bank details load error:', error))
   }, [])
   if (!L.length) return <div className="wrap empty"><p>{ru ? 'В корзине нет товаров.' : '주문할 상품이 없어요.'}</p><Link className="btn" to="/category?c=all">{ru ? 'Перейти к товарам' : '상품 보러 가기'}</Link></div>
+  if (!user || !isFirebase) return <div className="wrap empty"><h1>{ru ? 'Войдите, чтобы оформить заказ' : '로그인 후 주문해 주세요'}</h1><p>{ru ? 'Оформление заказа доступно только зарегистрированным пользователям с подтверждённой электронной почтой.' : '주문은 회원가입 후 이메일 인증을 완료하고 로그인한 회원만 이용할 수 있습니다.'}</p><div className="acts" style={{ justifyContent: 'center' }}><Link className="btn" to="/mypage?tab=login">{ru ? 'Войти' : '로그인'}</Link><Link className="btn ghost" to="/mypage?tab=signup">{ru ? 'Зарегистрироваться' : '회원가입'}</Link></div></div>
   const field = (n, l, type = 'text', req = true) => <label>{l}<input className="field" name={n} type={type} required={req} /></label>
   const paymentMethods = ru
     ? [['신용·체크카드', 'Кредитная или дебетовая карта'], ['무통장입금', 'Оплата банковским переводом без карты']]
