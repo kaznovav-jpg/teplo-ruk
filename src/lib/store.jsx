@@ -111,9 +111,15 @@ setS({ ...EMPTY, ...pickState(d) })
     if (!F.isFirebase || !u?.uid || !authUser || !authUser.emailVerified) {
       throw new Error('Для оформления заказа необходимо войти в подтверждённый аккаунт.')
     }
-    o = { ...o, at: Date.now(), uid: u.uid }
-    await F.addDoc(F.collection(F.db, 'orders'), o)
-    wr('hm_last', o)
+    const token = await authUser.getIdToken()
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ action: 'create', order: o })
+    })
+    const result = await response.json()
+    if (!response.ok) throw new Error(result.error || 'Не удалось оформить заказ')
+    wr('hm_last', result.order)
   }
   
   // Admin: live order list for bank-transfer payment checks
@@ -149,10 +155,14 @@ setS({ ...EMPTY, ...pickState(d) })
   const reviewOrderCancellation = async (orderId, decision) => {
     if (!F.isFirebase) throw new Error('Firebase 연결이 필요합니다.')
     if (!['approved', 'rejected'].includes(decision)) throw new Error('Invalid cancellation decision')
-    const patch = decision === 'approved'
-      ? { 'cancellationRequest.status': 'approved', orderStatus: 'cancelled', cancellationReviewedAt: Date.now() }
-      : { 'cancellationRequest.status': 'rejected', cancellationReviewedAt: Date.now() }
-    await F.updateDoc(F.doc(F.db, 'orders', orderId), patch)
+    const token = await F.auth.currentUser.getIdToken()
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ action: 'reviewCancellation', orderId, decision })
+    })
+    const result = await response.json()
+    if (!response.ok) throw new Error(result.error || 'Не удалось обработать отмену')
   }
 
   // 관리자: 전체 수업 신청 목록
