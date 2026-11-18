@@ -312,10 +312,6 @@ setS({ ...EMPTY, ...pickState(d) })
     const u = rd('hm_accts', []).find((x) => x.email === email) || { name: email.split('@')[0], email, points: 0, coupons: [] }
     wr('hm_user', u); setUser(u); setS({ ...EMPTY, ...rd(sk(u), {}) })
   }
-  const loginGoogle = async () => {
-    if (!F.isFirebase) { toast('Google 로그인은 Firebase 연결 후 사용할 수 있어요'); return }
-    await F.signInWithPopup(F.auth, new F.GoogleAuthProvider())
-  }
   const logout = async () => {
     if (F.isFirebase) await F.signOut(F.auth)
     else { wr('hm_user', null); setUser(null); setS({ ...EMPTY, ...rd('hm_guest', {}) }) }
@@ -416,7 +412,7 @@ cancelRes: async (id) => {
   }
 },
 
-    saveOrder, confirmOrderPayment, updateOrderFulfillment, requestOrderCancellation, reviewOrderCancellation, addPost, uploadImages, signup, login, loginGoogle, logout, resetPw, updateUser,
+    saveOrder, confirmOrderPayment, updateOrderFulfillment, requestOrderCancellation, reviewOrderCancellation, addPost, uploadImages, signup, login, logout, resetPw, updateUser,
   }
   return <Ctx.Provider value={api}>{children}{msg && <div className="toast" role="status">{msg}</div>}</Ctx.Provider>
 }
