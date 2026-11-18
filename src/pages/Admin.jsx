@@ -136,7 +136,7 @@ const [previewArticle, setPreviewArticle] = useState(false)
     sizes: productForm.sizes.filter(Boolean),
         artist: 'a1',
     badges: [],
-    soldOut: false,
+    soldOut: Number(productForm.stock || 0) <= 0,
     published: productForm.published !== false
   }
 
