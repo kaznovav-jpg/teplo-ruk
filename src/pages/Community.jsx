@@ -212,10 +212,10 @@ export function Post() {
 
 export function Write() {
   useTitle('글쓰기')
-  const nav = useNavigate(), [sp] = useSearchParams(), { user, addPost, uploadImages, toast } = useApp()
+  const nav = useNavigate(), [sp] = useSearchParams(), { user, authReady, addPost, uploadImages, toast } = useApp()
   const [imgs, setImgs] = useState([]), [busy, setBusy] = useState(false)
-  useEffect(() => { if (!user) { toast('로그인이 필요해요'); nav('/mypage?tab=login') } }, [user])
-  if (!user) return null
+  useEffect(() => { if (authReady && !user) { toast('로그인이 필요해요'); nav('/mypage?tab=login') } }, [authReady, user, nav, toast])
+  if (!authReady || !user) return null
   const pick = async (e) => setImgs(await Promise.all([...e.target.files].slice(0, 4).map(shrink)))
   const submit = async (e) => {
     e.preventDefault()
