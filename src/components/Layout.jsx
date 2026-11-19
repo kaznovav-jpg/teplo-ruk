@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../lib/store.jsx'
 import { useLanguage } from '../lib/language.jsx'
 import { CATS } from '../lib/util.js'
+import * as F from '../lib/firebase.js'
 
 const MENU_KO = [
   ['공예 종류', '/category?c=all'],
@@ -35,10 +36,18 @@ export default function Layout() {
   const nav = useNavigate(), { pathname } = useLocation()
   const [notice, setNotice] = useState(true), [open, setOpen] = useState(false), [search, setSearch] = useState(false)
   const [kw, setKw] = useState(''), [scrolled, setScrolled] = useState(false), [top, setTop] = useState(false)
+  const [supportInfo, setSupportInfo] = useState({ phone: '010-5175-2515', email: 'vic-kaznova@narod.ru', hoursRu: 'будни 10:00–17:00', hoursKo: '평일 10:00~17:00', breakRu: 'Обед 12:30–13:30 · Выходные и праздники — выходные', breakKo: '점심 12:30~13:30 · 주말/공휴일 휴무' })
   const originalTextRef = useRef(new WeakMap())
   const originalAttrRef = useRef(new WeakMap())
 
   useEffect(() => { window.scrollTo(0, 0); setOpen(false); setSearch(false) }, [pathname])
+
+  useEffect(() => {
+    if (!F.isFirebase) return
+    return F.onSnapshot(F.doc(F.db, 'siteSettings', 'support'), (snap) => {
+      if (snap.exists()) setSupportInfo((prev) => ({ ...prev, ...snap.data() }))
+    }, (error) => console.error('Support info load error:', error))
+  }, [])
 
   useEffect(() => {
     const translations = {
@@ -206,13 +215,11 @@ export default function Layout() {
   </p>
 </div>
            <div><h3>{lang === 'ru' ? 'Служба поддержки' : '고객센터'}</h3><p>
-  010-5175-2515 ({lang === 'ru' ? 'будни 10:00–17:00' : '평일 10:00~17:00'})
+  {supportInfo.phone} ({lang === 'ru' ? supportInfo.hoursRu : supportInfo.hoursKo})
   <br />
-  {lang === 'ru'
-    ? 'Обед 12:30–13:30 · Выходные и праздники — выходные'
-    : '점심 12:30~13:30 · 주말/공휴일 휴무'}
+  {lang === 'ru' ? supportInfo.breakRu : supportInfo.breakKo}
   <br />
-  vic-kaznova@narod.ru
+  {supportInfo.email}
 </p></div>
             <div><h3>{lang === 'ru' ? 'Информация для пользователей' : '이용 안내'}</h3><p><Link to="/info?t=이용약관">
   {lang === 'ru' ? 'Условия использования' : '이용약관'}
