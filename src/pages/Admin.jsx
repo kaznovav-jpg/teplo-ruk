@@ -1653,6 +1653,7 @@ const deleteArticle = async (article) => {
                   <small>{request.at ? new Date(request.at).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR') : '-'}</small>
                 </div>
                 <p style={{ margin: '8px 0' }}>{lang === 'ru' ? 'Телефон:' : '연락처:'} {request.phone}</p>
+                <p style={{ margin: '8px 0' }}>{lang === 'ru' ? 'Электронная почта:' : '이메일:'} {request.email || '-'}</p>
                 <p style={{ whiteSpace: 'pre-wrap', margin: '8px 0 14px' }}>{request.details}</p>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   {lang === 'ru' ? 'Статус:' : '상태:'}
