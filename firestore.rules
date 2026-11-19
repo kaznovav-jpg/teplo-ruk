@@ -105,13 +105,16 @@ service cloud.firestore {
     // Заявку может создать и читать только сам пользователь; проверять и менять статус может администратор.
     // Индивидуальные заказы: отправка доступна посетителям, чтение и изменение — только администратору.
     match /customOrders/{requestId} {
-      allow create: if request.resource.data.keys().hasAll(['name', 'phone', 'details', 'status', 'at'])
+      allow create: if request.resource.data.keys().hasAll(['name', 'phone', 'email', 'details', 'status', 'at'])
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.name.size() <= 80
         && request.resource.data.phone is string
         && request.resource.data.phone.size() > 0
         && request.resource.data.phone.size() <= 40
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0
+        && request.resource.data.email.size() <= 120
         && request.resource.data.details is string
         && request.resource.data.details.size() > 0
         && request.resource.data.details.size() <= 3000
