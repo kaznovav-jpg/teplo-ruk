@@ -162,8 +162,8 @@ export default function Layout() {
     <>
       <a className="skip" href="#main">본문으로 건너뛰기</a>
       {notice && <div className="notice">{lang === 'ru'
-  ? 'Бесплатная доставка от 30 000 вон · Купон на первую покупку для новых участников'
-  : '3만 원 이상 무료배송 · 신규 가입 시 첫 구매 쿠폰 증정'}<button aria-label="공지 닫기" onClick={() => setNotice(false)}>✕</button></div>}
+  ? 'Бесплатная доставка от 50 000 вон · Купон на первую покупку для новых участников'
+  : '5만 원 이상 무료배송 · 신규 가입 시 첫 구매 쿠폰 증정'}<button aria-label="공지 닫기" onClick={() => setNotice(false)}>✕</button></div>}
       <header className={'hdr' + (scrolled ? ' scrolled' : '')}>
         <div className="wrap">
           <Link className="logo" to="/">{lang === 'ru' ? 'Тепло Рук' : '손길의 온기'}</Link>
