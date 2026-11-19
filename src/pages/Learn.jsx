@@ -208,7 +208,8 @@ export function Artist() {
 }
 
 const pad = (n) => String(n).padStart(2, '0')
-function EventModal({ e, joined, onClose }) {
+const typeLabelForModal = (type, ru) => ru ? ({ '수업': 'Занятие', '웨비나': 'Вебинар', '모임': 'Встреча' }[type] || type) : type
+function EventModal({ e, joined, onClose, ru }) {
   const { S, reserve, cancelRes, toast } = useApp()
 
   const r = S.reservations.some((x) => x.id === e.id)
@@ -219,22 +220,22 @@ function EventModal({ e, joined, onClose }) {
     <div className="modal" onClick={(ev) => ev.target === ev.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-label={e.title}>
         {(e.images?.length ? e.images : (e.image ? [e.image] : [])).map((url, index) => <img key={url + index} src={url} alt={e.title} style={{ width: '100%', maxHeight: 340, objectFit: 'cover', borderRadius: 10, marginBottom: 12 }} />)}
-        <span className="badge line">{e.type}</span><h2 style={{ fontSize: '1.3rem', margin: '8px 0' }}>{e.title}</h2>
-        <p><b>일시</b> {e.ymd.replace(/-/g, '.')} {e.time}</p>
-        <p><b>장소</b> {e.online ? '온라인 (신청 후 접속 링크를 안내해 드려요)' : e.place}</p>
-        <p><b>정원</b> {j}/{e.cap}명</p>
-        {e.cls && <p><Link className="more" to={`/classes/${e.cls}`}>관련 클래스 보기</Link></p>}
+        <span className="badge line">{typeLabelForModal(e.type, ru)}</span><h2 style={{ fontSize: '1.3rem', margin: '8px 0' }}>{ru ? (e.titleRu || e.title) : e.title}</h2>
+        <p><b>{ru ? 'Дата и время' : '일시'}</b> {e.ymd.replace(/-/g, '.')} {e.time}</p>
+        <p><b>{ru ? 'Место' : '장소'}</b> {e.online ? (ru ? 'Онлайн (ссылка для подключения будет отправлена после записи)' : '온라인 (신청 후 접속 링크를 안내해 드려요)') : e.place}</p>
+        <p><b>{ru ? 'Количество мест' : '정원'}</b> {j}/{e.cap}{ru ? ' чел.' : '명'}</p>
+        {e.cls && <p><Link className="more" to={`/classes/${e.cls}`}>{ru ? 'Посмотреть мастер-класс' : '관련 클래스 보기'}</Link></p>}
         <div className="acts" style={{ marginTop: 16 }}>
           <button className={'btn' + (r ? ' ghost' : '')} disabled={full} autoFocus onClick={async () => {
   if (r) {
     const ok = await cancelRes(e.id)
-    if (ok) toast('신청을 취소했어요')
+    if (ok) toast(ru ? 'Вы отменили запись.' : '신청을 취소했어요')
   } else {
     const ok = await reserve(e.id)
-    if (ok) toast('신청이 완료되었어요')
+    if (ok) toast(ru ? 'Вы успешно записались.' : '신청이 완료되었어요')
   }
-}}>{r ? '신청 취소' : full ? '마감되었어요' : '신청하기'}</button>
-          <button className="btn ghost" onClick={onClose}>닫기</button>
+}}>{r ? (ru ? 'Отменить запись' : '신청 취소') : full ? (ru ? 'Мест нет' : '마감되었어요') : (ru ? 'Записаться' : '신청하기')}</button>
+          <button className="btn ghost" onClick={onClose}>{ru ? 'Закрыть' : '닫기'}</button>
         </div>
       </div>
     </div>
@@ -298,7 +299,7 @@ const isFull = (event) =>
               return <div key={k}><b>{i + 1}</b>{list.filter((e) => e.ymd === k).map((e) => <button key={e.id} className="ev" data-t={e.type} aria-label={`${typeLabel(e.type)} ${eventTitle(e)} ${e.time}`} onClick={() => setOpen(e.id)}>{e.time.slice(0, 5)} {eventTitle(e)}</button>)}</div>
             })}
           </div>
-          <p className="muted" style={{ marginTop: 10 }}>왼쪽 색 막대: 수업(테라코타) · 웨비나(초록) · 모임(황토)</p>
+          <p className="muted" style={{ marginTop: 10 }}>{ru ? 'Цветные полосы слева: занятия (терракотовый) · вебинары (зелёный) · встречи (охристый)' : '왼쪽 색 막대: 수업(테라코타) · 웨비나(초록) · 모임(황토)'}</p>
         </>
       ) : list.length ? (
         <ul className="list">{list.map((e) => (
@@ -316,7 +317,7 @@ const isFull = (event) =>
         </ul>
       ) : <p className="empty">{ru ? 'В этом месяце событий нет.' : '이 달에는 일정이 없어요.'}</p>}
       <div style={{ height: 40 }} />
-      {ev && <EventModal e={ev} joined={getJoined(ev.id)} onClose={() => setOpen(null)} />}
+      {ev && <EventModal e={ev} joined={getJoined(ev.id)} ru={ru} onClose={() => setOpen(null)} />}
     </div>
   )
 }
