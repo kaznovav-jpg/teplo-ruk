@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import { CATS, BOARDS } from '../lib/util.js'
 import { useApp } from '../lib/store.jsx'
+import * as F from '../lib/firebase.js'
 import { useLanguage } from '../lib/language.jsx'
 import useTitle from '../lib/useTitle.js'
 
@@ -29,10 +30,30 @@ export function Info() {
     return (
       <div className="wrap sec" style={{ maxWidth: 560 }}>
         <h1 style={{ fontSize: '1.7rem', marginBottom: 12 }}>{customTitle}</h1>
-        <form className="form" onSubmit={(e) => { e.preventDefault(); toast(ru ? 'Ваш запрос отправлен (демо).' : '문의가 접수되었어요 (샘플)'); e.target.reset() }}>
-          <label>{ru ? 'Имя' : '이름'}<input className="field" required /></label>
-          <label>{ru ? 'Контактный телефон' : '연락처'}<input className="field" type="tel" required /></label>
-          <label>{ru ? 'Какое изделие вы хотите заказать и ваши пожелания' : '원하는 작품과 요청사항'}<textarea className="field" rows={5} required style={{ padding: 10 }} /></label>
+        <form className="form" onSubmit={async (e) => {
+          e.preventDefault()
+          if (!F.isFirebase) { toast(ru ? 'Сервис временно недоступен. Попробуйте позже.' : '서비스를 사용할 수 없습니다.'); return }
+          const form = e.currentTarget
+          const data = new FormData(form)
+          const request = {
+            name: String(data.get('name') || '').trim(),
+            phone: String(data.get('phone') || '').trim(),
+            details: String(data.get('details') || '').trim(),
+            status: 'new',
+            at: new Date().toISOString()
+          }
+          try {
+            await F.addDoc(F.collection(F.db, 'customOrders'), request)
+            toast(ru ? 'Ваш запрос успешно отправлен. Мы свяжемся с вами.' : '문의가 정상적으로 접수되었습니다. 연락드리겠습니다.')
+            form.reset()
+          } catch (error) {
+            console.error('Custom order request error:', error)
+            toast(ru ? 'Не удалось отправить запрос. Попробуйте ещё раз.' : '문의 전송에 실패했습니다. 다시 시도해 주세요.')
+          }
+        }}>
+          <label>{ru ? 'Имя' : '이름'}<input className="field" name="name" required maxLength={80} /></label>
+          <label>{ru ? 'Контактный телефон' : '연락처'}<input className="field" name="phone" type="tel" required maxLength={40} /></label>
+          <label>{ru ? 'Какое изделие вы хотите заказать и ваши пожелания' : '원하는 작품과 요청사항'}<textarea className="field" name="details" rows={5} required maxLength={3000} style={{ padding: 10 }} /></label>
           <button className="btn">{ru ? 'Отправить запрос' : '문의 보내기'}</button>
         </form>
       </div>
