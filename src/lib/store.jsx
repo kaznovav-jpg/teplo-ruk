@@ -24,6 +24,7 @@ const uidOf = (u) => u.uid || u.email
 
 export function AppProvider({ children }) {
   const [user, setUser] = useState(null)
+  const [authReady, setAuthReady] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [S, setS] = useState(() => ({ ...EMPTY, ...rd('hm_guest', {}) }))
   const [orders, setOrders] = useState([])
@@ -74,6 +75,7 @@ export function AppProvider({ children }) {
   setUser(null)
   setIsAdmin(false)
   setS({ ...EMPTY, ...rd('hm_guest', {}) })
+  setAuthReady(true)
   return
 }
         const ref = F.doc(F.db, 'users', fu.uid)
@@ -85,6 +87,7 @@ export function AppProvider({ children }) {
           setUser(null)
           setIsAdmin(false)
           setS({ ...EMPTY, ...rd('hm_guest', {}) })
+          setAuthReady(true)
           await F.signOut(F.auth).catch(console.error)
           return
         }
@@ -105,10 +108,11 @@ const profile = { uid: fu.uid, ...pickProfile(d) }
 UR.current = profile
 setUser(profile)
 setS({ ...EMPTY, ...pickState(d) })
+setAuthReady(true)
       })
     }
     const u = rd('hm_user', null)
-    setUser(u); setS({ ...EMPTY, ...rd(sk(u), {}) })
+    setUser(u); setS({ ...EMPTY, ...rd(sk(u), {}) }); setAuthReady(true)
   }, [])
 
   const save = useCallback((next) => {
@@ -407,7 +411,7 @@ setS({ ...EMPTY, ...pickState(d) })
   }
 
   const api = {
-   user, isAdmin, S, orders, adminOrders, posts, adminReservations, customOrders, adminEvents, masterApplications, artistWorks, products, articles, toast, isFirebase: F.isFirebase,
+   user, authReady, isAdmin, S, orders, adminOrders, posts, adminReservations, customOrders, adminEvents, masterApplications, artistWorks, products, articles, toast, isFirebase: F.isFirebase,
     cartCount: S.cart.reduce((a, b) => a + b.qty, 0),
     addCart: (it) => upd((s) => {
       const c = [...s.cart], f = c.find((x) => x.pid === it.pid && x.color === it.color && x.size === it.size)
