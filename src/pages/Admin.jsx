@@ -484,6 +484,7 @@ const deleteArticle = async (article) => {
           { id: 'articles', ru: 'Статьи', ko: '아티클 관리', icon: '▤' },
           { id: 'schedule', ru: 'Расписание', ko: '수업 일정', icon: '▦' },
           { id: 'reservations', ru: 'Записи на занятия', ko: '수업 신청', icon: '☷' },
+          { id: 'customOrders', ru: 'Индивидуальные заказы', ko: '주문제작 문의', icon: '✉' },
           { id: 'bank', ru: 'Банковские реквизиты', ko: '입금 계좌 관리', icon: '₩' }
         ].map((item) => (
           <button
@@ -523,7 +524,8 @@ const deleteArticle = async (article) => {
               { id: 'products', title: lang === 'ru' ? 'Товары' : '상품', count: products.length, note: lang === 'ru' ? 'В каталоге' : '등록됨' },
               { id: 'articles', title: lang === 'ru' ? 'Статьи' : '아티클', count: articles.length, note: lang === 'ru' ? 'Материалы' : '콘텐츠' },
               { id: 'schedule', title: lang === 'ru' ? 'Занятия' : '수업 일정', count: adminEvents.length, note: lang === 'ru' ? 'В расписании' : '등록됨' },
-              { id: 'reservations', title: lang === 'ru' ? 'Записи' : '신청', count: adminReservations.length, note: lang === 'ru' ? 'Участники' : '신청자' }
+              { id: 'reservations', title: lang === 'ru' ? 'Записи' : '신청', count: adminReservations.length, note: lang === 'ru' ? 'Участники' : '신청자' },
+              { id: 'customOrders', title: lang === 'ru' ? 'Индивидуальные заказы' : '주문제작 문의', count: customOrders.filter((x) => x.status === 'new').length, note: lang === 'ru' ? 'Новые запросы' : '새 문의' }
             ].map((item) => (
               <button key={item.id} type="button" onClick={() => setActiveSection(item.id)} style={{
                 padding: 18, border: '1px solid #E5DCD2', borderRadius: 10,
@@ -1637,6 +1639,43 @@ const deleteArticle = async (article) => {
           <button type="button" className="btn" disabled={bankSaving} onClick={saveBankDetails}>{bankSaving ? (lang === 'ru' ? 'Сохранение…' : '저장 중…') : (lang === 'ru' ? 'Сохранить реквизиты' : '계좌 정보 저장')}</button>
         </div>
       </section>}
+      {activeSection === 'customOrders' && <>
+        <h2>{lang === 'ru' ? 'Запросы на индивидуальный заказ' : '주문제작 문의 목록'}</h2>
+        <p>{lang === 'ru' ? 'Всего запросов:' : '전체 문의:'} {customOrders.length}</p>
+        {customOrders.length === 0 ? (
+          <p>{lang === 'ru' ? 'Пока запросов нет.' : '아직 접수된 문의가 없습니다.'}</p>
+        ) : (
+          <div style={{ display: 'grid', gap: 14 }}>
+            {customOrders.map((request) => (
+              <article key={request.id} style={{ border: '1px solid #E5DCD2', borderRadius: 10, padding: 16, background: '#fff' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                  <strong>{request.name}</strong>
+                  <small>{request.at ? new Date(request.at).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR') : '-'}</small>
+                </div>
+                <p style={{ margin: '8px 0' }}>{lang === 'ru' ? 'Телефон:' : '연락처:'} {request.phone}</p>
+                <p style={{ whiteSpace: 'pre-wrap', margin: '8px 0 14px' }}>{request.details}</p>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  {lang === 'ru' ? 'Статус:' : '상태:'}
+                  <select className="field" style={{ maxWidth: 220 }} value={request.status || 'new'} onChange={async (e) => {
+                    try {
+                      await F.setDoc(F.doc(F.db, 'customOrders', request.id), { status: e.target.value, updatedAt: new Date().toISOString() }, { merge: true })
+                    } catch (error) {
+                      console.error('Custom order status update error:', error)
+                      alert(lang === 'ru' ? 'Не удалось изменить статус.' : '상태 변경에 실패했습니다.')
+                    }
+                  }}>
+                    <option value="new">{lang === 'ru' ? 'Новая' : '신규'}</option>
+                    <option value="contacted">{lang === 'ru' ? 'Связались' : '연락 완료'}</option>
+                    <option value="in_progress">{lang === 'ru' ? 'В работе' : '진행 중'}</option>
+                    <option value="completed">{lang === 'ru' ? 'Завершена' : '완료'}</option>
+                    <option value="cancelled">{lang === 'ru' ? 'Отменена' : '취소'}</option>
+                  </select>
+                </label>
+              </article>
+            ))}
+          </div>
+        )}
+      </>}
       {activeSection === 'reservations' && <>
 <h2>{lang === 'ru' ? 'Список записей на занятия' : '수업 신청 목록'}</h2>
 
