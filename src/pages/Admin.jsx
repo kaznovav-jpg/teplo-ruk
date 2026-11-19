@@ -10,6 +10,8 @@ export default function Admin() {
   const [activeSection, setActiveSection] = useState('overview')
   const [bankForm, setBankForm] = useState({ bank: '신한은행 / Shinhan Bank', account: '110 318 981600', holder: '가즈노바빅토리아' })
   const [bankSaving, setBankSaving] = useState(false)
+  const [customOrderReplies, setCustomOrderReplies] = useState({})
+  const [sendingCustomOrderId, setSendingCustomOrderId] = useState(null)
   useEffect(() => {
     if (!isFirebase) return
     F.getDoc(F.doc(F.db, 'siteSettings', 'payment')).then((snap) => {
@@ -31,6 +33,42 @@ export default function Admin() {
       alert(lang === 'ru' ? 'Не удалось сохранить реквизиты.' : '계좌 정보 저장에 실패했습니다.')
     } finally { setBankSaving(false) }
   }
+  const sendCustomOrderReply = async (request) => {
+    const message = String(customOrderReplies[request.id] || '').trim()
+    if (!request.email) {
+      alert(lang === 'ru' ? 'У этой заявки нет адреса электронной почты.' : '이 문의에는 이메일 주소가 없습니다.')
+      return
+    }
+    if (!message) {
+      alert(lang === 'ru' ? 'Напишите текст ответа.' : '답변 내용을 입력해 주세요.')
+      return
+    }
+    if (!user || !isFirebase) {
+      alert(lang === 'ru' ? 'Необходимо войти в аккаунт администратора.' : '관리자 계정 로그인이 필요합니다.')
+      return
+    }
+    setSendingCustomOrderId(request.id)
+    try {
+      const token = await user.getIdToken()
+      const response = await fetch('/api/send-custom-order-reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ requestId: request.id, message })
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.error || 'EMAIL_SEND_FAILED')
+      setCustomOrderReplies((prev) => ({ ...prev, [request.id]: '' }))
+      alert(lang === 'ru' ? 'Письмо успешно отправлено клиенту.' : '고객에게 이메일을 성공적으로 보냈습니다.')
+    } catch (error) {
+      console.error('Custom order reply error:', error)
+      alert(lang === 'ru'
+        ? `Не удалось отправить письмо: ${error.message}`
+        : `이메일 전송 실패: ${error.message}`)
+    } finally {
+      setSendingCustomOrderId(null)
+    }
+  }
+
   const [selectedMasterUid, setSelectedMasterUid] = useState(null)
   const [eventForm, setEventForm] = useState({
   ymd: '',
@@ -1655,6 +1693,31 @@ const deleteArticle = async (article) => {
                 <p style={{ margin: '8px 0' }}>{lang === 'ru' ? 'Телефон:' : '연락처:'} {request.phone}</p>
                 <p style={{ margin: '8px 0' }}>{lang === 'ru' ? 'Электронная почта:' : '이메일:'} {request.email || '-'}</p>
                 <p style={{ whiteSpace: 'pre-wrap', margin: '8px 0 14px' }}>{request.details}</p>
+                <div style={{ display: 'grid', gap: 8, margin: '14px 0' }}>
+                  <label>
+                    {lang === 'ru' ? 'Ваш ответ клиенту' : '고객에게 보낼 답변'}
+                    <textarea
+                      className="field"
+                      rows={4}
+                      value={customOrderReplies[request.id] || ''}
+                      onChange={(e) => setCustomOrderReplies((prev) => ({ ...prev, [request.id]: e.target.value }))}
+                      placeholder={lang === 'ru' ? 'Напишите ответ клиенту…' : '고객에게 보낼 답변을 입력하세요…'}
+                      maxLength={5000}
+                      style={{ width: '100%', marginTop: 6, resize: 'vertical' }}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="btn"
+                    disabled={!request.email || sendingCustomOrderId === request.id || !(customOrderReplies[request.id] || '').trim()}
+                    onClick={() => sendCustomOrderReply(request)}
+                    style={{ justifySelf: 'start' }}
+                  >
+                    {sendingCustomOrderId === request.id
+                      ? (lang === 'ru' ? 'Отправка…' : '전송 중…')
+                      : (lang === 'ru' ? 'Отправить письмо клиенту' : '고객에게 이메일 보내기')}
+                  </button>
+                </div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   {lang === 'ru' ? 'Статус:' : '상태:'}
                   <select className="field" style={{ maxWidth: 220 }} value={request.status || 'new'} onChange={async (e) => {
