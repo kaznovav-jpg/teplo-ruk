@@ -38,6 +38,7 @@ export function Info() {
           const request = {
             name: String(data.get('name') || '').trim(),
             phone: String(data.get('phone') || '').trim(),
+            email: String(data.get('email') || '').trim(),
             details: String(data.get('details') || '').trim(),
             status: 'new',
             at: new Date().toISOString()
@@ -53,6 +54,7 @@ export function Info() {
         }}>
           <label>{ru ? 'Имя' : '이름'}<input className="field" name="name" required maxLength={80} /></label>
           <label>{ru ? 'Контактный телефон' : '연락처'}<input className="field" name="phone" type="tel" required maxLength={40} /></label>
+          <label>{ru ? 'Электронная почта' : '이메일'}<input className="field" name="email" type="email" required maxLength={120} /></label>
           <label>{ru ? 'Какое изделие вы хотите заказать и ваши пожелания' : '원하는 작품과 요청사항'}<textarea className="field" name="details" rows={5} required maxLength={3000} style={{ padding: 10 }} /></label>
           <button className="btn">{ru ? 'Отправить запрос' : '문의 보내기'}</button>
         </form>
