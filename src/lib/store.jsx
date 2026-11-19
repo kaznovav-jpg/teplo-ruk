@@ -30,6 +30,7 @@ export function AppProvider({ children }) {
   const [adminOrders, setAdminOrders] = useState([])
   const [posts, setPosts] = useState([])
  const [adminReservations, setAdminReservations] = useState([])
+  const [customOrders, setCustomOrders] = useState([])
   const [masterApplications, setMasterApplications] = useState([])
   const [artistWorks, setArtistWorks] = useState([])
   const [adminEvents, setAdminEvents] = useState([])
@@ -205,6 +206,19 @@ setS({ ...EMPTY, ...pickState(d) })
       (e) => console.error('Admin reservations error:', e)
     )
   }, [user, isAdmin])
+  // Запросы на индивидуальный заказ: список доступен только администратору
+  useEffect(() => {
+    if (!user || !isAdmin || !F.isFirebase) {
+      setCustomOrders([])
+      return
+    }
+    return F.onSnapshot(
+      F.collection(F.db, 'customOrders'),
+      (s) => setCustomOrders(s.docs.map((d) => ({ ...d.data(), id: d.id })).sort((a, b) => (b.at || '').localeCompare(a.at || ''))),
+      (e) => console.error('Custom orders admin error:', e)
+    )
+  }, [user, isAdmin])
+
   // Заявки на статус мастера: список доступен только администратору
   useEffect(() => {
     if (!user || !isAdmin || !F.isFirebase) {
@@ -393,7 +407,7 @@ setS({ ...EMPTY, ...pickState(d) })
   }
 
   const api = {
-   user, isAdmin, S, orders, adminOrders, posts, adminReservations, adminEvents, masterApplications, artistWorks, products, articles, toast, isFirebase: F.isFirebase,
+   user, isAdmin, S, orders, adminOrders, posts, adminReservations, customOrders, adminEvents, masterApplications, artistWorks, products, articles, toast, isFirebase: F.isFirebase,
     cartCount: S.cart.reduce((a, b) => a + b.qty, 0),
     addCart: (it) => upd((s) => {
       const c = [...s.cart], f = c.find((x) => x.pid === it.pid && x.color === it.color && x.size === it.size)
