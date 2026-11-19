@@ -118,7 +118,7 @@ export function Info() {
         <p className="muted" style={{ marginBottom: 18 }}>{ru ? 'Дата демонстрационной редакции: 19 ноября 2026 года' : '시범 작성일: 2026년 11월 19일'}</p>
         {sections.map((s, i) => (
           <section key={i} style={{ margin: '0 0 22px' }}>
-            <h2 style={{ fontSize: '1.08rem', marginBottom: 7 }}>{ru ? s[1] : s[0]}</h2>
+            <h2 style={{ fontSize: '1.08rem', marginBottom: 7 }}>{isPrivacy ? (ru ? s[0] : s[1]) : (ru ? s[1] : s[0])}</h2>
             <p style={{ whiteSpace: 'pre-line', margin: 0 }}>{ru ? s[2] : s[3]}</p>
           </section>
         ))}
