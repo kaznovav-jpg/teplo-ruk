@@ -37,6 +37,7 @@ export default function Layout() {
   const [notice, setNotice] = useState(true), [open, setOpen] = useState(false), [search, setSearch] = useState(false)
   const [kw, setKw] = useState(''), [scrolled, setScrolled] = useState(false), [top, setTop] = useState(false)
   const [supportInfo, setSupportInfo] = useState({ phone: '010-5175-2515', email: 'vic-kaznova@narod.ru', hoursRu: 'будни 10:00–17:00', hoursKo: '평일 10:00~17:00', breakRu: 'Обед 12:30–13:30 · Выходные и праздники — выходные', breakKo: '점심 12:30~13:30 · 주말/공휴일 휴무' })
+  const [footerInfo, setFooterInfo] = useState({"descriptionRu":"Мы делимся теплом вещей ручной работы и знаниями, созданными с душой.","descriptionKo":"한 땀 한 땀 손으로 만든 따뜻한 물건과 배움을 전합니다.","instagram":"","blog":"","youtube":"","termsLabelRu":"Условия использования","termsLabelKo":"이용약관","privacyLabelRu":"Политика конфиденциальности","privacyLabelKo":"개인정보처리방침","shippingLabelRu":"Доставка и обмен","shippingLabelKo":"배송·교환 안내","termsUrl":"/info?t=이용약관","privacyUrl":"/info?t=개인정보처리방침","shippingUrl":"/info?t=배송·교환 안내","companyNameRu":"Тепло Рук","companyNameKo":"손길의 온기","representative":"홍길동","businessNumber":"000-00-00000","ecommerceNumber":"제0000-경기-0000호","addressRu":"Кёнгидо, г. Хвасон (пример адреса)","addressKo":"경기도 화성시 (샘플 주소)","copyrightRu":"© 2026 Handmade. Все права защищены.","copyrightKo":"© 2026 Handmade. All rights reserved."})
   const originalTextRef = useRef(new WeakMap())
   const originalAttrRef = useRef(new WeakMap())
 
@@ -47,6 +48,13 @@ export default function Layout() {
     return F.onSnapshot(F.doc(F.db, 'siteSettings', 'support'), (snap) => {
       if (snap.exists()) setSupportInfo((prev) => ({ ...prev, ...snap.data() }))
     }, (error) => console.error('Support info load error:', error))
+  }, [])
+
+  useEffect(() => {
+    if (!F.isFirebase) return
+    return F.onSnapshot(F.doc(F.db, 'siteSettings', 'footer'), (snap) => {
+      if (snap.exists()) setFooterInfo((prev) => ({ ...prev, ...snap.data() }))
+    }, (error) => console.error('Footer info load error:', error))
   }, [])
 
   useEffect(() => {
@@ -206,42 +214,38 @@ export default function Layout() {
         <div className="wrap">
           <div className="cols">
             <div>
-  <h3>{lang === 'ru' ? 'Тепло Рук' : '손길의 온기'}</h3>
-  <p>{lang === 'ru'
-    ? 'Мы делимся теплом вещей ручной работы и знаниями, созданными с душой.'
-    : '한 땀 한 땀 손으로 만든 따뜻한 물건과 배움을 전합니다.'}</p>
-  <p>
-    <a href="#">Instagram</a> <a href="#">Блог</a> <a href="#">YouTube</a>
-  </p>
-</div>
-           <div><h3>{lang === 'ru' ? 'Служба поддержки' : '고객센터'}</h3><p>
-  {supportInfo.phone} ({lang === 'ru' ? supportInfo.hoursRu : supportInfo.hoursKo})
-  <br />
-  {lang === 'ru' ? supportInfo.breakRu : supportInfo.breakKo}
-  <br />
-  {supportInfo.email}
-</p></div>
-            <div><h3>{lang === 'ru' ? 'Информация для пользователей' : '이용 안내'}</h3><p><Link to="/info?t=이용약관">
-  {lang === 'ru' ? 'Условия использования' : '이용약관'}
-</Link>
-<br />
-<Link to="/info?t=개인정보처리방침">
-  {lang === 'ru' ? 'Политика конфиденциальности' : '개인정보처리방침'}
-</Link>
-<br />
-<Link to="/info?t=배송·교환 안내">
-  {lang === 'ru' ? 'Доставка и обмен' : '배송·교환 안내'}
-</Link></p></div>
+              <h3>{lang === 'ru' ? footerInfo.companyNameRu : footerInfo.companyNameKo}</h3>
+              <p>{lang === 'ru' ? footerInfo.descriptionRu : footerInfo.descriptionKo}</p>
+              <p>
+                {footerInfo.instagram && <a href={footerInfo.instagram} target="_blank" rel="noreferrer">Instagram</a>}
+                {footerInfo.blog && <> <a href={footerInfo.blog} target="_blank" rel="noreferrer">{lang === 'ru' ? 'Блог' : '블로그'}</a></>}
+                {footerInfo.youtube && <> <a href={footerInfo.youtube} target="_blank" rel="noreferrer">YouTube</a></>}
+              </p>
+            </div>
+            <div><h3>{lang === 'ru' ? 'Служба поддержки' : '고객센터'}</h3><p>
+              {supportInfo.phone} ({lang === 'ru' ? supportInfo.hoursRu : supportInfo.hoursKo})
+              <br />
+              {lang === 'ru' ? supportInfo.breakRu : supportInfo.breakKo}
+              <br />
+              {supportInfo.email}
+            </p></div>
+            <div><h3>{lang === 'ru' ? 'Информация для пользователей' : '이용 안내'}</h3><p>
+              <Link to={footerInfo.termsUrl || '/info?t=이용약관'}>{lang === 'ru' ? footerInfo.termsLabelRu : footerInfo.termsLabelKo}</Link>
+              <br />
+              <Link to={footerInfo.privacyUrl || '/info?t=개인정보처리방침'}>{lang === 'ru' ? footerInfo.privacyLabelRu : footerInfo.privacyLabelKo}</Link>
+              <br />
+              <Link to={footerInfo.shippingUrl || '/info?t=배송·교환 안내'}>{lang === 'ru' ? footerInfo.shippingLabelRu : footerInfo.shippingLabelKo}</Link>
+            </p></div>
           </div>
-        <div className="biz">
-  {lang === 'ru'
-    ? 'Название: Тепло Рук · Представитель: 홍길동 · Регистрационный номер: 000-00-00000 · Регистрация интернет-торговли: 제0000-경기-0000호'
-    : '상호 손길의 온기 · 대표 홍길동 · 사업자등록번호 000-00-00000 · 통신판매업 신고 제0000-경기-0000호'}
-  <br />
-  {lang === 'ru'
-    ? 'Кёнгидо, г. Хвасон (пример адреса) · © 2026 Handmade. Все права защищены.'
-    : '경기도 화성시 (샘플 주소) · © 2026 Handmade. All rights reserved.'}
-</div>
+          <div className="biz">
+            {lang === 'ru'
+              ? `Название: ${footerInfo.companyNameRu} · Представитель: ${footerInfo.representative} · Регистрационный номер: ${footerInfo.businessNumber} · Регистрация интернет-торговли: ${footerInfo.ecommerceNumber}`
+              : `상호 ${footerInfo.companyNameKo} · 대표 ${footerInfo.representative} · 사업자등록번호 ${footerInfo.businessNumber} · 통신판매업 신고 ${footerInfo.ecommerceNumber}`}
+            <br />
+            {lang === 'ru'
+              ? `${footerInfo.addressRu} · ${footerInfo.copyrightRu}`
+              : `${footerInfo.addressKo} · ${footerInfo.copyrightKo}`}
+          </div>
         </div>
       </footer>
       <button className={'top' + (top ? ' on' : '')} aria-label="맨 위로" onClick={() => scrollTo({ top: 0 })}>↑</button>
