@@ -12,6 +12,8 @@ export default function Admin() {
   const [bankSaving, setBankSaving] = useState(false)
   const [supportForm, setSupportForm] = useState({ phone: '010-5175-2515', email: 'vic-kaznova@narod.ru', hoursRu: 'будни 10:00–17:00', hoursKo: '평일 10:00~17:00', breakRu: 'Обед 12:30–13:30 · Выходные и праздники — выходные', breakKo: '점심 12:30~13:30 · 주말/공휴일 휴무' })
   const [supportSaving, setSupportSaving] = useState(false)
+  const [footerForm, setFooterForm] = useState({"descriptionRu":"Мы делимся теплом вещей ручной работы и знаниями, созданными с душой.","descriptionKo":"한 땀 한 땀 손으로 만든 따뜻한 물건과 배움을 전합니다.","instagram":"","blog":"","youtube":"","termsLabelRu":"Условия использования","termsLabelKo":"이용약관","privacyLabelRu":"Политика конфиденциальности","privacyLabelKo":"개인정보처리방침","shippingLabelRu":"Доставка и обмен","shippingLabelKo":"배송·교환 안내","termsUrl":"/info?t=이용약관","privacyUrl":"/info?t=개인정보처리방침","shippingUrl":"/info?t=배송·교환 안내","companyNameRu":"Тепло Рук","companyNameKo":"손길의 온기","representative":"홍길동","businessNumber":"000-00-00000","ecommerceNumber":"제0000-경기-0000호","addressRu":"Кёнгидо, г. Хвасон (пример адреса)","addressKo":"경기도 화성시 (샘플 주소)","copyrightRu":"© 2026 Handmade. Все права защищены.","copyrightKo":"© 2026 Handmade. All rights reserved."})
+  const [footerSaving, setFooterSaving] = useState(false)
   const [customOrderReplies, setCustomOrderReplies] = useState({})
   const [sendingCustomOrderId, setSendingCustomOrderId] = useState(null)
   useEffect(() => {
@@ -26,6 +28,23 @@ export default function Admin() {
       if (snap.exists()) setSupportForm((prev) => ({ ...prev, ...snap.data() }))
     }).catch((error) => console.error('Support settings load error:', error))
   }, [isFirebase])
+  useEffect(() => {
+    if (!isFirebase) return
+    F.getDoc(F.doc(F.db, 'siteSettings', 'footer')).then((snap) => {
+      if (snap.exists()) setFooterForm((prev) => ({ ...prev, ...snap.data() }))
+    }).catch((error) => console.error('Footer settings load error:', error))
+  }, [isFirebase])
+  const saveFooterDetails = async () => {
+    if (!isFirebase) { alert('Firebase 연결이 필요합니다.'); return }
+    setFooterSaving(true)
+    try {
+      await F.setDoc(F.doc(F.db, 'siteSettings', 'footer'), footerForm, { merge: true })
+      alert(lang === 'ru' ? 'Данные нижнего блока сайта сохранены.' : '사이트 하단 정보가 저장되었습니다.')
+    } catch (error) {
+      console.error('Footer settings save error:', error)
+      alert(lang === 'ru' ? 'Не удалось сохранить данные нижнего блока.' : '사이트 하단 정보 저장에 실패했습니다.')
+    } finally { setFooterSaving(false) }
+  }
   const saveSupportDetails = async () => {
     if (!supportForm.phone.trim() || !supportForm.email.trim()) {
       alert(lang === 'ru' ? 'Укажите телефон и электронную почту.' : '전화번호와 이메일을 입력해 주세요.')
@@ -547,7 +566,8 @@ const deleteArticle = async (article) => {
           { id: 'reservations', ru: 'Записи на занятия', ko: '수업 신청', icon: '☷' },
           { id: 'customOrders', ru: 'Индивидуальные заказы', ko: '주문제작 문의', icon: '✉' },
           { id: 'bank', ru: 'Банковские реквизиты', ko: '입금 계좌 관리', icon: '₩' },
-          { id: 'support', ru: 'Служба поддержки', ko: '고객센터 정보', icon: '☎' }
+          { id: 'support', ru: 'Служба поддержки', ko: '고객센터 정보', icon: '☎' },
+          { id: 'footer', ru: 'Нижняя часть сайта', ko: '사이트 하단 정보', icon: '▤' }
         ].map((item) => (
           <button
             key={item.id}
@@ -1699,6 +1719,39 @@ const deleteArticle = async (article) => {
             <input className="field" value={bankForm.holder} onChange={(e) => setBankForm((prev) => ({ ...prev, holder: e.target.value }))} />
           </label>
           <button type="button" className="btn" disabled={bankSaving} onClick={saveBankDetails}>{bankSaving ? (lang === 'ru' ? 'Сохранение…' : '저장 중…') : (lang === 'ru' ? 'Сохранить реквизиты' : '계좌 정보 저장')}</button>
+        </div>
+      </section>}
+      {activeSection === 'footer' && <section style={{ maxWidth: 720 }}>
+        <h2>{lang === 'ru' ? 'Редактирование нижней части сайта' : '사이트 하단 정보 관리'}</h2>
+        <p className="muted">{lang === 'ru' ? 'Изменения сразу отобразятся внизу сайта на русском и корейском языках.' : '저장한 정보는 사이트 하단에 러시아어와 한국어로 표시됩니다.'}</p>
+        <div style={{ display: 'grid', gap: 12, marginTop: 18 }}>
+          <h3>{lang === 'ru' ? 'Описание и социальные сети' : '소개 및 소셜 링크'}</h3>
+          <label>{lang === 'ru' ? 'Описание (русский)' : '소개 (러시아어)'}<textarea className="field" rows={3} value={footerForm.descriptionRu} onChange={(e) => setFooterForm((p) => ({ ...p, descriptionRu: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Описание (корейский)' : '소개 (한국어)'}<textarea className="field" rows={3} value={footerForm.descriptionKo} onChange={(e) => setFooterForm((p) => ({ ...p, descriptionKo: e.target.value }))} /></label>
+          <label>Instagram URL<input className="field" value={footerForm.instagram} onChange={(e) => setFooterForm((p) => ({ ...p, instagram: e.target.value }))} placeholder="https://www.instagram.com/..." /></label>
+          <label>{lang === 'ru' ? 'Ссылка на блог' : '블로그 링크'}<input className="field" value={footerForm.blog} onChange={(e) => setFooterForm((p) => ({ ...p, blog: e.target.value }))} placeholder="https://..." /></label>
+          <label>YouTube URL<input className="field" value={footerForm.youtube} onChange={(e) => setFooterForm((p) => ({ ...p, youtube: e.target.value }))} placeholder="https://www.youtube.com/..." /></label>
+          <h3>{lang === 'ru' ? 'Информация для пользователей' : '이용 안내 링크'}</h3>
+          <label>{lang === 'ru' ? 'Название ссылки «Условия использования»' : '이용약관 링크 이름 (러시아어)'}<input className="field" value={footerForm.termsLabelRu} onChange={(e) => setFooterForm((p) => ({ ...p, termsLabelRu: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Название ссылки (корейский)' : '이용약관 링크 이름 (한국어)'}<input className="field" value={footerForm.termsLabelKo} onChange={(e) => setFooterForm((p) => ({ ...p, termsLabelKo: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Адрес страницы условий' : '이용약관 페이지 주소'}<input className="field" value={footerForm.termsUrl} onChange={(e) => setFooterForm((p) => ({ ...p, termsUrl: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Название ссылки «Политика конфиденциальности»' : '개인정보처리방침 링크 이름 (러시아어)'}<input className="field" value={footerForm.privacyLabelRu} onChange={(e) => setFooterForm((p) => ({ ...p, privacyLabelRu: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Название ссылки (корейский)' : '개인정보처리방침 링크 이름 (한국어)'}<input className="field" value={footerForm.privacyLabelKo} onChange={(e) => setFooterForm((p) => ({ ...p, privacyLabelKo: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Адрес страницы политики' : '개인정보처리방침 페이지 주소'}<input className="field" value={footerForm.privacyUrl} onChange={(e) => setFooterForm((p) => ({ ...p, privacyUrl: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Название ссылки «Доставка и обмен»' : '배송·교환 링크 이름 (러시아어)'}<input className="field" value={footerForm.shippingLabelRu} onChange={(e) => setFooterForm((p) => ({ ...p, shippingLabelRu: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Название ссылки (корейский)' : '배송·교환 링크 이름 (한국어)'}<input className="field" value={footerForm.shippingLabelKo} onChange={(e) => setFooterForm((p) => ({ ...p, shippingLabelKo: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Адрес страницы доставки и обмена' : '배송·교환 페이지 주소'}<input className="field" value={footerForm.shippingUrl} onChange={(e) => setFooterForm((p) => ({ ...p, shippingUrl: e.target.value }))} /></label>
+          <h3>{lang === 'ru' ? 'Реквизиты компании и адрес' : '사업자 정보 및 주소'}</h3>
+          <label>{lang === 'ru' ? 'Название компании (русский)' : '상호 (러시아어)'}<input className="field" value={footerForm.companyNameRu} onChange={(e) => setFooterForm((p) => ({ ...p, companyNameRu: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Название компании (корейский)' : '상호 (한국어)'}<input className="field" value={footerForm.companyNameKo} onChange={(e) => setFooterForm((p) => ({ ...p, companyNameKo: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Представитель' : '대표자'}<input className="field" value={footerForm.representative} onChange={(e) => setFooterForm((p) => ({ ...p, representative: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Регистрационный номер компании' : '사업자등록번호'}<input className="field" value={footerForm.businessNumber} onChange={(e) => setFooterForm((p) => ({ ...p, businessNumber: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Номер регистрации интернет-торговли' : '통신판매업 신고번호'}<input className="field" value={footerForm.ecommerceNumber} onChange={(e) => setFooterForm((p) => ({ ...p, ecommerceNumber: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Адрес (русский)' : '주소 (러시아어)'}<input className="field" value={footerForm.addressRu} onChange={(e) => setFooterForm((p) => ({ ...p, addressRu: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Адрес (корейский)' : '주소 (한국어)'}<input className="field" value={footerForm.addressKo} onChange={(e) => setFooterForm((p) => ({ ...p, addressKo: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Текст об авторских правах (русский)' : '저작권 문구 (러시아어)'}<input className="field" value={footerForm.copyrightRu} onChange={(e) => setFooterForm((p) => ({ ...p, copyrightRu: e.target.value }))} /></label>
+          <label>{lang === 'ru' ? 'Текст об авторских правах (корейский)' : '저작권 문구 (한국어)'}<input className="field" value={footerForm.copyrightKo} onChange={(e) => setFooterForm((p) => ({ ...p, copyrightKo: e.target.value }))} /></label>
+          <button type="button" className="btn" disabled={footerSaving} onClick={saveFooterDetails}>{footerSaving ? (lang === 'ru' ? 'Сохранение…' : '저장 중…') : (lang === 'ru' ? 'Сохранить нижнюю часть сайта' : '사이트 하단 정보 저장')}</button>
         </div>
       </section>}
       {activeSection === 'support' && <section style={{ maxWidth: 620 }}>
