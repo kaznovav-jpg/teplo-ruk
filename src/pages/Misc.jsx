@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import { CATS, BOARDS } from '../lib/util.js'
 import { useApp } from '../lib/store.jsx'
+import { useLanguage } from '../lib/language.jsx'
 import useTitle from '../lib/useTitle.js'
 
 function Node({ t, to, kids }) {
