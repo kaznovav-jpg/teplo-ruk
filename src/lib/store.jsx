@@ -41,6 +41,14 @@ export function AppProvider({ children }) {
 
   const toast = useCallback((m) => { setMsg(m) }, [])
 
+  // Уведомление закрывается первым нажатием мыши в любом месте страницы.
+  useEffect(() => {
+    if (!msg) return
+    const dismiss = () => setMsg('')
+    document.addEventListener('pointerdown', dismiss, true)
+    return () => document.removeEventListener('pointerdown', dismiss, true)
+  }, [msg])
+
   // 로그인 상태 복원
   useEffect(() => {
     if (F.isFirebase) {
@@ -460,7 +468,7 @@ cancelRes: async (id) => {
 
     saveOrder, confirmOrderPayment, updateOrderFulfillment, requestOrderCancellation, reviewOrderCancellation, addPost, uploadImages, signup, login, logout, resetPw, resendVerification, updateUser,
   }
-  return <Ctx.Provider value={api}>{children}{msg && <div className="toast" role="status"><span>{msg}</span><button type="button" className="toast-close" aria-label="Закрыть уведомление" onClick={() => setMsg('')}>×</button></div>}</Ctx.Provider>
+  return <Ctx.Provider value={api}>{children}{msg && <div className="toast" role="status"><span>{msg}</span></div>}</Ctx.Provider>
 }
 
 // 댓글: Firestore(comments 컬렉션) 또는 로컬 저장
