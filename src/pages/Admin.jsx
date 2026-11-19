@@ -5,7 +5,7 @@ import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 
 export default function Admin() {
-  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, adminEvents, masterApplications, artistWorks, products, articles, isFirebase } = useApp()
+  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, adminEvents, masterApplications, artistWorks, products, articles, customOrders = [], isFirebase } = useApp()
     const { lang } = useLanguage()
   const [activeSection, setActiveSection] = useState('overview')
   const [bankForm, setBankForm] = useState({ bank: '신한은행 / Shinhan Bank', account: '110 318 981600', holder: '가즈노바빅토리아' })
