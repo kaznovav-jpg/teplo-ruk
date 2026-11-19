@@ -10,6 +10,8 @@ export default function Admin() {
   const [activeSection, setActiveSection] = useState('overview')
   const [bankForm, setBankForm] = useState({ bank: '신한은행 / Shinhan Bank', account: '110 318 981600', holder: '가즈노바빅토리아' })
   const [bankSaving, setBankSaving] = useState(false)
+  const [supportForm, setSupportForm] = useState({ phone: '010-5175-2515', email: 'vic-kaznova@narod.ru', hoursRu: 'будни 10:00–17:00', hoursKo: '평일 10:00~17:00', breakRu: 'Обед 12:30–13:30 · Выходные и праздники — выходные', breakKo: '점심 12:30~13:30 · 주말/공휴일 휴무' })
+  const [supportSaving, setSupportSaving] = useState(false)
   const [customOrderReplies, setCustomOrderReplies] = useState({})
   const [sendingCustomOrderId, setSendingCustomOrderId] = useState(null)
   useEffect(() => {
@@ -18,6 +20,27 @@ export default function Admin() {
       if (snap.exists()) setBankForm((prev) => ({ ...prev, ...snap.data() }))
     }).catch((error) => console.error('Bank settings load error:', error))
   }, [isFirebase])
+  useEffect(() => {
+    if (!isFirebase) return
+    F.getDoc(F.doc(F.db, 'siteSettings', 'support')).then((snap) => {
+      if (snap.exists()) setSupportForm((prev) => ({ ...prev, ...snap.data() }))
+    }).catch((error) => console.error('Support settings load error:', error))
+  }, [isFirebase])
+  const saveSupportDetails = async () => {
+    if (!supportForm.phone.trim() || !supportForm.email.trim()) {
+      alert(lang === 'ru' ? 'Укажите телефон и электронную почту.' : '전화번호와 이메일을 입력해 주세요.')
+      return
+    }
+    if (!isFirebase) { alert('Firebase 연결이 필요합니다.'); return }
+    setSupportSaving(true)
+    try {
+      await F.setDoc(F.doc(F.db, 'siteSettings', 'support'), supportForm, { merge: true })
+      alert(lang === 'ru' ? 'Данные службы поддержки сохранены.' : '고객센터 정보가 저장되었습니다.')
+    } catch (error) {
+      console.error('Support settings save error:', error)
+      alert(lang === 'ru' ? 'Не удалось сохранить данные службы поддержки.' : '고객센터 정보 저장에 실패했습니다.')
+    } finally { setSupportSaving(false) }
+  }
   const saveBankDetails = async () => {
     if (!bankForm.bank.trim() || !bankForm.account.trim() || !bankForm.holder.trim()) {
       alert(lang === 'ru' ? 'Заполните все банковские реквизиты.' : '은행 정보를 모두 입력해 주세요.')
@@ -523,7 +546,8 @@ const deleteArticle = async (article) => {
           { id: 'schedule', ru: 'Расписание', ko: '수업 일정', icon: '▦' },
           { id: 'reservations', ru: 'Записи на занятия', ko: '수업 신청', icon: '☷' },
           { id: 'customOrders', ru: 'Индивидуальные заказы', ko: '주문제작 문의', icon: '✉' },
-          { id: 'bank', ru: 'Банковские реквизиты', ko: '입금 계좌 관리', icon: '₩' }
+          { id: 'bank', ru: 'Банковские реквизиты', ko: '입금 계좌 관리', icon: '₩' },
+          { id: 'support', ru: 'Служба поддержки', ko: '고객센터 정보', icon: '☎' }
         ].map((item) => (
           <button
             key={item.id}
@@ -1675,6 +1699,31 @@ const deleteArticle = async (article) => {
             <input className="field" value={bankForm.holder} onChange={(e) => setBankForm((prev) => ({ ...prev, holder: e.target.value }))} />
           </label>
           <button type="button" className="btn" disabled={bankSaving} onClick={saveBankDetails}>{bankSaving ? (lang === 'ru' ? 'Сохранение…' : '저장 중…') : (lang === 'ru' ? 'Сохранить реквизиты' : '계좌 정보 저장')}</button>
+        </div>
+      </section>}
+      {activeSection === 'support' && <section style={{ maxWidth: 620 }}>
+        <h2>{lang === 'ru' ? 'Данные службы поддержки' : '고객센터 정보 관리'}</h2>
+        <p className="muted">{lang === 'ru' ? 'Эти данные отображаются внизу сайта. После сохранения они обновятся для посетителей.' : '저장한 정보는 사이트 하단에 표시됩니다.'}</p>
+        <div style={{ display: 'grid', gap: 14, marginTop: 18 }}>
+          <label>{lang === 'ru' ? 'Телефон службы поддержки' : '고객센터 전화번호'}
+            <input className="field" type="tel" value={supportForm.phone} onChange={(e) => setSupportForm((prev) => ({ ...prev, phone: e.target.value }))} />
+          </label>
+          <label>{lang === 'ru' ? 'Электронная почта' : '고객센터 이메일'}
+            <input className="field" type="email" value={supportForm.email} onChange={(e) => setSupportForm((prev) => ({ ...prev, email: e.target.value }))} />
+          </label>
+          <label>{lang === 'ru' ? 'Часы работы (русский)' : '운영 시간 (러시아어)'}
+            <input className="field" value={supportForm.hoursRu} onChange={(e) => setSupportForm((prev) => ({ ...prev, hoursRu: e.target.value }))} />
+          </label>
+          <label>{lang === 'ru' ? 'Часы работы (корейский)' : '운영 시간 (한국어)'}
+            <input className="field" value={supportForm.hoursKo} onChange={(e) => setSupportForm((prev) => ({ ...prev, hoursKo: e.target.value }))} />
+          </label>
+          <label>{lang === 'ru' ? 'Обед и выходные (русский)' : '점심 및 휴무일 (러시아어)'}
+            <input className="field" value={supportForm.breakRu} onChange={(e) => setSupportForm((prev) => ({ ...prev, breakRu: e.target.value }))} />
+          </label>
+          <label>{lang === 'ru' ? 'Обед и выходные (корейский)' : '점심 및 휴무일 (한국어)'}
+            <input className="field" value={supportForm.breakKo} onChange={(e) => setSupportForm((prev) => ({ ...prev, breakKo: e.target.value }))} />
+          </label>
+          <button type="button" className="btn" disabled={supportSaving} onClick={saveSupportDetails}>{supportSaving ? (lang === 'ru' ? 'Сохранение…' : '저장 중…') : (lang === 'ru' ? 'Сохранить данные поддержки' : '고객센터 정보 저장')}</button>
         </div>
       </section>}
       {activeSection === 'customOrders' && <>
