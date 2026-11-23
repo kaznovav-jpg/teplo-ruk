@@ -214,31 +214,52 @@ export function Write() {
   useTitle('글쓰기')
   const nav = useNavigate(), [sp] = useSearchParams(), { user, authReady, addPost, uploadImages, toast } = useApp()
   const [imgs, setImgs] = useState([]), [busy, setBusy] = useState(false)
+  const cancelRequested = useRef(false)
   useEffect(() => { if (authReady && !user) { toast('로그인이 필요해요'); nav('/mypage?tab=login') } }, [authReady, user, nav, toast])
   if (!authReady || !user) return null
-  const pick = async (e) => setImgs(await Promise.all([...e.target.files].slice(0, 4).map(shrink)))
+  const pick = async (e) => {
+    try { setImgs(await Promise.all([...e.target.files].slice(0, 4).map(shrink))) }
+    catch (err) { toast(err?.message || '사진을 처리하지 못했어요'); e.target.value = '' }
+  }
+  const removePhoto = (i) => setImgs(prev => prev.filter((_, idx) => idx !== i))
+  const cancel = () => {
+    if (busy) cancelRequested.current = true
+    toast(busy ? '게시를 취소하고 있어요. 잠시 기다려 주세요.' : '작성 취소')
+    nav('/community')
+  }
   const submit = async (e) => {
     e.preventDefault()
     const f = e.target, b = f.board.value
     if (isPhoto(b) && !imgs.length) { toast('사진 게시판에는 사진을 1장 이상 올려 주세요'); return }
+    cancelRequested.current = false
     setBusy(true)
     try {
       const tags = f.tags.value.split(',').map((t) => t.trim()).filter(Boolean), urls = await uploadImages(imgs)
+      if (cancelRequested.current) { toast('게시가 취소되었어요'); return }
       const id = await addPost({ board: b, title: f.title.value.trim(), tag: tags[0] || BOARDS.find((x) => x[0] === b)[1], tags, body: f.body.value.trim(), images: urls, thumb: urls[0] || '' })
       toast('글을 등록했어요'); nav('/community/' + id)
-    } catch (err) { console.error('Community publish error:', err); toast(err?.message || '글을 등록하지 못했어요'); setBusy(false) }
+    } catch (err) { console.error('Community publish error:', err); toast(err?.message || '글을 등록하지 못했어요') }
+    finally { setBusy(false) }
   }
   return (
     <div className="wrap sec" style={{ maxWidth: 680 }}>
       <h1 style={{ fontSize: '1.7rem', marginBottom: 14 }}>글쓰기</h1>
       <form className="form" onSubmit={submit}>
-        <label>게시판<select className="field" name="board" defaultValue={sp.get('board') || 'wip'}>{BOARDS.map((x) => <option key={x[0]} value={x[0]}>{x[1]}</option>)}</select></label>
-        <label>제목<input className="field" name="title" required maxLength={60} /></label>
-        <label>내용<textarea className="field" name="body" rows={6} required style={{ padding: 10 }} /></label>
-        <label>태그 (쉼표로 구분)<input className="field" name="tags" placeholder="뜨개, 니트" /></label>
-        <label>사진 (최대 4장)<input className="field" type="file" accept="image/*" multiple onChange={pick} /></label>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{imgs.map((s, i) => <img key={i} src={s} alt={`업로드한 사진 ${i + 1} 미리보기`} style={{ width: 88, height: 88, objectFit: 'cover', borderRadius: 8 }} />)}</div>
-        <button className="btn" disabled={busy}>{busy ? '등록 중…' : '등록하기'}</button>
+        <label>게시판<select className="field" name="board" defaultValue={sp.get('board') || 'wip'} disabled={busy}>{BOARDS.map((x) => <option key={x[0]} value={x[0]}>{x[1]}</option>)}</select></label>
+        <label>제목<input className="field" name="title" required maxLength={60} disabled={busy} /></label>
+        <label>내용<textarea className="field" name="body" rows={6} required style={{ padding: 10 }} disabled={busy} /></label>
+        <label>태그 (쉼표로 구분)<input className="field" name="tags" placeholder="뜨개, 니트" disabled={busy} /></label>
+        <label>사진 (최대 4장)<input className="field" type="file" accept="image/*" multiple onChange={pick} disabled={busy} /></label>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          {imgs.map((s, i) => <div key={i} style={{ position: 'relative' }}>
+            <img src={s} alt={`업로드한 사진 ${i + 1} 미리보기`} style={{ width: 88, height: 88, objectFit: 'cover', borderRadius: 8 }} />
+            <button type="button" className="btn ghost" onClick={() => removePhoto(i)} disabled={busy} aria-label={`사진 ${i + 1} 삭제`} style={{ position: 'absolute', top: 2, right: 2, minWidth: 28, padding: '2px 7px', borderRadius: 20, background: '#fff' }}>×</button>
+          </div>)}
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button className="btn" disabled={busy}>{busy ? '등록 중…' : '등록하기'}</button>
+          <button type="button" className="btn ghost" onClick={cancel}>작성 취소</button>
+        </div>
       </form>
     </div>
   )
