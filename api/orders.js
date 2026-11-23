@@ -8,6 +8,15 @@ const db = getFirestore(app)
 
 const fail = (res, status, error) => res.status(status).json({ error })
 
+const getOrderStatusHistory = (order) => {
+  if (Array.isArray(order.statusHistory) && order.statusHistory.length) return order.statusHistory
+  const history = [{ status: 'awaiting_payment', at: order.at }]
+  if (order.paidAt) history.push({ status: 'paid', at: order.paidAt })
+  if (order.fulfillmentUpdatedAt && order.fulfillmentStatus) history.push({ status: order.fulfillmentStatus, at: order.fulfillmentUpdatedAt })
+  if (order.orderStatus === 'cancelled' && order.cancellationReviewedAt) history.push({ status: 'cancelled', at: order.cancellationReviewedAt })
+  return history
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return fail(res, 405, 'Method not allowed')
 
@@ -73,10 +82,7 @@ export default async function handler(req, res) {
           no: 'HM' + Date.now().toString().slice(-8),
           date: new Date().toLocaleDateString('ko-KR'),
           paymentStatus: 'awaiting_payment',
-          statusHistory: [
-            { status: 'created', at: Date.now() },
-            { status: 'awaiting_payment', at: Date.now() }
-          ],
+          statusHistory: [{ status: 'awaiting_payment', at: Date.now() }],
           items: orderItems,
           subtotal,
           shipping,
@@ -124,7 +130,7 @@ export default async function handler(req, res) {
       }
       if (status === 'cancelled') update.orderStatus = 'cancelled'
       if (status !== currentStatus) {
-        update.statusHistory = [...(Array.isArray(order.statusHistory) ? order.statusHistory : []), { status, at: now }]
+        update.statusHistory = [...getOrderStatusHistory(order), { status, at: now }]
       }
       await orderRef.update(update)
       return res.status(200).json({ success: true })
@@ -210,7 +216,7 @@ export default async function handler(req, res) {
             orderStatus: 'cancelled',
             cancellationReviewedAt: now,
             stockRestoredAt: now,
-            statusHistory: [...(Array.isArray(order.statusHistory) ? order.statusHistory : []), { status: 'cancelled', at: now }]
+            statusHistory: [...getOrderStatusHistory(order), { status: 'cancelled', at: now }]
           })
         } else {
           transaction.update(orderRef, {
