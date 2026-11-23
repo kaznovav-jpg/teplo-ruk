@@ -157,6 +157,7 @@ export default function Admin() {
 
 const [classForm, setClassForm] = useState({ title:'', titleRu:'', intro:'', introRu:'', artist:'a2', price:'0', field:'뜨개질', fieldRu:'Вязание', level:'초급', levelRu:'Начальный', minutes:'60', type:'무료', typeRu:'Бесплатно', thumb:'', kind:'동영상', kindRu:'Видео', cat:'knit', kit:false, materialsText:'', lessonsText:'Подготовка и инструменты|10' })
 const [editingClassId, setEditingClassId] = useState(null)
+const [selectedMasterclassView, setSelectedMasterclassView] = useState('cards')
 const [editingProductId, setEditingProductId] = useState(null)
   const [selectedProductCategory, setSelectedProductCategory] = useState('add')
   const [previewProduct, setPreviewProduct] = useState(false)
@@ -279,6 +280,7 @@ const [previewArticle, setPreviewArticle] = useState(false)
     setEditingClassId(null)
   }
   const editClass = (item) => {
+    setSelectedMasterclassView('add')
     setEditingClassId(item.id)
     setClassForm({ title:item.title||'', titleRu:item.titleRu||'', intro:item.intro||'', introRu:item.introRu||'', artist:item.artist||'a2', price:String(item.price??0), field:item.field||'', fieldRu:item.fieldRu||'', level:item.level||'초급', levelRu:item.levelRu||'Начальный', minutes:String(item.minutes||60), type:item.type||'무료', typeRu:item.typeRu||'Бесплатно', thumb:item.thumb||'', kind:item.kind||'동영상', kindRu:item.kindRu||'Видео', cat:item.cat||'knit', kit:!!item.kit, materialsText:(item.materials||[]).join('\n'), lessonsText:(item.lessons||[]).map(x=>x.join('|')).join('\n') })
     window.scrollTo({top:0,behavior:'smooth'})
@@ -1323,6 +1325,19 @@ const deleteArticle = async (article) => {
       {activeSection === 'masterclasses' && <>
         <h2>{lang === 'ru' ? 'Управление каталогом мастер-классов' : '마스터클래스 카탈로그 관리'}</h2>
         <p className="muted">{lang === 'ru' ? 'Здесь редактируются карточки на странице «Мастер-классы». Расписание занятий находится в отдельном разделе.' : '마스터클래스 페이지에 표시되는 카드 정보를 관리합니다. 수업 일정은 별도 메뉴에서 관리합니다.'}</p>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(210px,1fr))',gap:12,margin:'18px 0 24px'}}>
+          <button type="button" onClick={()=>{setSelectedMasterclassView('cards');setEditingClassId(null);window.scrollTo({top:0,behavior:'smooth'})}} style={{minHeight:76,padding:16,border:'1px solid #E5DCD2',borderRadius:10,background:selectedMasterclassView==='cards'?'#FAF7F2':'#fff',color:'#2F2B28',textAlign:'left',cursor:'pointer',fontWeight:600}}>
+            <span style={{color:'#B8593B',marginRight:9}}>▤</span>{lang==='ru'?'Карточки мастер-классов':'마스터클래스 카드'}
+            <div style={{fontSize:13,fontWeight:400,color:'#746b63',marginTop:6}}>{lang==='ru'?'Просмотреть и изменить существующие карточки':'등록된 마스터클래스 보기 및 수정'}</div>
+          </button>
+          <button type="button" onClick={()=>{resetClassForm();setSelectedMasterclassView('add');window.scrollTo({top:0,behavior:'smooth'})}} style={{minHeight:76,padding:16,border:'1px solid #E5DCD2',borderRadius:10,background:selectedMasterclassView==='add'?'#FAF7F2':'#fff',color:'#2F2B28',textAlign:'left',cursor:'pointer',fontWeight:600}}>
+            <span style={{color:'#B8593B',marginRight:9}}>＋</span>{lang==='ru'?'Добавить мастер-класс':'마스터클래스 추가'}
+            <div style={{fontSize:13,fontWeight:400,color:'#746b63',marginTop:6}}>{lang==='ru'?'Создать новую карточку':'새 마스터클래스 등록'}</div>
+          </button>
+        </div>
+        {selectedMasterclassView === 'add' ? (
+          <>
+            <button type="button" className="btn ghost" onClick={()=>{setSelectedMasterclassView('cards');resetClassForm()}} style={{marginBottom:16}}>{lang==='ru'?'← К карточкам мастер-классов':'← 마스터클래스 카드로'}</button>
         <section style={{display:'grid',gap:12,maxWidth:820,margin:'18px 0 28px',padding:18,border:'1px solid #E5DCD2',borderRadius:12,background:'#fff'}}>
           <h3>{editingClassId?'Редактировать мастер-класс':'Добавить мастер-класс'}</h3>
           <label>Название (русский)<input className="field" value={classForm.titleRu} onChange={e=>setClassForm(p=>({...p,titleRu:e.target.value}))}/></label>
@@ -1347,12 +1362,18 @@ const deleteArticle = async (article) => {
           <label>Уроки: название|минуты (каждый с новой строки)<textarea className="field" rows={4} value={classForm.lessonsText} onChange={e=>setClassForm(p=>({...p,lessonsText:e.target.value}))}/></label>
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" className="btn" onClick={saveClass}>{editingClassId?'Сохранить изменения':'Добавить мастер-класс'}</button>{editingClassId&&<button type="button" className="btn ghost" onClick={resetClassForm}>Отмена</button>}</div>
         </section>
+          </>
+        ) : (
+          <>
         <h3>Карточки мастер-классов ({classes.length})</h3>
         <div style={{display:'grid',gap:12}}>{classes.map(item=><article key={item.id} style={{display:'flex',gap:14,alignItems:'center',flexWrap:'wrap',padding:12,border:'1px solid #E5DCD2',borderRadius:10,background:'#fff'}}>
           {item.thumb&&<img src={item.thumb} alt="" style={{width:100,height:76,objectFit:'cover',borderRadius:8}}/>}
           <div style={{flex:1,minWidth:180}}><strong>{item.titleRu||item.title}</strong><p className="muted">{item.title}</p><small>{Number(item.price||0).toLocaleString('ko-KR')} ₩ · {item.minutes||0} мин.</small></div>
           <button type="button" className="btn" onClick={()=>editClass(item)}>Редактировать</button><button type="button" className="btn ghost" onClick={()=>deleteClass(item)}>Удалить</button>
         </article>)}{!classes.length&&<p className="muted">Мастер-классов пока нет.</p>}</div>
+
+          </>
+        )}
       </>}
       {activeSection === 'articles' && <>
       <h2>{lang === 'ru' ? 'Управление статьями' : '아티클 관리'}</h2>
