@@ -777,6 +777,34 @@ const deleteArticle = async (article) => {
                   <option value="cancelled">{lang === 'ru' ? 'Заказ отменён' : '주문 취소'}</option>
                 </select>
               </label>
+              <div style={{ margin: '10px 0 12px', padding: '10px 12px', borderRadius: 8, background: '#FAF7F2' }}>
+                <strong style={{ display: 'block', marginBottom: 6 }}>{lang === 'ru' ? 'История заказа' : '주문 처리 이력'}</strong>
+                <p style={{ margin: '3px 0', fontSize: 13 }}>{lang === 'ru' ? 'Заказ создан:' : '주문 생성:'} {o.at ? new Date(o.at).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR') : (o.date || '-')}</p>
+                {(() => {
+                  const labels = {
+                    awaiting_payment: lang === 'ru' ? 'Ожидает оплаты' : '입금 대기',
+                    paid: lang === 'ru' ? 'Оплата подтверждена' : '입금 확인',
+                    preparing: lang === 'ru' ? 'Изготавливается' : '제작중',
+                    shipped: lang === 'ru' ? 'В пути' : '배송중',
+                    delivered: lang === 'ru' ? 'Доставлено' : '배송완료',
+                    cancelled: lang === 'ru' ? 'Заказ отменён' : '주문 취소',
+                    created: lang === 'ru' ? 'Заказ создан' : '주문 생성'
+                  }
+                  const history = Array.isArray(o.statusHistory) && o.statusHistory.length
+                    ? o.statusHistory
+                    : [
+                        { status: 'awaiting_payment', at: o.at },
+                        ...(o.paidAt ? [{ status: 'paid', at: o.paidAt }] : []),
+                        ...(o.fulfillmentUpdatedAt && o.fulfillmentStatus ? [{ status: o.fulfillmentStatus, at: o.fulfillmentUpdatedAt }] : []),
+                        ...(o.orderStatus === 'cancelled' && o.cancellationReviewedAt ? [{ status: 'cancelled', at: o.cancellationReviewedAt }] : [])
+                      ]
+                  return <ol style={{ margin: '4px 0 0', paddingLeft: 20 }}>
+                    {history.map((entry, index) => <li key={index} style={{ margin: '3px 0', fontSize: 13 }}>
+                      {labels[entry.status] || entry.status} — {entry.at ? new Date(entry.at).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR') : '—'}
+                    </li>)}
+                  </ol>
+                })()}
+              </div>
               <p style={{ margin: '8px 0 4px' }}>{o.name || '-'} · {o.email || '-'} · {o.tel || '-'}</p>
               <p style={{ margin: '4px 0' }}><b>{Number(o.total || 0).toLocaleString('ko-KR')}원</b> · {o.pay || '-'} · {o.depositor ? (lang === 'ru' ? 'Отправитель: ' : '입금자: ') + o.depositor : ''}</p>
               <p className="muted" style={{ margin: '4px 0' }}>{o.addr || ''} {o.addr2 || ''}</p>
