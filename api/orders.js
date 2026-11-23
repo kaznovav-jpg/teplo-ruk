@@ -73,6 +73,10 @@ export default async function handler(req, res) {
           no: 'HM' + Date.now().toString().slice(-8),
           date: new Date().toLocaleDateString('ko-KR'),
           paymentStatus: 'awaiting_payment',
+          statusHistory: [
+            { status: 'created', at: Date.now() },
+            { status: 'awaiting_payment', at: Date.now() }
+          ],
           items: orderItems,
           subtotal,
           shipping,
@@ -101,21 +105,27 @@ export default async function handler(req, res) {
       const orderRef = db.collection('orders').doc(orderId)
       const orderSnap = await orderRef.get()
       if (!orderSnap.exists) return fail(res, 404, 'Заказ не найден')
-      const update = { statusUpdatedAt: Date.now() }
+      const order = orderSnap.data()
+      const currentStatus = order.orderStatus === 'cancelled' ? 'cancelled' : (order.fulfillmentStatus || order.paymentStatus || 'awaiting_payment')
+      const now = Date.now()
+      const update = { statusUpdatedAt: now }
       if (status === 'awaiting_payment') { update.paymentStatus = 'awaiting_payment'; update.fulfillmentStatus = null; update.orderStatus = null }
       if (status === 'paid') {
         update.paymentStatus = 'paid'
         update.orderStatus = null
-        update.paidAt = orderSnap.data().paidAt || Date.now()
+        update.paidAt = order.paidAt || now
       }
       if (['preparing', 'shipped', 'delivered'].includes(status)) {
         update.paymentStatus = 'paid'
         update.orderStatus = null
-        update.paidAt = orderSnap.data().paidAt || Date.now()
+        update.paidAt = order.paidAt || now
         update.fulfillmentStatus = status
-        update.fulfillmentUpdatedAt = Date.now()
+        update.fulfillmentUpdatedAt = now
       }
       if (status === 'cancelled') update.orderStatus = 'cancelled'
+      if (status !== currentStatus) {
+        update.statusHistory = [...(Array.isArray(order.statusHistory) ? order.statusHistory : []), { status, at: now }]
+      }
       await orderRef.update(update)
       return res.status(200).json({ success: true })
     }
@@ -194,11 +204,13 @@ export default async function handler(req, res) {
               transaction.update(productRefs[index], { stock: nextStock, soldOut: false })
             }
           })
+          const now = Date.now()
           transaction.update(orderRef, {
             'cancellationRequest.status': 'approved',
             orderStatus: 'cancelled',
-            cancellationReviewedAt: Date.now(),
-            stockRestoredAt: Date.now()
+            cancellationReviewedAt: now,
+            stockRestoredAt: now,
+            statusHistory: [...(Array.isArray(order.statusHistory) ? order.statusHistory : []), { status: 'cancelled', at: now }]
           })
         } else {
           transaction.update(orderRef, {
