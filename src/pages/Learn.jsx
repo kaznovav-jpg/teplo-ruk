@@ -37,7 +37,7 @@ export function Classes() {
       <p className="muted" style={{ marginBottom: 18 }}>{ru ? 'Учитесь дома по видео или очно в мастерской.' : '동영상으로 집에서, 오프라인으로 공방에서 배워요.'}</p>
       <div className="sw2">{sel('cat')}{sel('lv')}{sel('ty')}{sel('kd')}</div>
       <p className="muted" style={{ marginBottom: 12 }}>{ru ? `Всего ${l.length} шт.` : `총 ${l.length}개`}</p>
-      <div className="grid g3">{l.length ? l.map((c) => <ClassCard key={c.id} c={c} D={D} />) : <p className="empty" style={{ gridColumn: '1/-1' }}>{ru ? 'По заданным условиям ничего не найдено. Измените фильтры.' : '조건에 맞는 클래스가 없어요. 필터를 줄여 보세요.'}</p>}</div>
+      <div className="grid g3">{l.length ? l.map((c) => <ClassCard key={c.id} c={c} D={{ ...D, artists: artistList, products }} />) : <p className="empty" style={{ gridColumn: '1/-1' }}>{ru ? 'По заданным условиям ничего не найдено. Измените фильтры.' : '조건에 맞는 클래스가 없어요. 필터를 줄여 보세요.'}</p>}</div>
     </div>
   )
 }
@@ -176,7 +176,7 @@ export function Artists() {
       <div className="mt"><div className="sec-h"><h2>시즌 기획전</h2></div>
         {collectionList.map((k) => (
           <section key={k.id} style={{ marginBottom: 36 }}>
-            <h3 style={{ fontSize: '1.25rem' }}>{k.title}</h3><p className="muted">{k.desc}</p>
+            <h3 style={{ fontSize: '1.25rem' }}>{ru ? (k.titleRu || k.title) : k.title}</h3><p className="muted">{ru ? (k.descRu || k.desc) : k.desc}</p>
             <div className="grid g4" style={{ marginTop: 14 }}>{k.products.map((id) => <ProductCard key={id} p={products.find((p) => p.id === id)} D={pageData} />)}</div>
           </section>
         ))}
@@ -202,7 +202,7 @@ export function Artist() {
         </div>
         <h2 style={{ fontSize: '1.3rem' }}>작가 스토리</h2><p style={{ maxWidth: '42em', marginTop: 8 }}>{a.story}</p>
         <h2 className="mt" style={{ fontSize: '1.3rem' }}>작품 ({P.length})</h2>
-        <div className="grid g4" style={{ marginTop: 14 }}>{P.map((p) => <ProductCard key={p.id} p={p} D={D} />)}</div>
+        <div className="grid g4" style={{ marginTop: 14 }}>{P.map((p) => <ProductCard key={p.id} p={p} D={{ ...D, products, artists: artistList }} />)}</div>
         {C.length > 0 && <><h2 className="mt" style={{ fontSize: '1.3rem' }}>진행 중 클래스</h2><div className="grid g3" style={{ marginTop: 14 }}>{C.map((c) => <ClassCard key={c.id} c={c} D={D} />)}</div></>}
         <h2 className="mt" style={{ fontSize: '1.3rem' }}>작가 소식</h2>
         <ul className="list">{a.news.map((n, i) => <li key={i}><span className="chip">{n[0]}</span>{n[1]}</li>)}</ul>
