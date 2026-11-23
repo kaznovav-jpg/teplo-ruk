@@ -216,7 +216,7 @@ export function Community() {
       {!l.length ? <p className="empty">{keyword ? 'По вашему запросу ничего не найдено.' : 'Пока нет публикаций. Будьте первым!'}</p> : isPhoto(b) ? (
         <div className="mason">{l.map((p) => (
           <article className="mc" key={p.id}>
-            <Link to={`/community/${p.id}`}><Img src={p.thumb} alt={p.title} seed={p.id} /></Link>
+            {p.thumb && <Link to={`/community/${p.id}`}><Img src={p.thumb} alt={p.title} seed={p.id} /></Link>}
             <div className="mi"><p><b>{p.title}</b></p><p className="muted">{p.author} · ♥ {likeN(p)} · 댓글 {cmtN(p)} {hot(p)}</p></div>
           </article>))}
         </div>
@@ -316,7 +316,6 @@ export function Write() {
   const submit = async (e) => {
     e.preventDefault()
     const f = e.target, b = f.board.value
-    if (isPhoto(b) && !imgs.length) { toast('사진 게시판에는 사진을 1장 이상 올려 주세요'); return }
     cancelRequested.current = false
     setBusy(true)
     try {
@@ -335,7 +334,7 @@ export function Write() {
         <label>제목<input className="field" name="title" required maxLength={60} disabled={busy} /></label>
         <label>내용<textarea className="field" name="body" rows={6} required style={{ padding: 10 }} disabled={busy} /></label>
         <label>태그 (쉼표로 구분)<input className="field" name="tags" placeholder="뜨개, 니트" disabled={busy} /></label>
-        <label>사진 (최대 4장)<input className="field" type="file" accept="image/*" multiple onChange={pick} disabled={busy} /></label>
+        <label>{ru ? "Фотографии (до 4, необязательно)" : "사진 (최대 4장, 선택 사항)"}<input className="field" type="file" accept="image/*" multiple onChange={pick} disabled={busy} /></label>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {imgs.map((s, i) => <div key={i} style={{ position: 'relative' }}>
             <img src={s} alt={ru ? `Предпросмотр фото ${i + 1}` : `업로드한 사진 ${i + 1} 미리보기`} style={{ width: 88, height: 88, objectFit: 'cover', borderRadius: 8 }} />
