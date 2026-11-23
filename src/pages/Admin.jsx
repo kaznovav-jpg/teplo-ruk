@@ -160,7 +160,8 @@ export default function Admin() {
   material: '',
   colors: [''],
   sizes: [''],
-  published: true
+  published: true,
+  artist: 'a1'
 })
 
 const [classForm, setClassForm] = useState({ title:'', titleRu:'', intro:'', introRu:'', artist:'a2', price:'0', field:'뜨개질', fieldRu:'Вязание', level:'초급', levelRu:'Начальный', minutes:'60', type:'무료', typeRu:'Бесплатно', thumb:'', kind:'동영상', kindRu:'Видео', cat:'knit', kit:false, materialsText:'', lessonsText:'Подготовка и инструменты|10' })
@@ -1102,7 +1103,7 @@ const deleteArticle = async (article) => {
             <h2>{lang === 'ru' ? 'Управление товарами' : '상품 관리'}</h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, margin: '18px 0 24px' }}>
-        <button type="button" className="btn" onClick={() => { setEditingProductId(null); setProductForm({ name: '', nameRu: '', price: '', stock: '0', cat: 'bag', images: [''], desc: '', descRu: '', material: '', colors: [''], sizes: [''], published: true }); setSelectedProductCategory('add') }}>
+        <button type="button" className="btn" onClick={() => { setEditingProductId(null); setProductForm({ name: '', nameRu: '', price: '', stock: '0', cat: 'bag', images: [''], desc: '', descRu: '', material: '', colors: [''], sizes: [''], published: true, artist: 'a1' }); setSelectedProductCategory('add') }}>
           {lang === 'ru' ? '+ Добавить товар' : '+ 상품 추가'}
         </button>
         {[
@@ -1137,6 +1138,13 @@ const deleteArticle = async (article) => {
     onChange={(e) => updateProductField('nameRu', e.target.value)}
     placeholder="Название товара"
   />
+</label>
+
+<label>
+  {lang === 'ru' ? 'Мастер' : '작가'}
+  <select className="field" value={productForm.artist || 'a1'} onChange={(e) => updateProductField('artist', e.target.value)}>
+    {(artists?.length ? artists : D.artists).map((artist) => <option key={artist.id} value={artist.id}>{artist.name}</option>)}
+  </select>
 </label>
 
 <label>
@@ -1333,7 +1341,8 @@ const deleteArticle = async (article) => {
                 material: '',
                 colors: [''],
                 sizes: [''],
-                published: true
+                published: true,
+                artist: 'a1'
               })
             }}
           >
