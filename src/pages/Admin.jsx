@@ -5,7 +5,7 @@ import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 
 export default function Admin() {
-  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, deleteOrder, adminEvents, masterApplications, artistWorks, products, articles, classes, artists, artistCollections, customOrders = [], posts = [], isFirebase } = useApp()
+  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, updateOrderStatus, deleteOrder, adminEvents, masterApplications, artistWorks, products, articles, classes, artists, artistCollections, customOrders = [], posts = [], isFirebase } = useApp()
     const { lang } = useLanguage()
   const [activeSection, setActiveSection] = useState('overview')
   const [orderToDelete, setOrderToDelete] = useState(null)
@@ -733,6 +733,27 @@ const deleteArticle = async (article) => {
                 <strong>{o.no || o.id}</strong>
                 <span className="badge line">{isPaid ? (lang === 'ru' ? 'Оплата завершена' : '결제 완료') : (lang === 'ru' ? 'Ожидание оплаты' : '결제 대기')}</span>
               </div>
+              <label style={{ display: 'grid', gap: 6, maxWidth: 320, marginTop: 12 }}>
+                <span>{lang === 'ru' ? 'Изменить статус заказа вручную' : '주문 상태 직접 변경'}</span>
+                <select className="field" value={isCancelled ? 'cancelled' : (o.fulfillmentStatus || (isPaid ? 'paid' : 'awaiting_payment'))} onChange={async (e) => {
+                  const nextStatus = e.target.value
+                  if (!window.confirm(lang === 'ru' ? 'Изменить статус этого заказа?' : '이 주문 상태를 변경하시겠습니까?')) return
+                  try {
+                    await updateOrderStatus(o.id, nextStatus)
+                    alert(lang === 'ru' ? 'Статус заказа обновлён.' : '주문 상태가 업데이트되었습니다.')
+                  } catch (error) {
+                    console.error('Manual order status update error:', error)
+                    alert(lang === 'ru' ? (error.message || 'Не удалось изменить статус заказа.') : '주문 상태 변경에 실패했습니다.')
+                  }
+                }}>
+                  <option value="awaiting_payment">{lang === 'ru' ? 'Ожидает оплаты' : '입금 대기'}</option>
+                  <option value="paid">{lang === 'ru' ? 'Оплата завершена' : '결제 완료'}</option>
+                  <option value="preparing">{lang === 'ru' ? 'Изготавливается' : '제작중'}</option>
+                  <option value="shipped">{lang === 'ru' ? 'В пути' : '배송중'}</option>
+                  <option value="delivered">{lang === 'ru' ? 'Доставлено' : '배송완료'}</option>
+                  <option value="cancelled">{lang === 'ru' ? 'Заказ отменён' : '주문 취소'}</option>
+                </select>
+              </label>
               <p style={{ margin: '8px 0 4px' }}>{o.name || '-'} · {o.email || '-'} · {o.tel || '-'}</p>
               <p style={{ margin: '4px 0' }}><b>{Number(o.total || 0).toLocaleString('ko-KR')}원</b> · {o.pay || '-'} · {o.depositor ? (lang === 'ru' ? 'Отправитель: ' : '입금자: ') + o.depositor : ''}</p>
               <p className="muted" style={{ margin: '4px 0' }}>{o.addr || ''} {o.addr2 || ''}</p>
