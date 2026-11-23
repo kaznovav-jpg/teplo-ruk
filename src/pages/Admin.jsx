@@ -9,6 +9,7 @@ export default function Admin() {
     const { lang } = useLanguage()
   const [activeSection, setActiveSection] = useState('overview')
   const [orderToDelete, setOrderToDelete] = useState(null)
+  const [ordersSearch, setOrdersSearch] = useState('')
   const [communitySearch, setCommunitySearch] = useState('')
   const [selectedCommunityAuthor, setSelectedCommunityAuthor] = useState(null)
   const [bankForm, setBankForm] = useState({ bank: '신한은행 / Shinhan Bank', account: '110 318 981600', holder: '가즈노바빅토리아' })
@@ -636,6 +637,23 @@ const deleteArticle = async (article) => {
     const updateProductField = (field, value) => {
     setProductForm((prev) => ({ ...prev, [field]: value }))
   }
+  const orderSearchQuery = ordersSearch.trim().toLocaleLowerCase()
+  const filteredAdminOrders = adminOrders.filter((o) => {
+    if (!orderSearchQuery) return true
+    const dateValues = [o.createdAt, o.at, o.date, o.paidAt, o.timestamp]
+      .filter((value) => value !== undefined && value !== null && value !== '')
+      .flatMap((value) => {
+        const date = typeof value === 'number' ? new Date(value < 100000000000 ? value * 1000 : value) : new Date(value)
+        if (Number.isNaN(date.getTime())) return [String(value)]
+        return [String(value), date.toLocaleDateString('ru-RU'), date.toLocaleDateString('ko-KR'), date.toLocaleString('ru-RU'), date.toLocaleString('ko-KR'), date.toISOString().slice(0, 10)]
+      })
+    const searchable = [o.no, o.id, o.name, o.email, o.tel, o.total, o.pay, o.depositor, o.addr, o.addr2, o.orderStatus, o.paymentStatus, o.fulfillmentStatus, ...(o.items || []).flatMap((item) => [item.name, item.nameRu, item.opt, item.qty]), ...dateValues]
+      .filter((value) => value !== undefined && value !== null).join(' ').toLocaleLowerCase()
+    const digitsQuery = orderSearchQuery.replace(/\D/g, '')
+    const digitsText = searchable.replace(/\D/g, '')
+    return searchable.includes(orderSearchQuery) || (digitsQuery.length > 0 && digitsText.includes(digitsQuery))
+  })
+
   return (
     <main className="page admin-page" style={{ maxWidth: '1100px', margin: '0 auto', padding: '32px 24px' }}>
       <h1>{lang === 'ru' ? 'Панель администратора' : '관리자 페이지'}</h1>
@@ -723,8 +741,13 @@ const deleteArticle = async (article) => {
         <p className="muted">{lang === 'ru' ? 'После фактического поступления денег на счёт подтвердите оплату заказа. Покупатель увидит обновление в личном кабинете.' : '계좌 입금 확인 후 결제를 승인해 주세요. 고객 마이페이지에 상태가 반영됩니다.'}</p>
         {!isFirebase && <p>{lang === 'ru' ? 'Для управления заказами необходимо подключение Firebase.' : '주문 관리를 위해 Firebase 연결이 필요합니다.'}</p>}
         <p>{lang === 'ru' ? 'Всего заказов:' : '전체 주문:'} {adminOrders.length} · {lang === 'ru' ? 'Ожидают оплаты:' : '입금 대기:'} {adminOrders.filter((o) => o.paymentStatus !== 'paid' && o.orderStatus !== 'cancelled').length}</p>
-        {adminOrders.length === 0 ? <p>{lang === 'ru' ? 'Заказов пока нет.' : '아직 주문이 없습니다.'}</p> : <div style={{ display: 'grid', gap: 14 }}>
-          {adminOrders.map((o) => {
+        <label style={{ display: 'grid', gap: 6, maxWidth: 520, margin: '16px 0' }}>
+          <span>{lang === 'ru' ? 'Поиск заказов' : '주문 검색'}</span>
+          <input className="field" type="search" value={ordersSearch} onChange={(e) => setOrdersSearch(e.target.value)} placeholder={lang === 'ru' ? 'Номер, имя, email, телефон, сумма или дата заказа…' : '주문번호, 이름, 이메일, 전화번호, 금액 또는 주문 날짜…'} />
+          {ordersSearch.trim() && <small className="muted">{lang === 'ru' ? 'Найдено заказов:' : '검색 결과:'} {filteredAdminOrders.length}</small>}
+        </label>
+        {adminOrders.length === 0 ? <p>{lang === 'ru' ? 'Заказов пока нет.' : '아직 주문이 없습니다.'}</p> : filteredAdminOrders.length === 0 ? <p>{lang === 'ru' ? 'По вашему запросу заказы не найдены.' : '검색 결과가 없습니다.'}</p> : <div style={{ display: 'grid', gap: 14 }}>
+          {filteredAdminOrders.map((o) => {
             const isBank = o.pay === '무통장입금'
             const isPaid = o.paymentStatus === 'paid'
             const isCancelled = o.orderStatus === 'cancelled'
