@@ -18,22 +18,21 @@ export default function Admin() {
   const [footerSaving, setFooterSaving] = useState(false)
   const [customOrderReplies, setCustomOrderReplies] = useState({})
   const [sendingCustomOrderId, setSendingCustomOrderId] = useState(null)
+  // Удаляем только заранее известные демонстрационные записи, созданные шаблоном сайта.
+  // Публикации пользователей, заявки, регистрации и заказы не затрагиваются.
   useEffect(() => {
     if (!isFirebase || !isAdmin) return
-    F.getDocs(F.collection(F.db, 'classes')).then(async (snap) => {
-      if (!snap.empty) return
-      await Promise.all(D.classes.map(({ id, ...item }) =>
-        F.setDoc(F.doc(F.db, 'classes', id), item)
-      ))
-    }).catch((error) => console.error('Initial classes migration error:', error))
-    F.getDocs(F.collection(F.db, 'artists')).then(async (snap) => {
-      if (!snap.empty) return
-      await Promise.all(D.artists.map(({ id, ...item }) => F.setDoc(F.doc(F.db, 'artists', id), item)))
-    }).catch((error) => console.error('Initial artists migration error:', error))
-    F.getDocs(F.collection(F.db, 'artistCollections')).then(async (snap) => {
-      if (!snap.empty) return
-      await Promise.all(D.extras.collections.map(({ id, ...item }) => F.setDoc(F.doc(F.db, 'artistCollections', id), item)))
-    }).catch((error) => console.error('Initial artist collections migration error:', error))
+    const demoIds = {
+      products: Array.from({ length: 12 }, (_, i) => 'p' + String(i + 1).padStart(2, '0')),
+      articles: ['t1', 't2', 't3', 't4', 't5', 't6'],
+      classes: ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'],
+      artists: ['a1', 'a2', 'a3', 'a4'],
+      artistCollections: ['k1', 'k2'],
+      events: ['e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8']
+    }
+    Promise.all(Object.entries(demoIds).flatMap(([collection, ids]) =>
+      ids.map((id) => F.deleteDoc(F.doc(F.db, collection, id)))
+    )).catch((error) => console.error('Demo content cleanup error:', error))
   }, [isFirebase, isAdmin])
   useEffect(() => {
     if (!isFirebase) return
