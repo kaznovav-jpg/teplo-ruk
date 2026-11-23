@@ -10,6 +10,7 @@ import { Crumb, Heart, FollowBtn, ClassCard, ArtistCard, ProductCard, Img, typeB
 export function Classes() {
   useTitle('클래스')
   const { lang } = useLanguage()
+  const { classes } = useApp()
   const ru = lang === 'ru'
   const [f, setF] = useState({ cat: '', lv: '', ty: '', kd: '' })
   const labels = ru
@@ -28,7 +29,7 @@ export function Classes() {
       <option value="">{labels[k]}: {all}</option>{options[k].map((o) => <option key={o[0]} value={o[0]}>{o[1]}</option>)}
     </select>
   )
-  const l = D.classes.filter((c) => (!f.cat || c.cat === f.cat) && (!f.lv || c.level === f.lv) && (!f.ty || c.type === f.ty) && (!f.kd || c.kind === f.kd))
+  const l = classes.filter((c) => (!f.cat || c.cat === f.cat) && (!f.lv || c.level === f.lv) && (!f.ty || c.type === f.ty) && (!f.kd || c.kind === f.kd))
   return (
     <div className="wrap">
       <Crumb items={[ru ? 'Мастер-классы' : '클래스']} />
@@ -42,8 +43,8 @@ export function Classes() {
 }
 
 export function ClassDetail() {
-  const { id } = useParams(), nav = useNavigate(), { S, enroll, toast } = useApp()
-  const c = D.classes.find((x) => x.id === id) || D.classes[0], a = D.artists.find((x) => x.id === c.artist)
+  const { id } = useParams(), nav = useNavigate(), { S, enroll, toast, classes } = useApp()
+  const c = classes.find((x) => x.id === id) || classes[0], a = D.artists.find((x) => x.id === c.artist)
   useTitle(c.title)
   const en = S.enrolled.some((x) => x.id === c.id), tot = c.lessons.length
   const pct = Math.round(((S.progress[c.id] || []).length / tot) * 100), mins = c.lessons.reduce((s, l) => s + l[1], 0)
@@ -79,8 +80,8 @@ export function ClassDetail() {
 }
 
 export function Learn() {
-  const { id } = useParams(), { S, toggleDone, setNote, toast } = useApp()
-  const c = D.classes.find((x) => x.id === id) || D.classes[0]
+  const { id } = useParams(), { S, toggleDone, setNote, toast, classes } = useApp()
+  const c = classes.find((x) => x.id === id) || classes[0]
   useTitle(c.title + ' 수강')
   const [n, setN] = useState(0), [note, setNoteTxt] = useState(S.notes[c.id] || '')
   useEffect(() => { window.scrollTo(0, 0) }, [n])
