@@ -34,7 +34,7 @@ export default function Home() {
   }, [hov])
   useEffect(() => { const t = setInterval(() => setRv((x) => (x + 1) % 3), 4500); return () => clearInterval(t) }, [])
 
-  const P = D.products, art = D.artists[0], ex = D.extras
+  const P = D.products, art = D.artists.find(Boolean), ex = D.extras
   const list = [...P].sort(tab === 'new' ? (a, b) => a.daysAgo - b.daysAgo : (a, b) => b.popularity - a.popularity).slice(0, 8)
   const hotPosts = [...D.posts].sort((a, b) => b.likes - a.likes).slice(0, 4)
 
@@ -70,17 +70,16 @@ export default function Home() {
 
       <section className="sec"><div className="wrap">
         <div className="sec-h"><h2>{t('이달의 작가', 'Мастер месяца')}</h2><Link className="more" to="/artists">작가 {t('전체 보기', 'Смотреть все')}</Link></div>
-        <div className="artist">
-          <div className="thumb wide"><Img src={art.cover} alt={`${art.name} {t('작가 작업 공간', 'рабочее пространство мастера')}`} seed="artist1" h={540} /></div>
+        {art ? <div className="artist">
+          <div className="thumb wide"><Img src={art.cover} alt={`${art.name} 작업 공간`} seed="artist1" h={540} /></div>
           <div>
             <h3 style={{ fontSize: '1.4rem' }}>{ru ? ({ a1: 'Со Ха', a2: 'Он Гёль', a3: 'Мори', a4: 'Дамсоль' }[art.id] || art.name) : art.name}</h3><p className="muted">{ru ? (art.fieldRu || art.field) : art.field}</p>
             <p style={{ margin: '12px 0 18px' }}>{ru ? (art.bioRu || art.bio) : art.bio}</p>
             <div className="grid g3" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
-              {art.products.slice(0, 3).map((id) => { const p = P.find((x) => x.id === id); return <Link key={id} to={`/product/${id}`}><div className="thumb sq"><Img src={p.images[0]} alt={p.name} seed={id} /></div></Link> })}
+              {(Array.isArray(art.products) ? art.products : []).slice(0, 3).map((id) => { const p = P.find((x) => x.id === id); return p?.images?.[0] ? <Link key={id} to={`/product/${id}`}><div className="thumb sq"><Img src={p.images[0]} alt={p.name || ''} seed={id} /></div></Link> : null })}
             </div>
           </div>
-        </div>
-      </div></section>
+        </div> : <p className="muted">{ru ? 'Мастер месяца скоро появится здесь.' : '이달의 작가가 곧 소개됩니다.'}</p>}
 
       <section className="sec alt"><div className="wrap two">
         <div>
