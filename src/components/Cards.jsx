@@ -58,6 +58,7 @@ export function ProductCard({ p, D }) {
 export const typeBadge = (t, label = t) => <span className={'badge ' + (t === '유료' ? '' : t === '무료' ? 'free' : 'free kit')}>{label}</span>
 
 export function ClassCard({ c, D }) {
+  if (!c) return null
   const { lang } = useLanguage()
   const ru = lang === 'ru'
   const title = ru ? (c.titleRu || c.title) : c.title
@@ -80,6 +81,7 @@ export function ClassCard({ c, D }) {
 }
 
 export function ArticleCard({ a }) {
+  if (!a) return null
   const { lang } = useLanguage()
   const title = lang === 'ru' ? (a.titleRu || a.title) : a.title
   const excerpt = lang === 'ru' ? (a.excerptRu || a.excerpt) : a.excerpt
