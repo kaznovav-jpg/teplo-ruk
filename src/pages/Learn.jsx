@@ -190,6 +190,7 @@ export function Artist() {
   const { id } = useParams(), { S, artists, products, classes } = useApp()
   const artistList = artists?.length ? artists : D.artists
   const a = artistList.find((x) => x.id === id) || artistList[0]
+  if (!a) return <div className="wrap empty"><p>Мастер пока не добавлен.</p><Link className="btn" to="/artists">Вернуться к работам мастеров</Link></div>
   useTitle(a.name + ' 쇼룸')
   const P = products.filter((p) => p.artist === a.id), C = classes.filter((c) => c.artist === a.id)
   return (
