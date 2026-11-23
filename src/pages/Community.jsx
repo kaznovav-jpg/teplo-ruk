@@ -186,23 +186,49 @@ export function Community() {
 }
 
 export function Post() {
-  const { id } = useParams(), nav = useNavigate(), { user, S, toggleLike, toast } = useApp(), { all, likeN } = useAll()
+  const { id } = useParams(), nav = useNavigate()
+  const { user, isAdmin, S, toggleLike, toast, updatePost, deletePost } = useApp()
+  const { all, likeN } = useAll()
+  const [editing, setEditing] = useState(false)
   const p = all.find((x) => x.id === id)
   useTitle(p?.title || '게시글')
   if (!p) return <div className="wrap empty"><p>게시글을 찾을 수 없어요.</p><Link className="btn" to="/community">목록으로</Link></div>
+  const canManage = Boolean(user && (isAdmin || p.uid === user.uid))
   const on = S.likes.includes(p.id), imgs = p.images || []
   const like = () => { if (!user) { toast('로그인이 필요해요'); nav('/mypage?tab=login'); return } toggleLike(p.id) }
+  const remove = async () => {
+    if (!window.confirm('Удалить эту публикацию?')) return
+    try { await deletePost(p.id); toast('Публикация удалена.'); nav('/community') }
+    catch (error) { toast(error?.message || 'Не удалось удалить публикацию.') }
+  }
+  const save = async (event) => {
+    event.preventDefault()
+    const form = event.currentTarget
+    try {
+      await updatePost(p.id, { title: form.title.value.trim(), body: form.body.value.trim(), tag: form.tags.value.split(',').map((x) => x.trim()).filter(Boolean)[0] || p.tag, tags: form.tags.value.split(',').map((x) => x.trim()).filter(Boolean) })
+      toast('Изменения сохранены.'); setEditing(false)
+    } catch (error) { toast(error?.message || 'Не удалось сохранить изменения.') }
+  }
   return (
     <div className="wrap">
-      <Crumb items={[<Link to={`/community?board=${p.board}`}>{BOARDS.find((x) => x[0] === p.board)[1]}</Link>, p.title]} />
+      <Crumb items={[<Link to={`/community?board=${p.board}`}>{BOARDS.find((x) => x[0] === p.board)?.[1] || '커뮤니티'}</Link>, p.title]} />
       <div className="art">
         <p>{likeN(p) >= 20 && <span className="badge">인기</span>}<span className="badge line">{p.tag}</span></p>
-        <h1 style={{ fontSize: '1.7rem', margin: '6px 0' }}>{p.title}</h1>
-        <p className="muted" style={{ margin: 0 }}>{p.author} · {p.at ? dFmt(p.at) : p.date}</p>
-        <div style={{ display: 'grid', gap: 12, marginTop: 16 }}>{imgs.map((s, i) => <Img key={i} src={s} alt={`${p.title} 사진 ${i + 1}`} seed={p.id + i} style={{ borderRadius: 12, width: '100%' }} />)}</div>
-        <p style={{ marginTop: 16 }}>{p.body}</p>
-        <p className="muted">{(p.tags || []).map((t) => '#' + t).join(' ')}</p>
-        <div className="acts"><button className="btn ghost" aria-pressed={on} onClick={like}>{on ? '♥' : '♡'} 좋아요 {likeN(p)}</button><button className="btn ghost" onClick={() => share(toast)}>공유하기</button></div>
+        {editing ? <form className="form" onSubmit={save}>
+          <label>Заголовок<input className="field" name="title" defaultValue={p.title} required maxLength={60} /></label>
+          <label>Текст<textarea className="field" name="body" rows={7} defaultValue={p.body} required /></label>
+          <label>Теги (через запятую)<input className="field" name="tags" defaultValue={(p.tags || []).join(', ')} /></label>
+          <div className="acts"><button className="btn">Сохранить</button><button type="button" className="btn ghost" onClick={() => setEditing(false)}>Отмена</button></div>
+        </form> : <>
+          <h1 style={{ fontSize: '1.7rem', margin: '6px 0' }}>{p.title}</h1>
+          <p className="muted" style={{ margin: 0 }}>{p.author} · {p.at ? dFmt(p.at) : p.date}</p>
+          <div style={{ display: 'grid', gap: 12, marginTop: 16 }}>{imgs.map((s, i) => <Img key={i} src={s} alt={`${p.title} 사진 ${i + 1}`} seed={p.id + i} style={{ borderRadius: 12, width: '100%' }} />)}</div>
+          <p style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{p.body}</p>
+          <p className="muted">{(p.tags || []).map((t) => '#' + t).join(' ')}</p>
+          <div className="acts"><button className="btn ghost" aria-pressed={on} onClick={like}>{on ? '♥' : '♡'} 좋아요 {likeN(p)}</button><button className="btn ghost" onClick={() => share(toast)}>공유하기</button>
+            {canManage && <><button className="btn ghost" onClick={() => setEditing(true)}>Изменить</button><button className="btn ghost" onClick={remove}>Удалить</button></>}
+          </div>
+        </>}
         <div className="mt"><Comments id={p.id} sample={p.thread || []} /></div>
       </div>
       <div style={{ height: 48 }} />
