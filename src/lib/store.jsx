@@ -35,11 +35,11 @@ export function AppProvider({ children }) {
   const [masterApplications, setMasterApplications] = useState([])
   const [artistWorks, setArtistWorks] = useState([])
   const [adminEvents, setAdminEvents] = useState([])
- const [products, setProducts] = useState(D.products)
-  const [articles, setArticles] = useState(D.articles)
-  const [classes, setClasses] = useState(D.classes)
-  const [artists, setArtists] = useState(D.artists)
-  const [artistCollections, setArtistCollections] = useState(D.extras.collections)
+ const [products, setProducts] = useState([])
+  const [articles, setArticles] = useState([])
+  const [classes, setClasses] = useState([])
+  const [artists, setArtists] = useState([])
+  const [artistCollections, setArtistCollections] = useState([])
   const [msg, setMsg] = useState('')
   const SR = useRef(S), UR = useRef(user), busy = useRef(false), tm = useRef(0)
   SR.current = S; UR.current = user
@@ -313,7 +313,7 @@ setAuthReady(true)
       if (!s.empty) {
         setProducts(s.docs.map((d) => ({ ...d.data(), id: d.id })))
       } else {
-        setProducts(D.products)
+        setProducts([])
       }
     },
     (e) => console.error('Products error:', e)
@@ -321,15 +321,15 @@ setAuthReady(true)
 }, [])
   useEffect(() => {
     if (!F.isFirebase) return
-    return F.onSnapshot(F.collection(F.db, 'classes'), (s) => setClasses(s.empty ? D.classes : s.docs.map((d) => ({ ...d.data(), id: d.id }))), (e) => console.error('Classes error:', e))
+    return F.onSnapshot(F.collection(F.db, 'classes'), (s) => setClasses(s.docs.map((d) => ({ ...d.data(), id: d.id }))), (e) => console.error('Classes error:', e))
   }, [])
   useEffect(() => {
     if (!F.isFirebase) return
-    return F.onSnapshot(F.collection(F.db, 'artists'), (s) => setArtists(s.empty ? D.artists : s.docs.map((d) => ({ ...d.data(), id: d.id }))), (e) => console.error('Artists error:', e))
+    return F.onSnapshot(F.collection(F.db, 'artists'), (s) => setArtists(s.docs.map((d) => ({ ...d.data(), id: d.id }))), (e) => console.error('Artists error:', e))
   }, [])
   useEffect(() => {
     if (!F.isFirebase) return
-    return F.onSnapshot(F.collection(F.db, 'artistCollections'), (s) => setArtistCollections(s.empty ? D.extras.collections : s.docs.map((d) => ({ ...d.data(), id: d.id }))), (e) => console.error('Artist collections error:', e))
+    return F.onSnapshot(F.collection(F.db, 'artistCollections'), (s) => setArtistCollections(s.docs.map((d) => ({ ...d.data(), id: d.id }))), (e) => console.error('Artist collections error:', e))
   }, [])
   useEffect(() => {
   if (!F.isFirebase) return
@@ -339,7 +339,7 @@ setAuthReady(true)
       if (!s.empty) {
         setArticles(s.docs.map((d) => ({ ...d.data(), id: d.id })))
       } else {
-        setArticles(D.articles)
+        setArticles([])
       }
     },
     (e) => console.error('Articles error:', e)
