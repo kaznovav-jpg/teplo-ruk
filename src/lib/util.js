@@ -31,16 +31,36 @@ export function ph(seed, w = 600, h = 750) {
   return 'data:image/svg+xml;base64,' + btoa(svg)
 }
 
-// 업로드 전 이미지를 가로 600px JPEG로 줄입니다.
-export const shrink = (f) => new Promise((res) => {
+// Перед загрузкой автоматически оптимизируем фото: сохраняем детали и уменьшаем размер файла.
+export const shrink = (f) => new Promise((resolve, reject) => {
   const fr = new FileReader()
+  fr.onerror = () => reject(new Error('Не удалось прочитать фотографию. Выберите другое фото.'))
   fr.onload = () => {
     const im = new Image()
+    im.onerror = () => reject(new Error('Не удалось обработать фотографию. Выберите другое фото.'))
     im.onload = () => {
-      const k = Math.min(1, 600 / im.width), c = document.createElement('canvas')
-      c.width = im.width * k; c.height = im.height * k
-      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height)
-      res(c.toDataURL('image/jpeg', 0.7))
+      const maxSide = 1600
+      let scale = Math.min(1, maxSide / Math.max(im.width, im.height))
+      const c = document.createElement('canvas')
+      const ctx = c.getContext('2d')
+      if (!ctx) return reject(new Error('Не удалось обработать фотографию на этом устройстве.'))
+      const encode = () => {
+        c.width = Math.round(im.width * scale)
+        c.height = Math.round(im.height * scale)
+        ctx.clearRect(0, 0, c.width, c.height)
+        ctx.drawImage(im, 0, 0, c.width, c.height)
+        let quality = 0.88, data = c.toDataURL('image/jpeg', quality)
+        while (data.length > 1.65 * 1024 * 1024 && quality > 0.72) {
+          quality -= 0.05
+          data = c.toDataURL('image/jpeg', quality)
+        }
+        if (data.length > 1.65 * 1024 * 1024 && scale > 0.65) {
+          scale *= 0.8
+          return encode()
+        }
+        resolve(data)
+      }
+      encode()
     }
     im.src = fr.result
   }
