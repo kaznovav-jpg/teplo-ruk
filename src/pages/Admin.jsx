@@ -566,6 +566,7 @@ const deleteArticle = async (article) => {
           { id: 'community', ru: 'Публикации сообщества', ko: '커뮤니티 게시글', icon: '✎' },
           { id: 'products', ru: 'Товары', ko: '상품 관리', icon: '▧' },
           { id: 'articles', ru: 'Статьи', ko: '아티클 관리', icon: '▤' },
+          { id: 'masterclasses', ru: 'Мастер-классы', ko: '마스터클래스 관리', icon: '✿' },
           { id: 'schedule', ru: 'Расписание', ko: '수업 일정', icon: '▦' },
           { id: 'reservations', ru: 'Записи на занятия', ko: '수업 신청', icon: '☷' },
           { id: 'customOrders', ru: 'Индивидуальные заказы', ko: '주문제작 문의', icon: '✉' },
@@ -1671,7 +1672,7 @@ const deleteArticle = async (article) => {
           </article>
         </div>
       )}
-      {activeSection === 'schedule' && <>
+      {(activeSection === 'schedule' || activeSection === 'masterclasses') && <>
 <h2>{lang === 'ru' ? 'Управление расписанием занятий' : '수업 일정 관리'}</h2>
 
 {(() => {
