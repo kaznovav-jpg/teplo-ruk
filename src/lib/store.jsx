@@ -161,18 +161,25 @@ setAuthReady(true)
       (error) => console.error('Admin orders error:', error))
   }, [user, isAdmin])
 
-  const confirmOrderPayment = async (orderId) => {
+  const sendAdminOrderStatus = async (orderId, status) => {
     if (!F.isFirebase) throw new Error('Firebase 연결이 필요합니다.')
-    await F.setDoc(F.doc(F.db, 'orders', orderId), { paymentStatus: 'paid', paidAt: Date.now() }, { merge: true })
+    const authUser = F.auth.currentUser
+    if (!authUser) throw new Error('관리자 로그인이 필요합니다.')
+    const token = await authUser.getIdToken()
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ action: 'updateStatus', orderId, status })
+    })
+    const result = await response.json()
+    if (!response.ok) throw new Error(result.error || 'Не удалось изменить статус заказа')
   }
 
+  const confirmOrderPayment = async (orderId) => sendAdminOrderStatus(orderId, 'paid')
+
   const updateOrderFulfillment = async (orderId, fulfillmentStatus) => {
-    if (!F.isFirebase) throw new Error('Firebase 연결이 필요합니다.')
     if (!['preparing', 'shipped', 'delivered'].includes(fulfillmentStatus)) throw new Error('Invalid order status')
-    await F.setDoc(F.doc(F.db, 'orders', orderId), {
-      fulfillmentStatus,
-      fulfillmentUpdatedAt: Date.now()
-    }, { merge: true })
+    await sendAdminOrderStatus(orderId, fulfillmentStatus)
   }
 
   const requestOrderCancellation = async (orderId, reason) => {
