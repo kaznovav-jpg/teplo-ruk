@@ -556,7 +556,7 @@ cancelRes: async (id) => {
   }
 },
 
-    saveOrder, confirmOrderPayment, updateOrderFulfillment, requestOrderCancellation, reviewOrderCancellation, addPost, updatePost, deletePost, uploadImages, signup, login, logout, resetPw, resendVerification, updateUser,
+    saveOrder, confirmOrderPayment, updateOrderFulfillment, requestOrderCancellation, reviewOrderCancellation, deleteOrder, addPost, updatePost, deletePost, uploadImages, signup, login, logout, resetPw, resendVerification, updateUser,
   }
   return <Ctx.Provider value={api}>{children}{msg && <div className="toast" role="status"><span>{msg}</span></div>}</Ctx.Provider>
 }
