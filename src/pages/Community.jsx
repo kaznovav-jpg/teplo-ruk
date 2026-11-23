@@ -220,8 +220,19 @@ export function Write() {
   useEffect(() => { if (authReady && !user) { toast('로그인이 필요해요'); nav('/mypage?tab=login') } }, [authReady, user, nav, toast])
   if (!authReady || !user) return null
   const pick = async (e) => {
-    try { setImgs(await Promise.all([...e.target.files].slice(0, 4).map(shrink))) }
-    catch (err) { toast(err?.message || '사진을 처리하지 못했어요'); e.target.value = '' }
+    const selected = [...e.target.files]
+    e.target.value = ''
+    if (!selected.length) return
+    const remaining = 4 - imgs.length
+    if (remaining <= 0) {
+      toast(ru ? 'Можно добавить не более 4 фотографий.' : '사진은 최대 4장까지 추가할 수 있어요.')
+      return
+    }
+    if (selected.length > remaining) toast(ru ? `Можно добавить ещё ${remaining} фото.` : `사진을 ${remaining}장 더 추가할 수 있어요.`)
+    try {
+      const compressed = await Promise.all(selected.slice(0, remaining).map(shrink))
+      setImgs(prev => [...prev, ...compressed].slice(0, 4))
+    } catch (err) { toast(err?.message || '사진을 처리하지 못했어요') }
   }
   const removePhoto = (i) => setImgs(prev => prev.filter((_, idx) => idx !== i))
   const cancel = () => {
