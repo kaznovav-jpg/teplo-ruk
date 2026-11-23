@@ -183,6 +183,22 @@ setAuthReady(true)
     })
   }
 
+  const updateOrderStatus = async (orderId, status) => {
+    if (!F.isFirebase) throw new Error('Firebase 연결이 필요합니다.')
+    const allowedStatuses = ['awaiting_payment', 'paid', 'preparing', 'shipped', 'delivered', 'cancelled']
+    if (!allowedStatuses.includes(status)) throw new Error('Invalid order status')
+    const authUser = F.auth.currentUser
+    if (!authUser) throw new Error('관리자 로그인이 필요합니다.')
+    const token = await authUser.getIdToken()
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ action: 'updateStatus', orderId, status })
+    })
+    const result = await response.json()
+    if (!response.ok) throw new Error(result.error || 'Не удалось изменить статус заказа')
+  }
+
   const deleteOrder = async (orderId, restoreStock) => {
     if (!F.isFirebase) throw new Error('Firebase 연결이 필요합니다.')
     if (typeof restoreStock !== 'boolean') throw new Error('Invalid stock restoration choice')
@@ -556,7 +572,7 @@ cancelRes: async (id) => {
   }
 },
 
-    saveOrder, confirmOrderPayment, updateOrderFulfillment, requestOrderCancellation, reviewOrderCancellation, deleteOrder, addPost, updatePost, deletePost, uploadImages, signup, login, logout, resetPw, resendVerification, updateUser,
+    saveOrder, confirmOrderPayment, updateOrderFulfillment, requestOrderCancellation, reviewOrderCancellation, updateOrderStatus, deleteOrder, addPost, updatePost, deletePost, uploadImages, signup, login, logout, resetPw, resendVerification, updateUser,
   }
   return <Ctx.Provider value={api}>{children}{msg && <div className="toast" role="status"><span>{msg}</span></div>}</Ctx.Provider>
 }
