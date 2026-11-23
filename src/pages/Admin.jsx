@@ -5,7 +5,7 @@ import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 
 export default function Admin() {
-  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, adminEvents, masterApplications, artistWorks, products, articles, classes, customOrders = [], posts = [], isFirebase } = useApp()
+  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, adminEvents, masterApplications, artistWorks, products, articles, classes, artists, artistCollections, customOrders = [], posts = [], isFirebase } = useApp()
     const { lang } = useLanguage()
   const [activeSection, setActiveSection] = useState('overview')
   const [communitySearch, setCommunitySearch] = useState('')
@@ -26,6 +26,14 @@ export default function Admin() {
         F.setDoc(F.doc(F.db, 'classes', id), item)
       ))
     }).catch((error) => console.error('Initial classes migration error:', error))
+    F.getDocs(F.collection(F.db, 'artists')).then(async (snap) => {
+      if (!snap.empty) return
+      await Promise.all(D.artists.map(({ id, ...item }) => F.setDoc(F.doc(F.db, 'artists', id), item)))
+    }).catch((error) => console.error('Initial artists migration error:', error))
+    F.getDocs(F.collection(F.db, 'artistCollections')).then(async (snap) => {
+      if (!snap.empty) return
+      await Promise.all(D.extras.collections.map(({ id, ...item }) => F.setDoc(F.doc(F.db, 'artistCollections', id), item)))
+    }).catch((error) => console.error('Initial artist collections migration error:', error))
   }, [isFirebase, isAdmin])
   useEffect(() => {
     if (!isFirebase) return
@@ -229,7 +237,7 @@ const [previewArticle, setPreviewArticle] = useState(false)
     images: productForm.images.filter(Boolean),
     colors: productForm.colors.filter(Boolean),
     sizes: productForm.sizes.filter(Boolean),
-        artist: 'a1',
+        artist: productForm.artist || 'a1',
     badges: [],
     soldOut: Number(productForm.stock || 0) <= 0,
     published: productForm.published !== false
@@ -256,7 +264,8 @@ const [previewArticle, setPreviewArticle] = useState(false)
       material: '',
       colors: [''],
       sizes: [''],
-      published: true
+      published: true,
+      artist: 'a1'
     })
     setEditingProductId(null)
   } catch (error) {
@@ -292,6 +301,46 @@ const [previewArticle, setPreviewArticle] = useState(false)
     try { if(editingClassId) await F.setDoc(F.doc(F.db,'classes',editingClassId),data,{merge:true}); else await F.addDoc(F.collection(F.db,'classes'),data); resetClassForm(); alert('Мастер-класс сохранён. Каталог обновится автоматически.') }
     catch(error) { console.error('Class save error:',error); alert('Не удалось сохранить мастер-класс.') }
   }
+
+  const resetArtistForm = () => { setArtistForm({ id:'', name:'', field:'', fieldRu:'', bio:'', bioRu:'', cover:'', story:'', storyRu:'', followers:'0', newsText:'' }); setEditingArtistId(null) }
+  const editArtist = (artist) => {
+    setEditingArtistId(artist.id)
+    setArtistForm({ id:artist.id, name:artist.name||'', field:artist.field||'', fieldRu:artist.fieldRu||'', bio:artist.bio||'', bioRu:artist.bioRu||'', cover:artist.cover||'', story:artist.story||'', storyRu:artist.storyRu||'', followers:String(artist.followers||0), newsText:(artist.news||[]).map((item)=>item.join('|')).join('\n') })
+    window.scrollTo({top:0,behavior:'smooth'})
+  }
+  const saveArtist = async () => {
+    if (!artistForm.name.trim()) { alert('Введите имя мастера.'); return }
+    if (!isFirebase) { alert('Firebase 연결이 필요합니다.'); return }
+    const id = editingArtistId || artistForm.id.trim() || 'artist-' + Date.now()
+    const data = { name:artistForm.name.trim(), field:artistForm.field, fieldRu:artistForm.fieldRu, bio:artistForm.bio, bioRu:artistForm.bioRu, cover:artistForm.cover.trim(), story:artistForm.story, storyRu:artistForm.storyRu, followers:Math.max(0,Number(artistForm.followers||0)), news:artistForm.newsText.split('\n').map(x=>x.split('|').map(v=>v.trim())).filter(x=>x.length>1&&x[0]&&x[1]) }
+    try { await F.setDoc(F.doc(F.db,'artists',id),data,{merge:true}); resetArtistForm(); alert('Профиль мастера сохранён.') }
+    catch(error) { console.error('Artist save error:',error); alert('Не удалось сохранить профиль мастера.') }
+  }
+  const deleteArtist = async (artist) => {
+    if (!window.confirm('Удалить профиль мастера «'+artist.name+'»?')) return
+    try { await F.deleteDoc(F.doc(F.db,'artists',artist.id)); alert('Профиль мастера удалён.') }
+    catch(error) { console.error('Artist delete error:',error); alert('Не удалось удалить профиль мастера.') }
+  }
+  const resetCollectionForm = () => { setCollectionForm({ id:'', title:'', titleRu:'', desc:'', descRu:'', productIds:'' }); setEditingCollectionId(null) }
+  const editCollection = (item) => {
+    setEditingCollectionId(item.id)
+    setCollectionForm({ id:item.id, title:item.title||'', titleRu:item.titleRu||'', desc:item.desc||'', descRu:item.descRu||'', productIds:(item.products||[]).join(', ') })
+    window.scrollTo({top:0,behavior:'smooth'})
+  }
+  const saveCollection = async () => {
+    if (!collectionForm.title.trim()) { alert('Введите название коллекции.'); return }
+    if (!isFirebase) { alert('Firebase 연결이 필요합니다.'); return }
+    const id = editingCollectionId || collectionForm.id.trim() || 'collection-' + Date.now()
+    const data = { title:collectionForm.title.trim(), titleRu:collectionForm.titleRu.trim(), desc:collectionForm.desc, descRu:collectionForm.descRu, products:collectionForm.productIds.split(',').map(x=>x.trim()).filter(Boolean) }
+    try { await F.setDoc(F.doc(F.db,'artistCollections',id),data,{merge:true}); resetCollectionForm(); alert('Сезонная коллекция сохранена.') }
+    catch(error) { console.error('Collection save error:',error); alert('Не удалось сохранить коллекцию.') }
+  }
+  const deleteCollection = async (item) => {
+    if (!window.confirm('Удалить коллекцию «'+item.title+'»?')) return
+    try { await F.deleteDoc(F.doc(F.db,'artistCollections',item.id)); alert('Коллекция удалена.') }
+    catch(error) { console.error('Collection delete error:',error); alert('Не удалось удалить коллекцию.') }
+  }
+
   const deleteClass = async (item) => {
     if(!window.confirm('Удалить мастер-класс «'+(item.titleRu||item.title)+'»?')) return
     try { await F.deleteDoc(F.doc(F.db,'classes',item.id)); alert('Мастер-класс удалён.') }
@@ -377,7 +426,8 @@ const data = {
     material: product.material || '',
     colors: product.colors?.length ? product.colors : [''],
     sizes: product.sizes?.length ? product.sizes : [''],
-    published: product.published !== false
+    published: product.published !== false,
+    artist: product.artist || 'a1'
   })
 
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -598,6 +648,7 @@ const deleteArticle = async (article) => {
           { id: 'overview', ru: 'Обзор', ko: '대시보드', icon: '⌂' },
           { id: 'orders', ru: 'Заказы и оплата', ko: '주문 및 결제', icon: '₩' },
           { id: 'masters', ru: 'Мастера и их работы', ko: '작가 및 작품', icon: '✿' },
+          { id: 'artistCatalog', ru: 'Страница «Работы мастеров»', ko: '작가 작품 페이지 관리', icon: '▧' },
           { id: 'community', ru: 'Публикации сообщества', ko: '커뮤니티 게시글', icon: '✎' },
           { id: 'products', ru: 'Товары', ko: '상품 관리', icon: '▧' },
           { id: 'articles', ru: 'Статьи', ko: '아티클 관리', icon: '▤' },
@@ -735,6 +786,27 @@ const deleteArticle = async (article) => {
             </div>
           })}
         </div>}
+      </>}
+      {activeSection === 'artistCatalog' && <>
+        <h2>{lang === 'ru' ? 'Страница «Работы мастеров»' : '작가 작품 페이지 관리'}</h2>
+        <p className="muted">{lang === 'ru' ? 'Профили мастеров и сезонные подборки. Карточки товаров редактируются в разделе «Товары», независимые работы — в разделе «Мастера и их работы».' : '작가 프로필과 시즌 컬렉션을 관리합니다. 상품 카드는 상품 관리에서, 독립 작가 작품은 작가 및 작품에서 관리합니다.'}</p>
+        <section className="box" style={{padding:18,margin:'18px 0'}}>
+          <h3>{lang === 'ru' ? (editingArtistId ? 'Редактировать профиль мастера' : 'Добавить профиль мастера') : (editingArtistId ? '작가 프로필 수정' : '작가 프로필 추가')}</h3>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:10}}>
+            {[['name','Имя мастера'],['field','Направление (KO)'],['fieldRu','Направление (RU)'],['bio','Краткое описание (KO)'],['bioRu','Краткое описание (RU)'],['cover','URL обложки'],['story','История мастера (KO)'],['storyRu','История мастера (RU)'],['followers','Количество подписчиков']].map(([key,label])=><label key={key} style={{display:'grid',gap:5}}><span>{label}</span><input className="field" value={artistForm[key]} onChange={e=>setArtistForm(p=>({...p,[key]:e.target.value}))} /></label>)}
+          </div>
+          <label style={{display:'grid',gap:5,marginTop:10}}><span>{lang === 'ru' ? 'Новости мастера (каждая строка: дата|текст)' : '작가 소식 (한 줄에 날짜|내용)'}</span><textarea className="field" rows={4} value={artistForm.newsText} onChange={e=>setArtistForm(p=>({...p,newsText:e.target.value}))}/></label>
+          <div className="acts" style={{marginTop:12}}><button className="btn" type="button" onClick={saveArtist}>{lang === 'ru' ? 'Сохранить профиль' : '프로필 저장'}</button>{editingArtistId && <button className="btn ghost" type="button" onClick={resetArtistForm}>{lang === 'ru' ? 'Отмена' : '취소'}</button>}</div>
+        </section>
+        <h3>{lang === 'ru' ? 'Профили мастеров на странице' : '페이지의 작가 프로필'}</h3>
+        <div style={{display:'grid',gap:8}}>{(artists?.length?artists:D.artists).map(a=><div className="box" key={a.id} style={{padding:12,display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap'}}><strong>{a.name} · {a.fieldRu||a.field}</strong><div className="acts"><button className="btn ghost" type="button" onClick={()=>editArtist(a)}>{lang === 'ru'?'Редактировать':'수정'}</button><button className="btn ghost" type="button" onClick={()=>deleteArtist(a)}>{lang === 'ru'?'Удалить':'삭제'}</button></div></div>)}</div>
+        <section className="box" style={{padding:18,margin:'24px 0'}}>
+          <h3>{lang === 'ru' ? (editingCollectionId ? 'Редактировать сезонную коллекцию' : 'Добавить сезонную коллекцию') : (editingCollectionId ? '시즌 컬렉션 수정' : '시즌 컬렉션 추가')}</h3>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:10}}>{[['title','Название (KO)'],['titleRu','Название (RU)'],['desc','Описание (KO)'],['descRu','Описание (RU)'],['productIds','ID товаров через запятую']].map(([key,label])=><label key={key} style={{display:'grid',gap:5}}><span>{label}</span><input className="field" value={collectionForm[key]} onChange={e=>setCollectionForm(p=>({...p,[key]:e.target.value}))}/></label>)}</div>
+          <div className="acts" style={{marginTop:12}}><button className="btn" type="button" onClick={saveCollection}>{lang === 'ru' ? 'Сохранить коллекцию' : '컬렉션 저장'}</button>{editingCollectionId && <button className="btn ghost" type="button" onClick={resetCollectionForm}>{lang === 'ru'?'Отмена':'취소'}</button>}</div>
+        </section>
+        <h3>{lang === 'ru' ? 'Сезонные коллекции' : '시즌 컬렉션'}</h3>
+        <div style={{display:'grid',gap:8}}>{(artistCollections?.length?artistCollections:D.extras.collections).map(k=><div className="box" key={k.id} style={{padding:12,display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap'}}><span><strong>{k.titleRu||k.title}</strong><small style={{display:'block',color:'#746b63'}}>{(k.products||[]).join(', ')}</small></span><div className="acts"><button className="btn ghost" type="button" onClick={()=>editCollection(k)}>{lang === 'ru'?'Редактировать':'수정'}</button><button className="btn ghost" type="button" onClick={()=>deleteCollection(k)}>{lang === 'ru'?'Удалить':'삭제'}</button></div></div>)}</div>
       </>}
       {activeSection === 'masters' && <>
       <h2>{lang === 'ru' ? 'Заявки мастеров' : '작가 신청 관리'}</h2>
