@@ -212,6 +212,8 @@ export function Post() {
 
 export function Write() {
   useTitle('글쓰기')
+  const { lang } = useLanguage()
+  const ru = lang === 'ru'
   const nav = useNavigate(), [sp] = useSearchParams(), { user, authReady, addPost, uploadImages, toast } = useApp()
   const [imgs, setImgs] = useState([]), [busy, setBusy] = useState(false)
   const cancelRequested = useRef(false)
@@ -224,7 +226,7 @@ export function Write() {
   const removePhoto = (i) => setImgs(prev => prev.filter((_, idx) => idx !== i))
   const cancel = () => {
     if (busy) cancelRequested.current = true
-    toast(busy ? '게시를 취소하고 있어요. 잠시 기다려 주세요.' : '작성 취소')
+    toast(busy ? (ru ? 'Отмена публикации… Подождите.' : '게시 취소 중… 잠시 기다려 주세요.') : (ru ? 'Создание публикации отменено.' : '작성 취소'))
     nav('/community')
   }
   const submit = async (e) => {
@@ -252,13 +254,13 @@ export function Write() {
         <label>사진 (최대 4장)<input className="field" type="file" accept="image/*" multiple onChange={pick} disabled={busy} /></label>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {imgs.map((s, i) => <div key={i} style={{ position: 'relative' }}>
-            <img src={s} alt={`업로드한 사진 ${i + 1} 미리보기`} style={{ width: 88, height: 88, objectFit: 'cover', borderRadius: 8 }} />
-            <button type="button" className="btn ghost" onClick={() => removePhoto(i)} disabled={busy} aria-label={`사진 ${i + 1} 삭제`} style={{ position: 'absolute', top: 2, right: 2, minWidth: 28, padding: '2px 7px', borderRadius: 20, background: '#fff' }}>×</button>
+            <img src={s} alt={ru ? `Предпросмотр фото ${i + 1}` : `업로드한 사진 ${i + 1} 미리보기`} style={{ width: 88, height: 88, objectFit: 'cover', borderRadius: 8 }} />
+            <button type="button" className="btn ghost" onClick={() => removePhoto(i)} disabled={busy} aria-label={ru ? `Удалить фото ${i + 1}` : `사진 ${i + 1} 삭제`} style={{ position: 'absolute', top: 2, right: 2, minWidth: 28, padding: '2px 7px', borderRadius: 20, background: '#fff' }}>×</button>
           </div>)}
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button className="btn" disabled={busy}>{busy ? '등록 중…' : '등록하기'}</button>
-          <button type="button" className="btn ghost" onClick={cancel}>작성 취소</button>
+          <button className="btn" disabled={busy}>{busy ? (ru ? 'Публикация… (дождитесь завершения)' : '등록 중… (완료될 때까지 기다려 주세요)') : (ru ? 'Опубликовать' : '등록하기')}</button>
+          <button type="button" className="btn ghost" onClick={cancel}>{ru ? 'Отменить публикацию' : '작성 취소'}</button>
         </div>
       </form>
     </div>
