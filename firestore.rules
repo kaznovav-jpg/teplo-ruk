@@ -157,7 +157,7 @@ service cloud.firestore {
           && resource.data.artistUid == request.auth.uid
           && exists(/databases/$(database)/documents/masterProfiles/$(request.auth.uid))
           && request.resource.data.artistUid == resource.data.artistUid
-          && request.resource.data.status == resource.data.status);
+          && request.resource.data.status == 'pending');
       allow delete: if isAdmin()
         || (request.auth != null
           && resource.data.artistUid == request.auth.uid
