@@ -345,6 +345,20 @@ setAuthReady(true)
     if (F.isFirebase) return (await F.addDoc(F.collection(F.db, 'posts'), data)).id
     const id = 'u' + Date.now(); wr('hm_posts', [{ ...data, id }, ...rd('hm_posts', [])]); ping(); return id
   }
+  const updatePost = async (id, changes) => {
+    const u = UR.current
+    const post = posts.find((item) => item.id === id)
+    if (!post || (!isAdmin && post.uid !== uidOf(u))) throw new Error('Нет прав на изменение этой публикации.')
+    if (F.isFirebase) await F.updateDoc(F.doc(F.db, 'posts', id), { ...changes, updatedAt: new Date().toISOString() })
+    else { wr('hm_posts', rd('hm_posts', []).map((item) => item.id === id ? { ...item, ...changes, updatedAt: new Date().toISOString() } : item)); ping() }
+  }
+  const deletePost = async (id) => {
+    const u = UR.current
+    const post = posts.find((item) => item.id === id)
+    if (!post || (!isAdmin && post.uid !== uidOf(u))) throw new Error('Нет прав на удаление этой публикации.')
+    if (F.isFirebase) await F.deleteDoc(F.doc(F.db, 'posts', id))
+    else { wr('hm_posts', rd('hm_posts', []).filter((item) => item.id !== id)); ping() }
+  }
   const uploadImages = async (urls) => {
     const u = UR.current, authUser = F.isFirebase ? F.auth.currentUser : null
     if (!F.isFirebase || !u) return urls
@@ -511,7 +525,7 @@ cancelRes: async (id) => {
   }
 },
 
-    saveOrder, confirmOrderPayment, updateOrderFulfillment, requestOrderCancellation, reviewOrderCancellation, addPost, uploadImages, signup, login, logout, resetPw, resendVerification, updateUser,
+    saveOrder, confirmOrderPayment, updateOrderFulfillment, requestOrderCancellation, reviewOrderCancellation, addPost, updatePost, deletePost, uploadImages, signup, login, logout, resetPw, resendVerification, updateUser,
   }
   return <Ctx.Provider value={api}>{children}{msg && <div className="toast" role="status"><span>{msg}</span></div>}</Ctx.Provider>
 }
