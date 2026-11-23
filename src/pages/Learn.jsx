@@ -10,7 +10,8 @@ import { Crumb, Heart, FollowBtn, ClassCard, ArtistCard, ProductCard, Img, typeB
 export function Classes() {
   useTitle('클래스')
   const { lang } = useLanguage()
-  const { classes } = useApp()
+  const { classes, artists, products } = useApp()
+  const artistList = artists?.length ? artists : D.artists
   const ru = lang === 'ru'
   const [f, setF] = useState({ cat: '', lv: '', ty: '', kd: '' })
   const labels = ru
