@@ -80,6 +80,7 @@ export default function Home() {
             </div>
           </div>
         </div> : <p className="muted">{ru ? 'Мастер месяца скоро появится здесь.' : '이달의 작가가 곧 소개됩니다.'}</p>}
+      </div></section>
 
       <section className="sec alt"><div className="wrap two">
         <div>
