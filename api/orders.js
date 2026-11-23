@@ -91,6 +91,33 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, order: { ...savedOrder, id: orderRef.id } })
     }
 
+    if (action === 'updateStatus') {
+      const { orderId, status } = req.body || {}
+      const allowedStatuses = ['awaiting_payment', 'paid', 'preparing', 'shipped', 'delivered', 'cancelled']
+      if (!orderId || !allowedStatuses.includes(status)) return fail(res, 400, 'Некорректный статус заказа')
+      const adminSnap = await db.collection('admins').doc(decoded.uid).get()
+      if (!adminSnap.exists) return fail(res, 403, 'Только администратор может менять статус заказа')
+
+      const orderRef = db.collection('orders').doc(orderId)
+      const orderSnap = await orderRef.get()
+      if (!orderSnap.exists) return fail(res, 404, 'Заказ не найден')
+      const update = { statusUpdatedAt: Date.now() }
+      if (status === 'awaiting_payment') update.paymentStatus = 'awaiting_payment'
+      if (status === 'paid') {
+        update.paymentStatus = 'paid'
+        update.paidAt = orderSnap.data().paidAt || Date.now()
+      }
+      if (['preparing', 'shipped', 'delivered'].includes(status)) {
+        update.paymentStatus = 'paid'
+        update.paidAt = orderSnap.data().paidAt || Date.now()
+        update.fulfillmentStatus = status
+        update.fulfillmentUpdatedAt = Date.now()
+      }
+      if (status === 'cancelled') update.orderStatus = 'cancelled'
+      await orderRef.update(update)
+      return res.status(200).json({ success: true })
+    }
+
     if (action === 'delete') {
       const { orderId, restoreStock } = req.body || {}
       if (!orderId || typeof restoreStock !== 'boolean') {
