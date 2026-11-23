@@ -44,11 +44,15 @@ export function Classes() {
 }
 
 export function ClassDetail() {
-  const { id } = useParams(), nav = useNavigate(), { S, enroll, toast, classes } = useApp()
-  const c = classes.find((x) => x.id === id) || classes[0], a = D.artists.find((x) => x.id === c.artist)
-  useTitle(c.title)
-  const en = S.enrolled.some((x) => x.id === c.id), tot = c.lessons.length
-  const pct = Math.round(((S.progress[c.id] || []).length / tot) * 100), mins = c.lessons.reduce((s, l) => s + l[1], 0)
+  const { id } = useParams(), nav = useNavigate(), { S, enroll, toast, classes, artists } = useApp()
+  const c = classes.find((x) => x?.id === id) || classes[0]
+  const artistList = artists?.length ? artists : D.artists
+  const a = artistList.find((x) => x?.id === c?.artist) || artistList[0] || null
+  if (!c) return <div className="wrap empty"><p>Мастер-класс не найден.</p><Link className="btn" to="/classes">Вернуться к мастер-классам</Link></div>
+  const lessons = Array.isArray(c.lessons) ? c.lessons : []
+  useTitle(c.title || 'Мастер-класс')
+  const en = S.enrolled.some((x) => x?.id === c.id), tot = lessons.length
+  const pct = Math.round(((S.progress[c.id] || []).length / Math.max(1, tot)) * 100), mins = lessons.reduce((sum, lesson) => sum + Number(Array.isArray(lesson) ? lesson[1] : lesson?.minutes || 0), 0)
   return (
     <div className="wrap">
       <Crumb items={[<Link to="/classes">클래스</Link>, c.title]} />
@@ -58,12 +62,12 @@ export function ClassDetail() {
           <p style={{ marginTop: 18 }}>{typeBadge(c.type)}<span className="badge line">{c.kind}</span><span className="badge line">{c.level}</span></p>
           <h1 style={{ fontSize: '1.7rem', margin: '8px 0' }}>{c.title}</h1><p>{c.intro}</p>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>커리큘럼</h2>
-          <ol className="list">{c.lessons.map((l, i) => <li key={i}><span className="chip">{i + 1}강</span><span style={{ flex: 1 }}>{Array.isArray(l)?l[0]:l.title}</span><span className="muted">{Array.isArray(l)?l[1]:l.minutes}분</span></li>)}</ol>
+          <ol className="list">{lessons.map((l, i) => <li key={i}><span className="chip">{i + 1}강</span><span style={{ flex: 1 }}>{Array.isArray(l)?l[0]:l.title}</span><span className="muted">{Array.isArray(l)?l[1]:l.minutes}분</span></li>)}</ol>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>준비물</h2>
           <ul className="list">{c.kit && <li>재료키트가 함께 배송돼요.</li>}{c.materials.map((m) => <li key={m}>{m}</li>)}</ul>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>강사 소개</h2>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
-            <div style={{ flex: 1, minWidth: 200 }}><Link to={`/artists/${a.id}`}><b>{a.name}</b></Link><p className="muted">{a.field}</p><p>{a.bio}</p></div><FollowBtn a={a} />
+            <div style={{ flex: 1, minWidth: 200 }}>{a ? <><Link to={`/artists/${a.id}`}><b>{a.name}</b></Link><p className="muted">{a.field}</p><p>{a.bio}</p></> : <p className="muted">Информация о мастере пока не добавлена.</p>}</div>{a && <FollowBtn a={a} />}
           </div>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>수강 후기</h2>
           <ul className="rvs">{D.extras.reviews.map((r) => <li key={r.name}>★★★★★ <b>{r.name}</b><p>{r.text}</p></li>)}</ul>
@@ -82,19 +86,21 @@ export function ClassDetail() {
 
 export function Learn() {
   const { id } = useParams(), { S, toggleDone, setNote, toast, classes } = useApp()
-  const c = classes.find((x) => x.id === id) || classes[0]
-  useTitle(c.title + ' 수강')
+  const c = classes.find((x) => x?.id === id) || classes[0]
+  if (!c) return <div className="wrap empty"><p>클래스를 찾을 수 없어요.</p><Link className="btn" to="/classes">클래스 목록으로</Link></div>
+  const lessons = Array.isArray(c.lessons) ? c.lessons : []
+  useTitle((c.title || '클래스') + ' 수강')
   const [n, setN] = useState(0), [note, setNoteTxt] = useState(S.notes[c.id] || '')
   useEffect(() => { window.scrollTo(0, 0) }, [n])
   if (!S.enrolled.some((x) => x.id === c.id)) return <div className="wrap empty"><p>수강신청 후 학습할 수 있어요.</p><Link className="btn" style={{ marginTop: 14 }} to={`/classes/${c.id}`}>클래스 보러 가기</Link></div>
-  const L = c.lessons, done = S.progress[c.id] || [], pct = Math.round((done.length / L.length) * 100), dn = done.includes(n)
+  const L = lessons, done = S.progress[c.id] || [], pct = Math.round((done.length / Math.max(1, L.length)) * 100), dn = done.includes(n)
   return (
     <div className="wrap">
       <Crumb items={[<Link to="/classes">클래스</Link>, <Link to={`/classes/${c.id}`}>{c.title}</Link>, '수강']} />
       <h1 style={{ fontSize: '1.5rem', marginBottom: 14 }}>{c.title}</h1>
       <div className="cl">
         <div>
-          <div className="vid" style={{ backgroundImage: `url(${c.thumb})` }}><button className="play" aria-label="재생" onClick={() => toast('샘플 영상 화면이에요')}>▶</button><span className="cap">{n + 1}강 {L[n][0]}</span></div>
+          <div className="vid" style={{ backgroundImage: `url(${c.thumb})` }}><button className="play" aria-label="재생" onClick={() => toast('샘플 영상 화면이에요')}>▶</button><span className="cap">{n + 1}강 {Array.isArray(L[n]) ? L[n][0] : L[n]?.title}</span></div>
           <div className="acts" style={{ margin: '14px 0' }}>
             <button className="btn ghost" disabled={!n} onClick={() => setN(n - 1)}>이전 강</button>
             <button className={'btn' + (dn ? ' ghost' : '')} onClick={() => toggleDone(c.id, n)}>{dn ? '완료 취소' : '수강 완료 표시'}</button>
@@ -108,7 +114,7 @@ export function Learn() {
         <aside className="sum">
           <b>학습 진행률 {pct}%</b>
           <div className="prog" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="학습 진행률"><i style={{ width: pct + '%' }} /></div>
-          {L.map((l, i) => <button key={i} className={'lsn' + (i === n ? ' on' : '')} onClick={() => setN(i)}><span aria-hidden="true">{done.includes(i) ? '✔' : '○'}</span><span style={{ flex: 1 }}>{i + 1}강 {l[0]}</span><span className="muted">{l[1]}분</span></button>)}
+          {L.map((l, i) => <button key={i} className={'lsn' + (i === n ? ' on' : '')} onClick={() => setN(i)}><span aria-hidden="true">{done.includes(i) ? '✔' : '○'}</span><span style={{ flex: 1 }}>{i + 1}강 {Array.isArray(l) ? l[0] : l?.title}</span><span className="muted">{Array.isArray(l) ? l[1] : l?.minutes}분</span></button>)}
         </aside>
       </div>
     </div>
