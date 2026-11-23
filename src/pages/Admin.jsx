@@ -166,6 +166,7 @@ export default function Admin() {
 })
 
 const [classForm, setClassForm] = useState({ title:'', titleRu:'', intro:'', introRu:'', artist:'a2', price:'0', field:'뜨개질', fieldRu:'Вязание', level:'초급', levelRu:'Начальный', minutes:'60', type:'무료', typeRu:'Бесплатно', thumb:'', kind:'동영상', kindRu:'Видео', cat:'knit', kit:false, materialsText:'', lessonsText:'Подготовка и инструменты|10' })
+const [classImageUploading, setClassImageUploading] = useState(false)
 const [artistForm, setArtistForm] = useState({ id:'', name:'', field:'', fieldRu:'', bio:'', bioRu:'', cover:'', story:'', storyRu:'', followers:'0', newsText:'' })
 const [editingArtistId, setEditingArtistId] = useState(null)
 const [collectionForm, setCollectionForm] = useState({ id:'', title:'', titleRu:'', desc:'', descRu:'', productIds:'' })
@@ -198,13 +199,20 @@ const [previewArticle, setPreviewArticle] = useState(false)
   const uploadImage = async (file) => {
   if (!file) return ''
 
+  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+  if (!cloudName || !uploadPreset) {
+    alert('Не настроены параметры загрузки фотографий. Проверьте настройки Cloudinary.')
+    return ''
+  }
+
   const formData = new FormData()
   formData.append('file', file)
-  formData.append('upload_preset', 'teplo_ruk_upload')
+  formData.append('upload_preset', uploadPreset)
 
   try {
     const response = await fetch(
-      'https://api.cloudinary.com/v1_1/sfnfmwiv/image/upload',
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
       {
         method: 'POST',
         body: formData
@@ -300,6 +308,21 @@ const [previewArticle, setPreviewArticle] = useState(false)
     setClassForm({ title:item.title||'', titleRu:item.titleRu||'', intro:item.intro||'', introRu:item.introRu||'', artist:item.artist||'a2', price:String(item.price??0), field:item.field||'', fieldRu:item.fieldRu||'', level:item.level||'초급', levelRu:item.levelRu||'Начальный', minutes:String(item.minutes||60), type:item.type||'무료', typeRu:item.typeRu||'Бесплатно', thumb:item.thumb||'', kind:item.kind||'동영상', kindRu:item.kindRu||'Видео', cat:item.cat||'knit', kit:!!item.kit, materialsText:(item.materials||[]).join('\n'), lessonsText:(item.lessons||[]).map(x=>x.join('|')).join('\n') })
     window.scrollTo({top:0,behavior:'smooth'})
   }
+  const uploadClassPhoto = async (file) => {
+    if (!file) return
+    if (!file.type?.startsWith('image/')) {
+      alert('Выберите файл изображения.')
+      return
+    }
+    setClassImageUploading(true)
+    try {
+      const url = await uploadImage(file)
+      if (url) setClassForm((prev) => ({ ...prev, thumb: url }))
+    } finally {
+      setClassImageUploading(false)
+    }
+  }
+
   const saveClass = async () => {
     if (!classForm.title.trim() || !classForm.titleRu.trim()) { alert('Введите название мастер-класса на русском и корейском языках.'); return }
     if (!isFirebase) { alert('Firebase 연결이 필요합니다.'); return }
@@ -1534,6 +1557,11 @@ const deleteArticle = async (article) => {
           <label>Описание (русский)<textarea className="field" rows={3} value={classForm.introRu} onChange={e=>setClassForm(p=>({...p,introRu:e.target.value}))}/></label>
           <label>Описание (корейский)<textarea className="field" rows={3} value={classForm.intro} onChange={e=>setClassForm(p=>({...p,intro:e.target.value}))}/></label>
           <label>Ссылка на фотографию<input className="field" value={classForm.thumb} onChange={e=>setClassForm(p=>({...p,thumb:e.target.value}))} placeholder="https://..."/></label>
+          <label style={{display:'grid',gap:8}}>
+            <span>Или загрузить фотографию с компьютера</span>
+            <input className="field" type="file" accept="image/*" disabled={classImageUploading} onChange={e=>{const file=e.target.files?.[0];if(file)uploadClassPhoto(file);e.target.value=''}}/>
+            {classImageUploading&&<small className="muted">Загрузка фотографии...</small>}
+          </label>
           {classForm.thumb&&<img src={classForm.thumb} alt="" style={{width:180,maxHeight:130,objectFit:'cover',borderRadius:8}}/>}
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:10}}>
             <label>Цена (₩)<input className="field" type="number" min="0" value={classForm.price} onChange={e=>setClassForm(p=>({...p,price:e.target.value}))}/></label>
