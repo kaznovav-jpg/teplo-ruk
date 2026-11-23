@@ -19,6 +19,15 @@ export default function Admin() {
   const [customOrderReplies, setCustomOrderReplies] = useState({})
   const [sendingCustomOrderId, setSendingCustomOrderId] = useState(null)
   useEffect(() => {
+    if (!isFirebase || !isAdmin) return
+    F.getDocs(F.collection(F.db, 'classes')).then(async (snap) => {
+      if (!snap.empty) return
+      await Promise.all(D.classes.map(({ id, ...item }) =>
+        F.setDoc(F.doc(F.db, 'classes', id), item)
+      ))
+    }).catch((error) => console.error('Initial classes migration error:', error))
+  }, [isFirebase, isAdmin])
+  useEffect(() => {
     if (!isFirebase) return
     F.getDoc(F.doc(F.db, 'siteSettings', 'payment')).then((snap) => {
       if (snap.exists()) setBankForm((prev) => ({ ...prev, ...snap.data() }))
