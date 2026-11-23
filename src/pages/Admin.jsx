@@ -8,6 +8,8 @@ export default function Admin() {
   const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, adminEvents, masterApplications, artistWorks, products, articles, customOrders = [], posts = [], isFirebase } = useApp()
     const { lang } = useLanguage()
   const [activeSection, setActiveSection] = useState('overview')
+  const [communitySearch, setCommunitySearch] = useState('')
+  const [selectedCommunityAuthor, setSelectedCommunityAuthor] = useState(null)
   const [bankForm, setBankForm] = useState({ bank: '신한은행 / Shinhan Bank', account: '110 318 981600', holder: '가즈노바빅토리아' })
   const [bankSaving, setBankSaving] = useState(false)
   const [supportForm, setSupportForm] = useState({ phone: '010-5175-2515', email: 'vic-kaznova@narod.ru', hoursRu: 'будни 10:00–17:00', hoursKo: '평일 10:00~17:00', breakRu: 'Обед 12:30–13:30 · Выходные и праздники — выходные', breakKo: '점심 12:30~13:30 · 주말/공휴일 휴무' })
@@ -909,21 +911,84 @@ const deleteArticle = async (article) => {
       </>}
       {activeSection === 'community' && <>
         <h2>{lang === 'ru' ? 'Публикации сообщества' : '커뮤니티 게시글 관리'}</h2>
-        {!posts.length ? <p className="muted">{lang === 'ru' ? 'Публикаций пока нет.' : '게시글이 없습니다.'}</p> : <div style={{ display: 'grid', gap: 12 }}>
-          {posts.map((post) => <div className="box" key={post.id} style={{ padding: 16 }}>
-            <b>{post.title || (lang === 'ru' ? 'Без заголовка' : '제목 없음')}</b>
-            <p className="muted">{post.author || post.uid} · {post.board || ''}</p>
-            <p style={{ whiteSpace: 'pre-wrap' }}>{(post.body || '').slice(0, 260)}</p>
-            {post.images?.length > 0 && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{post.images.map((src, i) => <img key={i} src={src} alt="" style={{ width: 76, height: 76, objectFit: 'cover', borderRadius: 7 }} />)}</div>}
-            <div className="acts" style={{ marginTop: 10 }}>
-              <button className="btn ghost" type="button" onClick={async () => {
-                if (!window.confirm(lang === 'ru' ? 'Удалить эту публикацию? Это действие нельзя отменить.' : '이 게시글을 삭제하시겠습니까?')) return
-                try { await F.deleteDoc(F.doc(F.db, 'posts', post.id)); alert(lang === 'ru' ? 'Публикация удалена.' : '게시글이 삭제되었습니다.') }
-                catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось удалить публикацию.' : '게시글 삭제에 실패했습니다.') }
-              }}>{lang === 'ru' ? 'Удалить публикацию' : '게시글 삭제'}</button>
+        <div style={{ margin: '14px 0' }}>
+          <input
+            className="field"
+            type="search"
+            value={communitySearch}
+            onChange={(e) => { setCommunitySearch(e.target.value); setSelectedCommunityAuthor(null) }}
+            placeholder={lang === 'ru' ? 'Поиск по имени или публикации' : '작성자 이름 또는 게시글 검색'}
+            aria-label={lang === 'ru' ? 'Поиск по имени или публикации' : '작성자 이름 또는 게시글 검색'}
+          />
+        </div>
+        {(() => {
+          const query = communitySearch.trim().toLocaleLowerCase()
+          const getAuthorName = (post) => post.author || post.authorName || post.uid || (lang === 'ru' ? 'Пользователь' : '사용자')
+          const getAuthorKey = (post) => String(post.uid || post.authorUid || getAuthorName(post))
+          const authors = Object.values(posts.reduce((groups, post) => {
+            const key = getAuthorKey(post)
+            if (!groups[key]) groups[key] = { key, name: getAuthorName(post), posts: [] }
+            groups[key].posts.push(post)
+            return groups
+          }, {}))
+            .filter((author) => !query ||
+              author.name.toLocaleLowerCase().includes(query) ||
+              author.posts.some((post) => [post.title, post.body, ...(post.tags || [])].join(' ').toLocaleLowerCase().includes(query)))
+            .sort((a, b) => a.name.localeCompare(b.name, lang === 'ru' ? 'ru' : 'ko'))
+          const selectedAuthor = authors.find((author) => author.key === selectedCommunityAuthor)
+          const visiblePosts = selectedAuthor ? selectedAuthor.posts.filter((post) =>
+            !query || selectedAuthor.name.toLocaleLowerCase().includes(query) ||
+            [post.title, post.body, ...(post.tags || [])].join(' ').toLocaleLowerCase().includes(query)
+          ) : []
+          return !posts.length ? (
+            <p className="muted">{lang === 'ru' ? 'Публикаций пока нет.' : '게시글이 없습니다.'}</p>
+          ) : selectedAuthor ? (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+                <button type="button" className="btn ghost" onClick={() => setSelectedCommunityAuthor(null)}>
+                  {lang === 'ru' ? '← Все авторы' : '← 전체 작성자'}
+                </button>
+                <h3 style={{ margin: 0 }}>{selectedAuthor.name}</h3>
+              </div>
+              {!visiblePosts.length ? <p className="muted">{lang === 'ru' ? 'Публикаций не найдено.' : '게시글이 없습니다.'}</p> : (
+                <div style={{ display: 'grid', gap: 12 }}>
+                  {visiblePosts.map((post) => <div className="box" key={post.id} style={{ padding: 16 }}>
+                    <b>{post.title || (lang === 'ru' ? 'Без заголовка' : '제목 없음')}</b>
+                    <p className="muted">{post.author || post.uid} · {post.board || ''}</p>
+                    <p style={{ whiteSpace: 'pre-wrap' }}>{(post.body || '').slice(0, 260)}</p>
+                    {post.images?.length > 0 && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{post.images.map((src, i) => <img key={i} src={src} alt="" style={{ width: 76, height: 76, objectFit: 'cover', borderRadius: 7 }} />)}</div>}
+                    <div className="acts" style={{ marginTop: 10 }}>
+                      <button className="btn ghost" type="button" onClick={async () => {
+                        if (!window.confirm(lang === 'ru' ? 'Удалить эту публикацию? Это действие нельзя отменить.' : '이 게시글을 삭제하시겠습니까?')) return
+                        try {
+                          await F.deleteDoc(F.doc(F.db, 'posts', post.id))
+                          setSelectedCommunityAuthor(null)
+                          alert(lang === 'ru' ? 'Публикация удалена.' : '게시글이 삭제되었습니다.')
+                        } catch (error) {
+                          console.error(error)
+                          alert(lang === 'ru' ? 'Не удалось удалить публикацию.' : '게시글 삭제에 실패했습니다.')
+                        }
+                      }}>{lang === 'ru' ? 'Удалить публикацию' : '게시글 삭제'}</button>
+                    </div>
+                  </div>)}
+                </div>
+              )}
             </div>
-          </div>)}
-        </div>}
+          ) : (
+            <div>
+              <p className="muted">{lang === 'ru' ? 'Авторы по алфавиту' : '작성자 이름순'}</p>
+              {!authors.length ? <p className="muted">{lang === 'ru' ? 'Ничего не найдено.' : '검색 결과가 없습니다.'}</p> : (
+                <ul className="list">
+                  {authors.map((author) => <li key={author.key} style={{ padding: '10px 0' }}>
+                    <button type="button" className="btn ghost" style={{ border: 0, width: '100%', justifyContent: 'flex-start' }} onClick={() => setSelectedCommunityAuthor(author.key)}>
+                      {author.name}
+                    </button>
+                  </li>)}
+                </ul>
+              )}
+            </div>
+          )
+        })()}
       </>}
       {activeSection === 'products' && <>
             <h2>{lang === 'ru' ? 'Управление товарами' : '상품 관리'}</h2>
