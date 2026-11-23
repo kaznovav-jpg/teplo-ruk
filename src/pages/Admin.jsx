@@ -165,6 +165,10 @@ export default function Admin() {
 })
 
 const [classForm, setClassForm] = useState({ title:'', titleRu:'', intro:'', introRu:'', artist:'a2', price:'0', field:'뜨개질', fieldRu:'Вязание', level:'초급', levelRu:'Начальный', minutes:'60', type:'무료', typeRu:'Бесплатно', thumb:'', kind:'동영상', kindRu:'Видео', cat:'knit', kit:false, materialsText:'', lessonsText:'Подготовка и инструменты|10' })
+const [artistForm, setArtistForm] = useState({ id:'', name:'', field:'', fieldRu:'', bio:'', bioRu:'', cover:'', story:'', storyRu:'', followers:'0', newsText:'' })
+const [editingArtistId, setEditingArtistId] = useState(null)
+const [collectionForm, setCollectionForm] = useState({ id:'', title:'', titleRu:'', desc:'', descRu:'', productIds:'' })
+const [editingCollectionId, setEditingCollectionId] = useState(null)
 const [editingClassId, setEditingClassId] = useState(null)
 const [selectedMasterclassView, setSelectedMasterclassView] = useState('cards')
 const [editingProductId, setEditingProductId] = useState(null)
