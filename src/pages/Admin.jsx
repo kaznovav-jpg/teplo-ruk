@@ -5,9 +5,10 @@ import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 
 export default function Admin() {
-  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, adminEvents, masterApplications, artistWorks, products, articles, classes, artists, artistCollections, customOrders = [], posts = [], isFirebase } = useApp()
+  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, deleteOrder, adminEvents, masterApplications, artistWorks, products, articles, classes, artists, artistCollections, customOrders = [], posts = [], isFirebase } = useApp()
     const { lang } = useLanguage()
   const [activeSection, setActiveSection] = useState('overview')
+  const [orderToDelete, setOrderToDelete] = useState(null)
   const [communitySearch, setCommunitySearch] = useState('')
   const [selectedCommunityAuthor, setSelectedCommunityAuthor] = useState(null)
   const [bankForm, setBankForm] = useState({ bank: '신한은행 / Shinhan Bank', account: '110 318 981600', holder: '가즈노바빅토리아' })
@@ -787,6 +788,38 @@ const deleteArticle = async (article) => {
                   ))}
                 </div>
               })()}
+              <div style={{ marginTop: 14 }}>
+                <button type="button" className="btn ghost" onClick={() => setOrderToDelete(orderToDelete === o.id ? null : o.id)}>
+                  {lang === 'ru' ? 'Удалить заказ' : '주문 삭제'}
+                </button>
+                {orderToDelete === o.id && <div className="box" style={{ marginTop: 10, border: '1px solid #B8593B', display: 'grid', gap: 8 }}>
+                  <strong>{lang === 'ru' ? 'Как поступить с остатками товаров?' : '상품 재고를 어떻게 처리할까요?'}</strong>
+                  <p className="muted" style={{ margin: 0 }}>{lang === 'ru' ? 'Выберите, вернуть ли количество товаров из этого заказа на склад.' : '이 주문의 상품 수량을 재고에 복원할지 선택해 주세요.'}</p>
+                  <button type="button" className="btn" onClick={async () => {
+                    if (!window.confirm(lang === 'ru' ? 'Удалить заказ и вернуть все его товары в остаток на складе?' : '주문을 삭제하고 모든 상품 수량을 재고에 복원하시겠습니까?')) return
+                    try {
+                      await deleteOrder(o.id, true)
+                      setOrderToDelete(null)
+                      alert(lang === 'ru' ? 'Заказ удалён, товары возвращены в остаток.' : '주문이 삭제되고 상품 재고가 복원되었습니다.')
+                    } catch (error) {
+                      console.error('Order deletion error:', error)
+                      alert(lang === 'ru' ? (error.message || 'Не удалось удалить заказ.') : '주문 삭제에 실패했습니다.')
+                    }
+                  }}>{lang === 'ru' ? 'Удалить и вернуть товары на склад' : '삭제 후 재고 복원'}</button>
+                  <button type="button" className="btn ghost" onClick={async () => {
+                    if (!window.confirm(lang === 'ru' ? 'Удалить заказ без изменения остатков товаров?' : '재고 변경 없이 주문을 삭제하시겠습니까?')) return
+                    try {
+                      await deleteOrder(o.id, false)
+                      setOrderToDelete(null)
+                      alert(lang === 'ru' ? 'Заказ удалён. Остатки товаров не изменены.' : '주문이 삭제되었습니다. 재고는 변경되지 않았습니다.')
+                    } catch (error) {
+                      console.error('Order deletion error:', error)
+                      alert(lang === 'ru' ? (error.message || 'Не удалось удалить заказ.') : '주문 삭제에 실패했습니다.')
+                    }
+                  }}>{lang === 'ru' ? 'Удалить без возврата товаров' : '재고 복원 없이 삭제'}</button>
+                  <button type="button" className="btn ghost" onClick={() => setOrderToDelete(null)}>{lang === 'ru' ? 'Не удалять' : '취소'}</button>
+                </div>}
+              </div>
             </div>
           })}
         </div>}
