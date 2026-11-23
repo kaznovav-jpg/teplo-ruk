@@ -349,11 +349,21 @@ setAuthReady(true)
     const u = UR.current, authUser = F.isFirebase ? F.auth.currentUser : null
     if (!F.isFirebase || !u) return urls
     if (!authUser || !authUser.emailVerified || authUser.uid !== u.uid) throw new Error('Пожалуйста, войдите в подтверждённый аккаунт заново.')
-    return Promise.all(urls.map(async (d, i) => {
-      const r = F.ref(F.storage, `posts/${u.uid}/${Date.now()}_${i}.jpg`)
-      const upload = F.uploadString(r, d, 'data_url')
-      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Загрузка фото заняла слишком много времени. Попробуйте уменьшить фото или выбрать другое.')), 45000))
-      await Promise.race([upload, timeout]); return F.getDownloadURL(r)
+    return Promise.all(urls.map(async (dataUrl, i) => {
+      const path = `posts/${u.uid}/${Date.now()}_${i}.jpg`
+      const r = F.ref(F.storage, path)
+      const response = await fetch(dataUrl)
+      const blob = await response.blob()
+      if (!blob.size || blob.size >= 2 * 1024 * 1024) throw new Error('Фото не прошло проверку размера. Удалите его и добавьте ещё раз.')
+      const uploadTask = F.uploadBytes(r, blob, { contentType: 'image/jpeg' })
+      let timer
+      try {
+        await Promise.race([
+          uploadTask,
+          new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Загрузка фото не завершилась за 90 секунд. Проверьте подключение и настройки Firebase Storage.')), 90000) })
+        ])
+      } finally { clearTimeout(timer) }
+      return F.getDownloadURL(r)
     }))
   }
 
