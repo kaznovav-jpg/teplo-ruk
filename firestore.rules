@@ -90,8 +90,11 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.auth != null
         && request.resource.data.uid == request.auth.uid;
-      allow update, delete: if request.auth != null
-        && resource.data.uid == request.auth.uid;
+      allow update: if isAdmin()
+        || (request.auth != null && resource.data.uid == request.auth.uid
+          && request.resource.data.uid == resource.data.uid);
+      allow delete: if isAdmin()
+        || (request.auth != null && resource.data.uid == request.auth.uid);
     }
 
     match /comments/{id} {
@@ -154,7 +157,7 @@ service cloud.firestore {
           && resource.data.artistUid == request.auth.uid
           && exists(/databases/$(database)/documents/masterProfiles/$(request.auth.uid))
           && request.resource.data.artistUid == resource.data.artistUid
-          && request.resource.data.status == 'pending');
+          && request.resource.data.status == resource.data.status);
       allow delete: if isAdmin()
         || (request.auth != null
           && resource.data.artistUid == request.auth.uid
