@@ -5,7 +5,7 @@ import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 
 export default function Admin() {
-  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, adminEvents, masterApplications, artistWorks, products, articles, customOrders = [], posts = [], isFirebase } = useApp()
+  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, adminEvents, masterApplications, artistWorks, products, articles, classes, customOrders = [], posts = [], isFirebase } = useApp()
     const { lang } = useLanguage()
   const [activeSection, setActiveSection] = useState('overview')
   const [communitySearch, setCommunitySearch] = useState('')
@@ -146,6 +146,8 @@ export default function Admin() {
   published: true
 })
 
+const [classForm, setClassForm] = useState({ title:'', titleRu:'', intro:'', introRu:'', artist:'a2', price:'0', field:'뜨개질', fieldRu:'Вязание', level:'초급', levelRu:'Начальный', minutes:'60', type:'무료', typeRu:'Бесплатно', thumb:'', kind:'동영상', kindRu:'Видео', cat:'knit', kit:false, materialsText:'', lessonsText:'Подготовка и инструменты|10' })
+const [editingClassId, setEditingClassId] = useState(null)
 const [editingProductId, setEditingProductId] = useState(null)
   const [selectedProductCategory, setSelectedProductCategory] = useState('add')
   const [previewProduct, setPreviewProduct] = useState(false)
@@ -263,6 +265,28 @@ const [previewArticle, setPreviewArticle] = useState(false)
     alert('Не удалось удалить товар.')
   }
 }
+  const resetClassForm = () => {
+    setClassForm({ title:'', titleRu:'', intro:'', introRu:'', artist:'a2', price:'0', field:'뜨개질', fieldRu:'Вязание', level:'초급', levelRu:'Начальный', minutes:'60', type:'무료', typeRu:'Бесплатно', thumb:'', kind:'동영상', kindRu:'Видео', cat:'knit', kit:false, materialsText:'', lessonsText:'Подготовка и инструменты|10' })
+    setEditingClassId(null)
+  }
+  const editClass = (item) => {
+    setEditingClassId(item.id)
+    setClassForm({ title:item.title||'', titleRu:item.titleRu||'', intro:item.intro||'', introRu:item.introRu||'', artist:item.artist||'a2', price:String(item.price??0), field:item.field||'', fieldRu:item.fieldRu||'', level:item.level||'초급', levelRu:item.levelRu||'Начальный', minutes:String(item.minutes||60), type:item.type||'무료', typeRu:item.typeRu||'Бесплатно', thumb:item.thumb||'', kind:item.kind||'동영상', kindRu:item.kindRu||'Видео', cat:item.cat||'knit', kit:!!item.kit, materialsText:(item.materials||[]).join('\n'), lessonsText:(item.lessons||[]).map(x=>x.join('|')).join('\n') })
+    window.scrollTo({top:0,behavior:'smooth'})
+  }
+  const saveClass = async () => {
+    if (!classForm.title.trim() || !classForm.titleRu.trim()) { alert('Введите название мастер-класса на русском и корейском языках.'); return }
+    if (!isFirebase) { alert('Firebase 연결이 필요합니다.'); return }
+    const data = { title:classForm.title.trim(), titleRu:classForm.titleRu.trim(), intro:classForm.intro||'', introRu:classForm.introRu||'', artist:classForm.artist, price:Math.max(0,Number(classForm.price||0)), field:classForm.field, fieldRu:classForm.fieldRu, level:classForm.level, levelRu:classForm.levelRu, minutes:Math.max(1,Number(classForm.minutes||60)), type:classForm.type, typeRu:classForm.typeRu, thumb:classForm.thumb.trim(), kind:classForm.kind, kindRu:classForm.kindRu, cat:classForm.cat, kit:!!classForm.kit, materials:classForm.materialsText.split('\n').map(x=>x.trim()).filter(Boolean), lessons:classForm.lessonsText.split('\n').map(line=>{const p=line.split('|');return [p[0]?.trim()||'',Math.max(1,Number(p[1]||10))]}).filter(x=>x[0]) }
+    try { if(editingClassId) await F.setDoc(F.doc(F.db,'classes',editingClassId),data,{merge:true}); else await F.addDoc(F.collection(F.db,'classes'),data); resetClassForm(); alert('Мастер-класс сохранён. Каталог обновится автоматически.') }
+    catch(error) { console.error('Class save error:',error); alert('Не удалось сохранить мастер-класс.') }
+  }
+  const deleteClass = async (item) => {
+    if(!window.confirm('Удалить мастер-класс «'+(item.titleRu||item.title)+'»?')) return
+    try { await F.deleteDoc(F.doc(F.db,'classes',item.id)); alert('Мастер-класс удалён.') }
+    catch(error) { console.error('Class delete error:',error); alert('Не удалось удалить мастер-класс.') }
+  }
+
   const saveArticle = async () => {
   if (!articleForm.title || !articleForm.titleRu) {
     alert('Введите название статьи на двух языках.')
@@ -1287,6 +1311,40 @@ const deleteArticle = async (article) => {
         </section>
       )}
       </>}
+      {activeSection === 'masterclasses' && <>
+        <h2>{lang === 'ru' ? 'Управление каталогом мастер-классов' : '마스터클래스 카탈로그 관리'}</h2>
+        <p className="muted">{lang === 'ru' ? 'Здесь редактируются карточки на странице «Мастер-классы». Расписание занятий находится в отдельном разделе.' : '마스터클래스 페이지에 표시되는 카드 정보를 관리합니다. 수업 일정은 별도 메뉴에서 관리합니다.'}</p>
+        <section style={{display:'grid',gap:12,maxWidth:820,margin:'18px 0 28px',padding:18,border:'1px solid #E5DCD2',borderRadius:12,background:'#fff'}}>
+          <h3>{editingClassId?'Редактировать мастер-класс':'Добавить мастер-класс'}</h3>
+          <label>Название (русский)<input className="field" value={classForm.titleRu} onChange={e=>setClassForm(p=>({...p,titleRu:e.target.value}))}/></label>
+          <label>Название (корейский)<input className="field" value={classForm.title} onChange={e=>setClassForm(p=>({...p,title:e.target.value}))}/></label>
+          <label>Описание (русский)<textarea className="field" rows={3} value={classForm.introRu} onChange={e=>setClassForm(p=>({...p,introRu:e.target.value}))}/></label>
+          <label>Описание (корейский)<textarea className="field" rows={3} value={classForm.intro} onChange={e=>setClassForm(p=>({...p,intro:e.target.value}))}/></label>
+          <label>Ссылка на фотографию<input className="field" value={classForm.thumb} onChange={e=>setClassForm(p=>({...p,thumb:e.target.value}))} placeholder="https://..."/></label>
+          {classForm.thumb&&<img src={classForm.thumb} alt="" style={{width:180,maxHeight:130,objectFit:'cover',borderRadius:8}}/>}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:10}}>
+            <label>Цена (₩)<input className="field" type="number" min="0" value={classForm.price} onChange={e=>setClassForm(p=>({...p,price:e.target.value}))}/></label>
+            <label>Длительность (мин.)<input className="field" type="number" min="1" value={classForm.minutes} onChange={e=>setClassForm(p=>({...p,minutes:e.target.value}))}/></label>
+            <label>Мастер (ID из каталога)<input className="field" value={classForm.artist} onChange={e=>setClassForm(p=>({...p,artist:e.target.value}))}/></label>
+            <label>Категория<select className="field" value={classForm.cat} onChange={e=>setClassForm(p=>({...p,cat:e.target.value}))}>{[['bag','Сумки и шитьё'],['knit','Вязание'],['felt','Фетр и валяние'],['clothes','Одежда'],['deco','Декор'],['home','Для дома'],['accessory','Аксессуары']].map(x=><option key={x[0]} value={x[0]}>{x[1]}</option>)}</select></label>
+            <label>Вид рукоделия (RU)<input className="field" value={classForm.fieldRu} onChange={e=>setClassForm(p=>({...p,fieldRu:e.target.value}))}/></label>
+            <label>Вид рукоделия (KO)<input className="field" value={classForm.field} onChange={e=>setClassForm(p=>({...p,field:e.target.value}))}/></label>
+            <label>Уровень<select className="field" value={classForm.level} onChange={e=>setClassForm(p=>({...p,level:e.target.value,levelRu:e.target.value==='중급'?'Средний':'Начальный'}))}><option value="초급">Начальный</option><option value="중급">Средний</option></select></label>
+            <label>Тип оплаты<select className="field" value={classForm.type} onChange={e=>setClassForm(p=>({...p,type:e.target.value,typeRu:e.target.value==='무료'?'Бесплатно':e.target.value==='패키지'?'Набор материалов':'Платно'}))}><option value="무료">Бесплатно</option><option value="유료">Платно</option><option value="패키지">Набор материалов</option></select></label>
+            <label>Формат<select className="field" value={classForm.kind} onChange={e=>setClassForm(p=>({...p,kind:e.target.value,kindRu:e.target.value==='오프라인'?'Очно':'Видео'}))}><option value="동영상">Видео</option><option value="오프라인">Очно</option></select></label>
+          </div>
+          <label style={{display:'flex',gap:8,alignItems:'center'}}><input type="checkbox" checked={classForm.kit} onChange={e=>setClassForm(p=>({...p,kit:e.target.checked}))}/>Включён набор материалов</label>
+          <label>Материалы (каждый с новой строки)<textarea className="field" rows={3} value={classForm.materialsText} onChange={e=>setClassForm(p=>({...p,materialsText:e.target.value}))}/></label>
+          <label>Уроки: название|минуты (каждый с новой строки)<textarea className="field" rows={4} value={classForm.lessonsText} onChange={e=>setClassForm(p=>({...p,lessonsText:e.target.value}))}/></label>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" className="btn" onClick={saveClass}>{editingClassId?'Сохранить изменения':'Добавить мастер-класс'}</button>{editingClassId&&<button type="button" className="btn ghost" onClick={resetClassForm}>Отмена</button>}</div>
+        </section>
+        <h3>Карточки мастер-классов ({classes.length})</h3>
+        <div style={{display:'grid',gap:12}}>{classes.map(item=><article key={item.id} style={{display:'flex',gap:14,alignItems:'center',flexWrap:'wrap',padding:12,border:'1px solid #E5DCD2',borderRadius:10,background:'#fff'}}>
+          {item.thumb&&<img src={item.thumb} alt="" style={{width:100,height:76,objectFit:'cover',borderRadius:8}}/>}
+          <div style={{flex:1,minWidth:180}}><strong>{item.titleRu||item.title}</strong><p className="muted">{item.title}</p><small>{Number(item.price||0).toLocaleString('ko-KR')} ₩ · {item.minutes||0} мин.</small></div>
+          <button type="button" className="btn" onClick={()=>editClass(item)}>Редактировать</button><button type="button" className="btn ghost" onClick={()=>deleteClass(item)}>Удалить</button>
+        </article>)}{!classes.length&&<p className="muted">Мастер-классов пока нет.</p>}</div>
+      </>}
       {activeSection === 'articles' && <>
       <h2>{lang === 'ru' ? 'Управление статьями' : '아티클 관리'}</h2>
       {selectedArticleView === 'menu' ? (
@@ -1672,7 +1730,7 @@ const deleteArticle = async (article) => {
           </article>
         </div>
       )}
-      {(activeSection === 'schedule' || activeSection === 'masterclasses') && <>
+      {activeSection === 'schedule' && <>
 <h2>{lang === 'ru' ? 'Управление расписанием занятий' : '수업 일정 관리'}</h2>
 
 {(() => {
