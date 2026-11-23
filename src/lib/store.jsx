@@ -352,7 +352,7 @@ setAuthReady(true)
     return Promise.all(urls.map(async (d, i) => {
       const r = F.ref(F.storage, `posts/${u.uid}/${Date.now()}_${i}.jpg`)
       const upload = F.uploadString(r, d, 'data_url')
-      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Загрузка фото заняла слишком много времени. Попробуйте уменьшить фото или выбрать другое.')), 25000))
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Загрузка фото заняла слишком много времени. Попробуйте уменьшить фото или выбрать другое.')), 45000))
       await Promise.race([upload, timeout]); return F.getDownloadURL(r)
     }))
   }
