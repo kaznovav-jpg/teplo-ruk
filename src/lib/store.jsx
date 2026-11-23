@@ -375,6 +375,7 @@ setAuthReady(true)
     else { wr('hm_posts', rd('hm_posts', []).filter((item) => item.id !== id)); ping() }
   }
   const uploadImages = async (urls) => {
+    if (!urls?.length) return []
     const u = UR.current, authUser = F.isFirebase ? F.auth.currentUser : null
     if (!F.isFirebase || !u) return urls
     if (!authUser || !authUser.emailVerified || authUser.uid !== u.uid) throw new Error('Пожалуйста, войдите в подтверждённый аккаунт заново.')
