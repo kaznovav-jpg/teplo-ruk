@@ -120,8 +120,8 @@ export function Artists() {
   const { lang } = useLanguage()
   const { artistWorks, artists, products, artistCollections } = useApp()
   const pageData = { ...D, products }
-  const artistList = artists?.length ? artists : D.artists
-  const collectionList = artistCollections?.length ? artistCollections : D.extras.collections
+  const artistList = (artists?.length ? artists : D.artists).filter(Boolean)
+  const collectionList = (artistCollections?.length ? artistCollections : D.extras.collections).filter(Boolean)
   const ru = lang === 'ru'
   const [selectedWork, setSelectedWork] = useState(null)
   const categoryName = (category) => ({
@@ -188,10 +188,10 @@ export function Artists() {
 
 export function Artist() {
   const { id } = useParams(), { S, artists, products, classes } = useApp()
-  const artistList = artists?.length ? artists : D.artists
-  const a = artistList.find((x) => x.id === id) || artistList[0]
+  const artistList = (artists?.length ? artists : D.artists).filter(Boolean)
+  const a = artistList.find((x) => x?.id === id) || artistList[0]
+  useTitle(a?.name ? a.name + ' 쇼룸' : '작가 쇼룸')
   if (!a) return <div className="wrap empty"><p>Мастер пока не добавлен.</p><Link className="btn" to="/artists">Вернуться к работам мастеров</Link></div>
-  useTitle(a.name + ' 쇼룸')
   const P = products.filter((p) => p.artist === a.id), C = classes.filter((c) => c.artist === a.id)
   return (
     <>
