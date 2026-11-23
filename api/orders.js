@@ -102,13 +102,15 @@ export default async function handler(req, res) {
       const orderSnap = await orderRef.get()
       if (!orderSnap.exists) return fail(res, 404, 'Заказ не найден')
       const update = { statusUpdatedAt: Date.now() }
-      if (status === 'awaiting_payment') update.paymentStatus = 'awaiting_payment'
+      if (status === 'awaiting_payment') { update.paymentStatus = 'awaiting_payment'; update.fulfillmentStatus = null; update.orderStatus = null }
       if (status === 'paid') {
         update.paymentStatus = 'paid'
+        update.orderStatus = null
         update.paidAt = orderSnap.data().paidAt || Date.now()
       }
       if (['preparing', 'shipped', 'delivered'].includes(status)) {
         update.paymentStatus = 'paid'
+        update.orderStatus = null
         update.paidAt = orderSnap.data().paidAt || Date.now()
         update.fulfillmentStatus = status
         update.fulfillmentUpdatedAt = Date.now()
