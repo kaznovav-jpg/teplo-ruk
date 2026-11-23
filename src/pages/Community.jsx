@@ -155,13 +155,25 @@ const useAll = () => { const { posts, S } = useApp(); return { all: [...posts, .
 const cmtN = (p) => (p.thread || []).length || p.comments || 0
 
 const postTime = (p) => {
-  const value = p.at || p.createdAt || p.date || p.created_at
-  if (value == null) return 0
-  if (typeof value === 'number') return value < 1e12 ? value * 1000 : value
-  if (typeof value?.toMillis === 'function') return value.toMillis()
-  if (typeof value?.seconds === 'number') return value.seconds * 1000
-  const parsed = Date.parse(String(value).replace(/\./g, '-'))
-  return Number.isNaN(parsed) ? 0 : parsed
+  const values = [p.at, p.createdAt, p.created_at, p.timestamp, p.date]
+  for (const value of values) {
+    if (value == null || value === '') continue
+    if (typeof value === 'number' && Number.isFinite(value)) return value < 1e12 ? value * 1000 : value
+    if (typeof value?.toMillis === 'function') return value.toMillis()
+    if (typeof value?.seconds === 'number') return value.seconds * 1000
+    const raw = String(value).trim()
+    if (/^\d{10,13}$/.test(raw)) {
+      const numeric = Number(raw)
+      return raw.length === 10 ? numeric * 1000 : numeric
+    }
+    const normalized = raw.replace(/^(\d{4})[./](\d{1,2})[./](\d{1,2})$/, '$1-$2-$3')
+    const parsed = Date.parse(normalized)
+    if (!Number.isNaN(parsed)) return parsed
+  }
+  // Local-mode posts use an ID containing their creation timestamp.
+  const localId = String(p.id || '').match(/^u(\d{10,13})$/)
+  if (localId) return Number(localId[1])
+  return 0
 }
 
 export function Community() {
