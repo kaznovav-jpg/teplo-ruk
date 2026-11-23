@@ -346,11 +346,14 @@ setAuthReady(true)
     const id = 'u' + Date.now(); wr('hm_posts', [{ ...data, id }, ...rd('hm_posts', [])]); ping(); return id
   }
   const uploadImages = async (urls) => {
-    const u = UR.current
+    const u = UR.current, authUser = F.isFirebase ? F.auth.currentUser : null
     if (!F.isFirebase || !u) return urls
+    if (!authUser || !authUser.emailVerified || authUser.uid !== u.uid) throw new Error('Пожалуйста, войдите в подтверждённый аккаунт заново.')
     return Promise.all(urls.map(async (d, i) => {
       const r = F.ref(F.storage, `posts/${u.uid}/${Date.now()}_${i}.jpg`)
-      await F.uploadString(r, d, 'data_url'); return F.getDownloadURL(r)
+      const upload = F.uploadString(r, d, 'data_url')
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Загрузка фото заняла слишком много времени. Попробуйте уменьшить фото или выбрать другое.')), 25000))
+      await Promise.race([upload, timeout]); return F.getDownloadURL(r)
     }))
   }
 
