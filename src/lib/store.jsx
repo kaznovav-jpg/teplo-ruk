@@ -37,6 +37,7 @@ export function AppProvider({ children }) {
   const [adminEvents, setAdminEvents] = useState([])
  const [products, setProducts] = useState(D.products)
   const [articles, setArticles] = useState(D.articles)
+  const [classes, setClasses] = useState(D.classes)
   const [msg, setMsg] = useState('')
   const SR = useRef(S), UR = useRef(user), busy = useRef(false), tm = useRef(0)
   SR.current = S; UR.current = user
@@ -317,6 +318,10 @@ setAuthReady(true)
   )
 }, [])
   useEffect(() => {
+    if (!F.isFirebase) return
+    return F.onSnapshot(F.collection(F.db, 'classes'), (s) => setClasses(s.docs.map((d) => ({ ...d.data(), id: d.id }))), (e) => console.error('Classes error:', e))
+  }, [])
+  useEffect(() => {
   if (!F.isFirebase) return
   return F.onSnapshot(
     F.collection(F.db, 'articles'),
@@ -437,7 +442,7 @@ setAuthReady(true)
   }
 
   const api = {
-   user, authReady, isAdmin, S, orders, adminOrders, posts, adminReservations, customOrders, adminEvents, masterApplications, artistWorks, products, articles, toast, isFirebase: F.isFirebase,
+   user, authReady, isAdmin, S, orders, adminOrders, posts, adminReservations, customOrders, adminEvents, masterApplications, artistWorks, products, articles, classes, toast, isFirebase: F.isFirebase,
     cartCount: S.cart.reduce((a, b) => a + b.qty, 0),
     addCart: (it) => upd((s) => {
       const c = [...s.cart], f = c.find((x) => x.pid === it.pid && x.color === it.color && x.size === it.size)
