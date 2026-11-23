@@ -183,6 +183,21 @@ setAuthReady(true)
     })
   }
 
+  const deleteOrder = async (orderId, restoreStock) => {
+    if (!F.isFirebase) throw new Error('Firebase 연결이 필요합니다.')
+    if (typeof restoreStock !== 'boolean') throw new Error('Invalid stock restoration choice')
+    const authUser = F.auth.currentUser
+    if (!authUser) throw new Error('관리자 로그인이 필요합니다.')
+    const token = await authUser.getIdToken()
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ action: 'delete', orderId, restoreStock })
+    })
+    const result = await response.json()
+    if (!response.ok) throw new Error(result.error || 'Не удалось удалить заказ')
+  }
+
   const reviewOrderCancellation = async (orderId, decision) => {
     if (!F.isFirebase) throw new Error('Firebase 연결이 필요합니다.')
     if (!['approved', 'rejected'].includes(decision)) throw new Error('Invalid cancellation decision')
