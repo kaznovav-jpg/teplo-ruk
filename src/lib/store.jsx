@@ -319,7 +319,7 @@ setAuthReady(true)
 }, [])
   useEffect(() => {
     if (!F.isFirebase) return
-    return F.onSnapshot(F.collection(F.db, 'classes'), (s) => setClasses(s.docs.map((d) => ({ ...d.data(), id: d.id }))), (e) => console.error('Classes error:', e))
+    return F.onSnapshot(F.collection(F.db, 'classes'), (s) => setClasses(s.empty ? D.classes : s.docs.map((d) => ({ ...d.data(), id: d.id }))), (e) => console.error('Classes error:', e))
   }, [])
   useEffect(() => {
   if (!F.isFirebase) return
