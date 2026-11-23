@@ -31,7 +31,7 @@ export function ph(seed, w = 600, h = 750) {
   return 'data:image/svg+xml;base64,' + btoa(svg)
 }
 
-// Перед загрузкой автоматически оптимизируем фото: сохраняем детали и уменьшаем размер файла.
+// Автоматически уменьшаем фото до размера, который с запасом проходит ограничения Firebase Storage.
 export const shrink = (f) => new Promise((resolve, reject) => {
   const fr = new FileReader()
   fr.onerror = () => reject(new Error('Не удалось прочитать фотографию. Выберите другое фото.'))
@@ -39,28 +39,33 @@ export const shrink = (f) => new Promise((resolve, reject) => {
     const im = new Image()
     im.onerror = () => reject(new Error('Не удалось обработать фотографию. Выберите другое фото.'))
     im.onload = () => {
-      const maxSide = 1600
-      let scale = Math.min(1, maxSide / Math.max(im.width, im.height))
-      const c = document.createElement('canvas')
-      const ctx = c.getContext('2d')
+      let scale = Math.min(1, 1600 / Math.max(im.width, im.height))
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
       if (!ctx) return reject(new Error('Не удалось обработать фотографию на этом устройстве.'))
+      const maxDataUrlSize = 1.25 * 1024 * 1024
       const encode = () => {
-        c.width = Math.round(im.width * scale)
-        c.height = Math.round(im.height * scale)
-        ctx.clearRect(0, 0, c.width, c.height)
-        ctx.drawImage(im, 0, 0, c.width, c.height)
-        let quality = 0.88, data = c.toDataURL('image/jpeg', quality)
-        while (data.length > 1.65 * 1024 * 1024 && quality > 0.72) {
-          quality -= 0.05
-          data = c.toDataURL('image/jpeg', quality)
+        canvas.width = Math.max(1, Math.round(im.width * scale))
+        canvas.height = Math.max(1, Math.round(im.height * scale))
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(im, 0, 0, canvas.width, canvas.height)
+        let quality = 0.86
+        let data = canvas.toDataURL('image/jpeg', quality)
+        while (data.length > maxDataUrlSize && quality > 0.6) {
+          quality = Math.max(0.6, quality - 0.08)
+          data = canvas.toDataURL('image/jpeg', quality)
         }
-        if (data.length > 1.65 * 1024 * 1024 && scale > 0.65) {
-          scale *= 0.8
+        if (data.length > maxDataUrlSize && scale > 0.2) {
+          scale *= 0.75
           return encode()
+        }
+        if (data.length > maxDataUrlSize) {
+          reject(new Error('Не удалось уменьшить фото до допустимого размера. Выберите другое изображение.'))
+          return
         }
         resolve(data)
       }
-      encode()
+      try { encode() } catch (err) { reject(new Error('Не удалось обработать фотографию. Выберите другое фото.')) }
     }
     im.src = fr.result
   }
