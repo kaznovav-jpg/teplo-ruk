@@ -157,34 +157,64 @@ const cmtN = (p) => (p.thread || []).length || p.comments || 0
 export function Community() {
   useTitle('포토 포럼·커뮤니티')
   const [sp] = useSearchParams(), nav = useNavigate(), { user, toast } = useApp(), { all, likeN } = useAll()
+  const { lang } = useLanguage()
+  const ru = lang === 'ru'
   const [b, setB] = useState(sp.get('board') || 'wip')
-  const l = all.filter((p) => p.board === b), hot = (p) => likeN(p) >= 20 && <span className="badge">인기</span>
+  const [kw, setKw] = useState('')
+  const [selectedAuthor, setSelectedAuthor] = useState(null)
+  const l = all.filter((p) => p.board === b)
+  const hot = (p) => likeN(p) >= 20 && <span className="badge">인기</span>
   const write = () => { if (!user) { toast('로그인이 필요해요'); nav('/mypage?tab=login') } else nav('/community/write?board=' + b) }
+  const authorKey = (p) => String(p.uid || p.authorUid || p.author || 'unknown')
+  const authorName = (p) => p.author || p.authorName || (ru ? 'Пользователь' : '사용자')
+  const q = kw.trim().toLocaleLowerCase()
+  const authors = Object.values(l.reduce((acc, p) => {
+    const key = authorKey(p)
+    if (!acc[key]) acc[key] = { key, name: authorName(p), posts: [] }
+    acc[key].posts.push(p)
+    return acc
+  }, {})).filter((a) => !q || a.name.toLocaleLowerCase().includes(q) || a.posts.some((p) => [p.title, p.body, ...(p.tags || [])].join(' ').toLocaleLowerCase().includes(q)))
+    .sort((a, z) => a.name.localeCompare(z.name, ru ? 'ru' : 'ko'))
+  const activeAuthor = authors.find((a) => a.key === selectedAuthor)
+  const visiblePosts = activeAuthor ? activeAuthor.posts.filter((p) => !q || activeAuthor.name.toLocaleLowerCase().includes(q) || [p.title, p.body, ...(p.tags || [])].join(' ').toLocaleLowerCase().includes(q)) : []
   return (
     <div className="wrap">
       <Crumb items={['포토 포럼·커뮤니티']} />
-      <div className="ah" style={{ paddingTop: 0 }}><h1 style={{ fontSize: '1.8rem' }}>포토 포럼·커뮤니티</h1><button className="btn" onClick={write}>글쓰기</button></div>
-      <div className="tabs" role="tablist" style={{ overflowX: 'auto' }}>{BOARDS.map((x) => <button key={x[0]} role="tab" className={x[0] === b ? 'on' : ''} onClick={() => setB(x[0])}>{x[1]}</button>)}</div>
-      {!l.length ? <p className="empty">아직 글이 없어요. 첫 글을 남겨 보세요.</p> : isPhoto(b) ? (
-        <div className="mason">{l.map((p) => (
-          <article className="mc" key={p.id}>
-            <Link to={`/community/${p.id}`}><Img src={p.thumb} alt={p.title} seed={p.id} /></Link>
-            <div className="mi"><p><b>{p.title}</b></p><p className="muted">{p.author} · ♥ {likeN(p)} · 댓글 {cmtN(p)} {hot(p)}</p></div>
-          </article>))}
-        </div>
-      ) : (
-        <ul className="list">{l.map((p) => (
-          <li key={p.id} style={{ padding: '10px 0', flexWrap: 'wrap' }}>
+      <div className="ah" style={{ paddingTop: 0 }}><h1 style={{ fontSize: '1.8rem' }}>{ru ? 'Публикации сообщества' : '포토 포럼·커뮤니티'}</h1><button className="btn" onClick={write}>{ru ? 'Написать' : '글쓰기'}</button></div>
+      <div className="tabs" role="tablist" style={{ overflowX: 'auto' }}>{BOARDS.map((x) => <button key={x[0]} role="tab" className={x[0] === b ? 'on' : ''} onClick={() => { setB(x[0]); setSelectedAuthor(null) }}>{x[1]}</button>)}</div>
+      <div className="bar" style={{ margin: '14px 0' }}>
+        <input className="field" type="search" value={kw} onChange={(e) => { setKw(e.target.value); setSelectedAuthor(null) }} placeholder={ru ? 'Поиск по имени или публикации' : '이름 또는 게시글 검색'} aria-label={ru ? 'Поиск по имени или публикации' : '이름 또는 게시글 검색'} />
+      </div>
+      {!l.length ? <p className="empty">{ru ? 'Пока нет публикаций.' : '아직 글이 없어요.'}</p> : activeAuthor ? (
+        <>
+          <div className="ah" style={{ justifyContent: 'flex-start', gap: 12 }}>
+            <button className="btn ghost" onClick={() => setSelectedAuthor(null)}>{ru ? '← Все авторы' : '← 전체 작성자'}</button>
+            <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{activeAuthor.name}</h2>
+          </div>
+          {!visiblePosts.length ? <p className="empty">{ru ? 'По запросу ничего не найдено.' : '검색 결과가 없어요.'}</p> : isPhoto(b) ? (
+            <div className="mason">{visiblePosts.map((p) => <article className="mc" key={p.id}>
+              <Link to={`/community/${p.id}`}><Img src={p.thumb} alt={p.title} seed={p.id} /></Link>
+              <div className="mi"><p><b>{p.title}</b></p><p className="muted">♥ {likeN(p)} · 댓글 {cmtN(p)} {hot(p)}</p></div>
+            </article>)}</div>
+          ) : <ul className="list">{visiblePosts.map((p) => <li key={p.id} style={{ padding: '10px 0', flexWrap: 'wrap' }}>
             <span className="badge line">{p.tag}</span>{hot(p)}
             <Link to={`/community/${p.id}`} style={{ flex: 1, minWidth: 180 }}><b>{p.title}</b></Link>
-            <span className="muted">{p.author} · ♥ {likeN(p)} · 💬 {cmtN(p)}</span>
-          </li>))}
-        </ul>
+            <span className="muted">♥ {likeN(p)} · 💬 {cmtN(p)}</span>
+          </li>)}</ul>}
+        </>
+      ) : (
+        <>
+          <p className="muted" style={{ marginBottom: 12 }}>{ru ? 'Авторы по алфавиту' : '작성자 이름순'}</p>
+          {!authors.length ? <p className="empty">{ru ? 'Ничего не найдено.' : '검색 결과가 없어요.'}</p> : <ul className="list">{authors.map((a) => (
+            <li key={a.key} style={{ padding: '13px 0' }}>
+              <button type="button" className="btn ghost" style={{ border: 0, justifyContent: 'flex-start', width: '100%' }} onClick={() => setSelectedAuthor(a.key)}>{a.name}</button>
+            </li>
+          ))}</ul>}
+        </>
       )}
     </div>
   )
 }
-
 export function Post() {
   const { id } = useParams(), nav = useNavigate()
   const { user, isAdmin, S, toggleLike, toast, updatePost, deletePost } = useApp()
