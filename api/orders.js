@@ -134,7 +134,8 @@ export default async function handler(req, res) {
         if (!orderSnap.exists) throw new Error('ORDER_NOT_FOUND')
         const order = orderSnap.data()
 
-        if (restoreStock) {
+        const stockAlreadyRestored = Boolean(order.stockRestoredAt || order.cancellationRequest?.status === 'approved')
+        if (restoreStock && !stockAlreadyRestored) {
           const quantities = new Map()
           for (const item of (order.items || [])) {
             const pid = String(item.pid || '')
@@ -196,7 +197,8 @@ export default async function handler(req, res) {
           transaction.update(orderRef, {
             'cancellationRequest.status': 'approved',
             orderStatus: 'cancelled',
-            cancellationReviewedAt: Date.now()
+            cancellationReviewedAt: Date.now(),
+            stockRestoredAt: Date.now()
           })
         } else {
           transaction.update(orderRef, {
