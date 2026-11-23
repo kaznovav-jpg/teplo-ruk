@@ -154,18 +154,54 @@ export function Article() {
 const useAll = () => { const { posts, S } = useApp(); return { all: [...posts, ...D.posts], likeN: (p) => (p.likes || 0) + (S.likes.includes(p.id) ? 1 : 0) } }
 const cmtN = (p) => (p.thread || []).length || p.comments || 0
 
+const postTime = (p) => {
+  const value = p.at || p.createdAt || p.date || p.created_at
+  if (value == null) return 0
+  if (typeof value === 'number') return value < 1e12 ? value * 1000 : value
+  if (typeof value?.toMillis === 'function') return value.toMillis()
+  if (typeof value?.seconds === 'number') return value.seconds * 1000
+  const parsed = Date.parse(String(value).replace(/\./g, '-'))
+  return Number.isNaN(parsed) ? 0 : parsed
+}
+
 export function Community() {
   useTitle('포토 포럼·커뮤니티')
   const [sp] = useSearchParams(), nav = useNavigate(), { user, toast } = useApp(), { all, likeN } = useAll()
   const [b, setB] = useState(sp.get('board') || 'wip')
-  const l = all.filter((p) => p.board === b), hot = (p) => likeN(p) >= 20 && <span className="badge">인기</span>
+  const [keywords, setKeywords] = useState({})
+  const keyword = keywords[b] || ''
+  const hot = (p) => likeN(p) >= 20 && <span className="badge">인기</span>
+  const l = all
+    .filter((p) => p.board === b)
+    .sort((a, z) => postTime(z) - postTime(a))
+    .filter((p) => {
+      if (!keyword.trim()) return true
+      const haystack = [p.id, p.title, p.body, p.author, p.tag, ...(p.tags || []), p.date, p.at, p.likes, cmtN(p)]
+        .filter((value) => value != null)
+        .join(' ')
+        .toLocaleLowerCase()
+      return haystack.includes(keyword.trim().toLocaleLowerCase())
+    })
   const write = () => { if (!user) { toast('로그인이 필요해요'); nav('/mypage?tab=login') } else nav('/community/write?board=' + b) }
   return (
     <div className="wrap">
       <Crumb items={['포토 포럼·커뮤니티']} />
       <div className="ah" style={{ paddingTop: 0 }}><h1 style={{ fontSize: '1.8rem' }}>포토 포럼·커뮤니티</h1><button className="btn" onClick={write}>글쓰기</button></div>
-      <div className="tabs" role="tablist" style={{ overflowX: 'auto' }}>{BOARDS.map((x) => <button key={x[0]} role="tab" className={x[0] === b ? 'on' : ''} onClick={() => setB(x[0])}>{x[1]}</button>)}</div>
-      {!l.length ? <p className="empty">아직 글이 없어요. 첫 글을 남겨 보세요.</p> : isPhoto(b) ? (
+      <div className="tabs" role="tablist" style={{ overflowX: 'auto' }}>{BOARDS.map((x) => <button key={x[0]} role="tab" aria-selected={x[0] === b} className={x[0] === b ? 'on' : ''} onClick={() => setB(x[0])}>{x[1]}</button>)}</div>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', margin: '14px 0' }}>
+        <input
+          className="field"
+          type="search"
+          value={keyword}
+          onChange={(e) => setKeywords((prev) => ({ ...prev, [b]: e.target.value }))}
+          placeholder="Поиск по словам или цифрам"
+          aria-label="Поиск публикаций в выбранном подразделе"
+          style={{ flex: 1, minWidth: 0 }}
+        />
+        {keyword && <button type="button" className="btn ghost" onClick={() => setKeywords((prev) => ({ ...prev, [b]: '' }))}>Очистить</button>}
+      </div>
+      <p className="muted" style={{ marginBottom: 12 }}>Найдено: {l.length}</p>
+      {!l.length ? <p className="empty">{keyword ? 'По вашему запросу ничего не найдено.' : 'Пока нет публикаций. Будьте первым!'}</p> : isPhoto(b) ? (
         <div className="mason">{l.map((p) => (
           <article className="mc" key={p.id}>
             <Link to={`/community/${p.id}`}><Img src={p.thumb} alt={p.title} seed={p.id} /></Link>
