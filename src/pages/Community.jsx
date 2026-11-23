@@ -226,7 +226,7 @@ export function Write() {
       const tags = f.tags.value.split(',').map((t) => t.trim()).filter(Boolean), urls = await uploadImages(imgs)
       const id = await addPost({ board: b, title: f.title.value.trim(), tag: tags[0] || BOARDS.find((x) => x[0] === b)[1], tags, body: f.body.value.trim(), images: urls, thumb: urls[0] || '' })
       toast('글을 등록했어요'); nav('/community/' + id)
-    } catch (err) { console.error(err); toast('글을 등록하지 못했어요'); setBusy(false) }
+    } catch (err) { console.error('Community publish error:', err); toast(err?.message || '글을 등록하지 못했어요'); setBusy(false) }
   }
   return (
     <div className="wrap sec" style={{ maxWidth: 680 }}>
