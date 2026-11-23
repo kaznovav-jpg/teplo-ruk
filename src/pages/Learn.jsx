@@ -58,7 +58,7 @@ export function ClassDetail() {
           <p style={{ marginTop: 18 }}>{typeBadge(c.type)}<span className="badge line">{c.kind}</span><span className="badge line">{c.level}</span></p>
           <h1 style={{ fontSize: '1.7rem', margin: '8px 0' }}>{c.title}</h1><p>{c.intro}</p>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>커리큘럼</h2>
-          <ol className="list">{c.lessons.map((l, i) => <li key={i}><span className="chip">{i + 1}강</span><span style={{ flex: 1 }}>{l[0]}</span><span className="muted">{l[1]}분</span></li>)}</ol>
+          <ol className="list">{c.lessons.map((l, i) => <li key={i}><span className="chip">{i + 1}강</span><span style={{ flex: 1 }}>{Array.isArray(l)?l[0]:l.title}</span><span className="muted">{Array.isArray(l)?l[1]:l.minutes}분</span></li>)}</ol>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>준비물</h2>
           <ul className="list">{c.kit && <li>재료키트가 함께 배송돼요.</li>}{c.materials.map((m) => <li key={m}>{m}</li>)}</ul>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>강사 소개</h2>
