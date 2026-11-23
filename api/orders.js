@@ -91,6 +91,47 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, order: { ...savedOrder, id: orderRef.id } })
     }
 
+    if (action === 'delete') {
+      const { orderId, restoreStock } = req.body || {}
+      if (!orderId || typeof restoreStock !== 'boolean') {
+        return fail(res, 400, 'Некорректный запрос')
+      }
+      const adminSnap = await db.collection('admins').doc(decoded.uid).get()
+      if (!adminSnap.exists) return fail(res, 403, 'Только администратор может удалить заказ')
+
+      const orderRef = db.collection('orders').doc(orderId)
+      await db.runTransaction(async (transaction) => {
+        const orderSnap = await transaction.get(orderRef)
+        if (!orderSnap.exists) throw new Error('ORDER_NOT_FOUND')
+        const order = orderSnap.data()
+
+        if (restoreStock) {
+          const quantities = new Map()
+          for (const item of (order.items || [])) {
+            const pid = String(item.pid || '')
+            const qty = Number(item.qty)
+            if (pid && Number.isInteger(qty) && qty > 0) {
+              quantities.set(pid, (quantities.get(pid) || 0) + qty)
+            }
+          }
+          const entries = Array.from(quantities.entries())
+          const productRefs = entries.map(([pid]) => db.collection('products').doc(pid))
+          const productSnaps = await Promise.all(productRefs.map((ref) => transaction.get(ref)))
+
+          productSnaps.forEach((snap, index) => {
+            if (snap.exists) {
+              const currentStock = Number(snap.data().stock || 0)
+              const nextStock = currentStock + entries[index][1]
+              transaction.update(productRefs[index], { stock: nextStock, soldOut: nextStock <= 0 })
+            }
+          })
+        }
+
+        transaction.delete(orderRef)
+      })
+      return res.status(200).json({ success: true, restoredStock: restoreStock })
+    }
+
     if (action === 'reviewCancellation') {
       const { orderId, decision } = req.body || {}
       if (!orderId || !['approved', 'rejected'].includes(decision)) {
