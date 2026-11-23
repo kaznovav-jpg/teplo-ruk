@@ -48,9 +48,9 @@ export function ClassDetail() {
   const c = classes.find((x) => x?.id === id) || classes[0]
   const artistList = artists?.length ? artists : D.artists
   const a = artistList.find((x) => x?.id === c?.artist) || artistList[0] || null
+  useTitle(c?.title || 'Мастер-класс')
   if (!c) return <div className="wrap empty"><p>Мастер-класс не найден.</p><Link className="btn" to="/classes">Вернуться к мастер-классам</Link></div>
   const lessons = Array.isArray(c.lessons) ? c.lessons : []
-  useTitle(c.title || 'Мастер-класс')
   const en = S.enrolled.some((x) => x?.id === c.id), tot = lessons.length
   const pct = Math.round(((S.progress[c.id] || []).length / Math.max(1, tot)) * 100), mins = lessons.reduce((sum, lesson) => sum + Number(Array.isArray(lesson) ? lesson[1] : lesson?.minutes || 0), 0)
   return (
@@ -64,7 +64,7 @@ export function ClassDetail() {
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>커리큘럼</h2>
           <ol className="list">{lessons.map((l, i) => <li key={i}><span className="chip">{i + 1}강</span><span style={{ flex: 1 }}>{Array.isArray(l)?l[0]:l.title}</span><span className="muted">{Array.isArray(l)?l[1]:l.minutes}분</span></li>)}</ol>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>준비물</h2>
-          <ul className="list">{c.kit && <li>재료키트가 함께 배송돼요.</li>}{c.materials.map((m) => <li key={m}>{m}</li>)}</ul>
+          <ul className="list">{c.kit && <li>재료키트가 함께 배송돼요.</li>}{(Array.isArray(c.materials) ? c.materials : []).map((m) => <li key={m}>{m}</li>)}</ul>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>강사 소개</h2>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
             <div style={{ flex: 1, minWidth: 200 }}>{a ? <><Link to={`/artists/${a.id}`}><b>{a.name}</b></Link><p className="muted">{a.field}</p><p>{a.bio}</p></> : <p className="muted">Информация о мастере пока не добавлена.</p>}</div>{a && <FollowBtn a={a} />}
@@ -87,10 +87,10 @@ export function ClassDetail() {
 export function Learn() {
   const { id } = useParams(), { S, toggleDone, setNote, toast, classes } = useApp()
   const c = classes.find((x) => x?.id === id) || classes[0]
+  useTitle((c?.title || '클래스') + ' 수강')
+  const [n, setN] = useState(0), [note, setNoteTxt] = useState(c ? (S.notes[c.id] || '') : '')
+  const lessons = Array.isArray(c?.lessons) ? c.lessons : []
   if (!c) return <div className="wrap empty"><p>클래스를 찾을 수 없어요.</p><Link className="btn" to="/classes">클래스 목록으로</Link></div>
-  const lessons = Array.isArray(c.lessons) ? c.lessons : []
-  useTitle((c.title || '클래스') + ' 수강')
-  const [n, setN] = useState(0), [note, setNoteTxt] = useState(S.notes[c.id] || '')
   useEffect(() => { window.scrollTo(0, 0) }, [n])
   if (!S.enrolled.some((x) => x.id === c.id)) return <div className="wrap empty"><p>수강신청 후 학습할 수 있어요.</p><Link className="btn" style={{ marginTop: 14 }} to={`/classes/${c.id}`}>클래스 보러 가기</Link></div>
   const L = lessons, done = S.progress[c.id] || [], pct = Math.round((done.length / Math.max(1, L.length)) * 100), dn = done.includes(n)
