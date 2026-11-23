@@ -38,6 +38,8 @@ export function AppProvider({ children }) {
  const [products, setProducts] = useState(D.products)
   const [articles, setArticles] = useState(D.articles)
   const [classes, setClasses] = useState(D.classes)
+  const [artists, setArtists] = useState(D.artists)
+  const [artistCollections, setArtistCollections] = useState(D.extras.collections)
   const [msg, setMsg] = useState('')
   const SR = useRef(S), UR = useRef(user), busy = useRef(false), tm = useRef(0)
   SR.current = S; UR.current = user
@@ -322,6 +324,14 @@ setAuthReady(true)
     return F.onSnapshot(F.collection(F.db, 'classes'), (s) => setClasses(s.empty ? D.classes : s.docs.map((d) => ({ ...d.data(), id: d.id }))), (e) => console.error('Classes error:', e))
   }, [])
   useEffect(() => {
+    if (!F.isFirebase) return
+    return F.onSnapshot(F.collection(F.db, 'artists'), (s) => setArtists(s.empty ? D.artists : s.docs.map((d) => ({ ...d.data(), id: d.id }))), (e) => console.error('Artists error:', e))
+  }, [])
+  useEffect(() => {
+    if (!F.isFirebase) return
+    return F.onSnapshot(F.collection(F.db, 'artistCollections'), (s) => setArtistCollections(s.empty ? D.extras.collections : s.docs.map((d) => ({ ...d.data(), id: d.id }))), (e) => console.error('Artist collections error:', e))
+  }, [])
+  useEffect(() => {
   if (!F.isFirebase) return
   return F.onSnapshot(
     F.collection(F.db, 'articles'),
@@ -442,7 +452,7 @@ setAuthReady(true)
   }
 
   const api = {
-   user, authReady, isAdmin, S, orders, adminOrders, posts, adminReservations, customOrders, adminEvents, masterApplications, artistWorks, products, articles, classes, toast, isFirebase: F.isFirebase,
+   user, authReady, isAdmin, S, orders, adminOrders, posts, adminReservations, customOrders, adminEvents, masterApplications, artistWorks, products, articles, classes, artists, artistCollections, toast, isFirebase: F.isFirebase,
     cartCount: S.cart.reduce((a, b) => a + b.qty, 0),
     addCart: (it) => upd((s) => {
       const c = [...s.cart], f = c.find((x) => x.pid === it.pid && x.color === it.color && x.size === it.size)
