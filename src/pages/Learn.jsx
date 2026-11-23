@@ -117,7 +117,10 @@ export function Learn() {
 export function Artists() {
   useTitle('작가 작품')
   const { lang } = useLanguage()
-  const { artistWorks } = useApp()
+  const { artistWorks, artists, products, artistCollections } = useApp()
+  const pageData = { ...D, products }
+  const artistList = artists?.length ? artists : D.artists
+  const collectionList = artistCollections?.length ? artistCollections : D.extras.collections
   const ru = lang === 'ru'
   const [selectedWork, setSelectedWork] = useState(null)
   const categoryName = (category) => ({
@@ -138,7 +141,7 @@ export function Artists() {
     <div className="wrap">
       <Crumb items={['작가 작품']} />
       <h1 style={{ fontSize: '1.8rem', marginBottom: 18 }}>작가 작품</h1>
-      <div className="grid g3">{D.artists.map((a) => <ArtistCard key={a.id} a={a} D={D} />)}</div>
+      <div className="grid g3">{artistList.map((a) => <ArtistCard key={a.id} a={a} D={pageData} />)}</div>
       <h2 className="mt" style={{ fontSize: '1.3rem' }}>{ru ? 'Работы независимых мастеров' : '입점 작가 작품'}</h2>
       {artistWorks.length ? <div className="grid g4" style={{ marginTop: 14 }}>{artistWorks.map((work) => <article
         className="box" key={work.id} role="button" tabIndex={0}
@@ -171,10 +174,10 @@ export function Artists() {
         </div>
       </div>}
       <div className="mt"><div className="sec-h"><h2>시즌 기획전</h2></div>
-        {D.extras.collections.map((k) => (
+        {collectionList.map((k) => (
           <section key={k.id} style={{ marginBottom: 36 }}>
             <h3 style={{ fontSize: '1.25rem' }}>{k.title}</h3><p className="muted">{k.desc}</p>
-            <div className="grid g4" style={{ marginTop: 14 }}>{k.products.map((id) => <ProductCard key={id} p={D.products.find((p) => p.id === id)} D={D} />)}</div>
+            <div className="grid g4" style={{ marginTop: 14 }}>{k.products.map((id) => <ProductCard key={id} p={products.find((p) => p.id === id)} D={pageData} />)}</div>
           </section>
         ))}
       </div>
@@ -183,10 +186,11 @@ export function Artists() {
 }
 
 export function Artist() {
-  const { id } = useParams(), { S } = useApp()
-  const a = D.artists.find((x) => x.id === id) || D.artists[0]
+  const { id } = useParams(), { S, artists, products, classes } = useApp()
+  const artistList = artists?.length ? artists : D.artists
+  const a = artistList.find((x) => x.id === id) || artistList[0]
   useTitle(a.name + ' 쇼룸')
-  const P = D.products.filter((p) => p.artist === a.id), C = D.classes.filter((c) => c.artist === a.id)
+  const P = products.filter((p) => p.artist === a.id), C = classes.filter((c) => c.artist === a.id)
   return (
     <>
       <div className="cover"><Img src={a.cover} alt={`${a.name} 쇼룸 커버 이미지`} seed={a.id} w={1200} h={600} loading="eager" /></div>
