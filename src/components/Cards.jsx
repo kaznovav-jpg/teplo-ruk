@@ -35,17 +35,20 @@ export const followers = (a, S) => (a.followers + (S.follows.includes(a.id) ? 1 
 
 export function ProductCard({ p, D }) {
   const { lang } = useLanguage()
+  if (!p) return null
   const name = lang === 'ru' ? (p.nameRu || p.name) : p.name
+  const images = Array.isArray(p.images) ? p.images : []
+  const badges = Array.isArray(p.badges) ? p.badges : []
 
   return (
     <article className="card">
       <Link to={`/product/${p.id}`}>
         <div className="thumb">
-          {p.images.slice(0, 2).map((s, i) => <Img key={i} src={s} alt={`${p.name} ${i ? '두 번째 컷' : '대표 이미지'}`} seed={p.id + i} />)}
+          {images.slice(0, 2).map((s, i) => <Img key={i} src={s} alt={`${p.name} ${i ? '두 번째 컷' : '대표 이미지'}`} seed={p.id + i} />)}
           {(p.soldOut || Number(p.stock || 0) <= 0) && <div className="so">{lang === 'ru' ? 'Нет в наличии' : '품절'}</div>}
         </div>
       </Link>
-     <div className="bd">{p.badges.map((b) => <span key={b} className="badge">{lang === 'ru' ? ({ 주문제작: 'На заказ', 품절: 'Нет в наличии' }[b] || b) : b}</span>)}</div>
+     <div className="bd">{badges.map((b) => <span key={b} className="badge">{lang === 'ru' ? ({ 주문제작: 'На заказ', 품절: 'Нет в наличии' }[b] || b) : b}</span>)}</div>
       <Link to={`/product/${p.id}`}><p className="ar">{artistName(D, p.artist, lang)}</p><p className="nm">{name}</p><p className="pr">{won(p.price, lang)}</p></Link>
       <Heart id={p.id} label={p.name} />
     </article>
@@ -97,6 +100,9 @@ export function ArticleCard({ a }) {
 
 export function ArtistCard({ a, D }) {
   const { S } = useApp()
+  if (!a) return null
+  const productIds = Array.isArray(a.products) ? a.products : []
+  const productList = Array.isArray(D?.products) ? D.products : []
   return (
     <article className="card">
       <Link to={`/artists/${a.id}`}>
@@ -106,7 +112,7 @@ export function ArtistCard({ a, D }) {
         <p className="muted" style={{ margin: '6px 0 10px' }}>{a.bio}</p>
       </Link>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 12 }}>
-        {a.products.slice(0, 3).map((id) => { const p = D.products.find((x) => x.id === id); return <Link key={id} to={`/product/${id}`}><div className="thumb sq"><Img src={p.images[0]} alt={p.name} seed={id} /></div></Link> })}
+        {productIds.slice(0, 3).map((id) => { const p = productList.find((x) => x.id === id); return p ? <Link key={id} to={`/product/${id}`}><div className="thumb sq"><Img src={p.images?.[0]} alt={p.name || ''} seed={id} /></div></Link> : null })}
       </div>
       <FollowBtn a={a} />
       <Heart id={a.id} label={`${a.name} 작가`} />
