@@ -5,7 +5,7 @@ import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 
 export default function Admin() {
-  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, adminEvents, masterApplications, artistWorks, products, articles, customOrders = [], isFirebase } = useApp()
+  const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, adminEvents, masterApplications, artistWorks, products, articles, customOrders = [], posts = [], isFirebase } = useApp()
     const { lang } = useLanguage()
   const [activeSection, setActiveSection] = useState('overview')
   const [bankForm, setBankForm] = useState({ bank: '신한은행 / Shinhan Bank', account: '110 318 981600', holder: '가즈노바빅토리아' })
@@ -128,6 +128,7 @@ export default function Admin() {
   const [selectedScheduleMonth, setSelectedScheduleMonth] = useState(String(new Date().getMonth() + 1).padStart(2, '0'))
   const [showScheduleForm, setShowScheduleForm] = useState(false)
   const [previewWork, setPreviewWork] = useState(null)
+  const [editingArtistWork, setEditingArtistWork] = useState(null)
   const [productForm, setProductForm] = useState({
   name: '',
   nameRu: '',
@@ -560,6 +561,7 @@ const deleteArticle = async (article) => {
           { id: 'overview', ru: 'Обзор', ko: '대시보드', icon: '⌂' },
           { id: 'orders', ru: 'Заказы и оплата', ko: '주문 및 결제', icon: '₩' },
           { id: 'masters', ru: 'Мастера и их работы', ko: '작가 및 작품', icon: '✿' },
+          { id: 'community', ru: 'Публикации сообщества', ko: '커뮤니티 게시글', icon: '✎' },
           { id: 'products', ru: 'Товары', ko: '상품 관리', icon: '▧' },
           { id: 'articles', ru: 'Статьи', ko: '아티클 관리', icon: '▤' },
           { id: 'schedule', ru: 'Расписание', ko: '수업 일정', icon: '▦' },
@@ -836,6 +838,7 @@ const deleteArticle = async (article) => {
                   <p className="muted">{lang === 'ru' ? 'Статус: ' : '상태: '}{work.status === 'approved' ? (lang === 'ru' ? 'Опубликована' : '공개') : work.status === 'rejected' ? (lang === 'ru' ? 'Отклонена' : '수정 요청') : (lang === 'ru' ? 'На проверке' : '검토 중')}</p>
                   <div className="acts">
                     <button className="btn ghost" onClick={() => setPreviewWork(work)}>{lang === 'ru' ? 'Предпросмотр' : '미리보기'}</button>
+                    <button className="btn ghost" type="button" onClick={() => setEditingArtistWork(work)}>{lang === 'ru' ? 'Редактировать' : '수정'}</button>
                     {work.status !== 'approved' && <button className="btn" onClick={async () => { try { await F.setDoc(F.doc(F.db, 'artistWorks', work.id), { status: 'approved', reviewedAt: new Date().toISOString() }, { merge: true }); alert(lang === 'ru' ? 'Работа опубликована.' : '작품이 공개되었습니다.') } catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось одобрить работу.' : '승인에 실패했습니다.') } }}>{lang === 'ru' ? 'Одобрить и опубликовать' : '승인 및 공개'}</button>}
                     {work.status === 'approved' && <button className="btn ghost" onClick={async () => { try { await F.setDoc(F.doc(F.db, 'artistWorks', work.id), { status: 'rejected', reviewedAt: new Date().toISOString() }, { merge: true }); alert(lang === 'ru' ? 'Работа снята с публикации.' : '작품 공개가 중단되었습니다.') } catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось изменить статус.' : '상태 변경에 실패했습니다.') } }}>{lang === 'ru' ? 'Снять с публикации' : '공개 중단'}</button>}
                     {work.status !== 'rejected' && <button className="btn ghost" onClick={async () => { try { await F.setDoc(F.doc(F.db, 'artistWorks', work.id), { status: 'rejected', reviewedAt: new Date().toISOString() }, { merge: true }); alert(lang === 'ru' ? 'Работа возвращена на доработку.' : '수정 요청으로 변경되었습니다.') } catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось изменить статус.' : '상태 변경에 실패했습니다.') } }}>{lang === 'ru' ? 'Отклонить' : '수정 요청'}</button>}
@@ -848,6 +851,31 @@ const deleteArticle = async (article) => {
         </section>
       )}
       </>}
+      {editingArtistWork && (
+        <div role="dialog" aria-modal="true" aria-label={lang === 'ru' ? 'Редактирование работы' : '작품 수정'} style={{ position: 'fixed', inset: 0, zIndex: 1001, background: 'rgba(30,25,22,.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18, overflowY: 'auto' }}>
+          <form className="box" onSubmit={async (event) => {
+            event.preventDefault()
+            const form = event.currentTarget
+            const changes = { title: form.title.value.trim(), titleRu: form.titleRu.value.trim(), description: form.description.value.trim(), descriptionRu: form.descriptionRu.value.trim(), price: Number(form.price.value || 0), category: form.category.value, image: form.image.value.trim() }
+            if (!changes.title || !changes.image || !Number.isFinite(changes.price) || changes.price < 0) { alert(lang === 'ru' ? 'Проверьте название, фото и цену.' : '제목, 사진, 가격을 확인해 주세요.'); return }
+            try {
+              await F.setDoc(F.doc(F.db, 'artistWorks', editingArtistWork.id), { ...changes, updatedAt: new Date().toISOString() }, { merge: true })
+              setEditingArtistWork(null)
+              alert(lang === 'ru' ? 'Работа обновлена.' : '작품이 수정되었습니다.')
+            } catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось сохранить работу.' : '작품 저장에 실패했습니다.') }
+          }} style={{ width: '100%', maxWidth: 620, maxHeight: '92vh', overflowY: 'auto', padding: 22, background: '#fff' }}>
+            <h2>{lang === 'ru' ? 'Редактирование работы мастера' : '작가 작품 수정'}</h2>
+            <label>{lang === 'ru' ? 'Название (корейский/основное)' : '작품명'}<input className="field" name="title" defaultValue={editingArtistWork.title || ''} required /></label>
+            <label>{lang === 'ru' ? 'Название на русском' : '러시아어 작품명'}<input className="field" name="titleRu" defaultValue={editingArtistWork.titleRu || ''} /></label>
+            <label>{lang === 'ru' ? 'Описание' : '설명'}<textarea className="field" name="description" rows={3} defaultValue={editingArtistWork.description || ''} /></label>
+            <label>{lang === 'ru' ? 'Описание на русском' : '러시아어 설명'}<textarea className="field" name="descriptionRu" rows={3} defaultValue={editingArtistWork.descriptionRu || ''} /></label>
+            <label>{lang === 'ru' ? 'Цена (₩)' : '가격 (₩)'}<input className="field" name="price" type="number" min="0" defaultValue={editingArtistWork.price || 0} /></label>
+            <label>{lang === 'ru' ? 'Категория' : '카테고리'}<select className="field" name="category" defaultValue={editingArtistWork.category || 'accessory'}>{[['accessory','Аксессуары / 액세서리'],['bag','Сумки / 가방'],['home','Для дома / 홈'],['clothes','Одежда / 의류'],['knit','Вязание / 뜨개'],['embroidery','Вышивка / 자수']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select></label>
+            <label>{lang === 'ru' ? 'Ссылка на фотографию' : '사진 URL'}<input className="field" name="image" defaultValue={editingArtistWork.image || ''} required /></label>
+            <div className="acts" style={{ marginTop: 16 }}><button className="btn">{lang === 'ru' ? 'Сохранить' : '저장'}</button><button className="btn ghost" type="button" onClick={() => setEditingArtistWork(null)}>{lang === 'ru' ? 'Отмена' : '취소'}</button></div>
+          </form>
+        </div>
+      )}
       {previewWork && (
         <div role="dialog" aria-modal="true" aria-label={lang === 'ru' ? 'Предпросмотр публикации' : '게시 미리보기'} onClick={() => setPreviewWork(null)} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(30, 25, 22, .65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, overflowY: 'auto' }}>
           <div className="box" onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', padding: 22, background: '#fff' }}>
@@ -878,6 +906,24 @@ const deleteArticle = async (article) => {
           </div>
         </div>
       )}
+      </>}
+      {activeSection === 'community' && <>
+        <h2>{lang === 'ru' ? 'Публикации сообщества' : '커뮤니티 게시글 관리'}</h2>
+        {!posts.length ? <p className="muted">{lang === 'ru' ? 'Публикаций пока нет.' : '게시글이 없습니다.'}</p> : <div style={{ display: 'grid', gap: 12 }}>
+          {posts.map((post) => <div className="box" key={post.id} style={{ padding: 16 }}>
+            <b>{post.title || (lang === 'ru' ? 'Без заголовка' : '제목 없음')}</b>
+            <p className="muted">{post.author || post.uid} · {post.board || ''}</p>
+            <p style={{ whiteSpace: 'pre-wrap' }}>{(post.body || '').slice(0, 260)}</p>
+            {post.images?.length > 0 && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{post.images.map((src, i) => <img key={i} src={src} alt="" style={{ width: 76, height: 76, objectFit: 'cover', borderRadius: 7 }} />)}</div>}
+            <div className="acts" style={{ marginTop: 10 }}>
+              <button className="btn ghost" type="button" onClick={async () => {
+                if (!window.confirm(lang === 'ru' ? 'Удалить эту публикацию? Это действие нельзя отменить.' : '이 게시글을 삭제하시겠습니까?')) return
+                try { await F.deleteDoc(F.doc(F.db, 'posts', post.id)); alert(lang === 'ru' ? 'Публикация удалена.' : '게시글이 삭제되었습니다.') }
+                catch (error) { console.error(error); alert(lang === 'ru' ? 'Не удалось удалить публикацию.' : '게시글 삭제에 실패했습니다.') }
+              }}>{lang === 'ru' ? 'Удалить публикацию' : '게시글 삭제'}</button>
+            </div>
+          </div>)}
+        </div>}
       </>}
       {activeSection === 'products' && <>
             <h2>{lang === 'ru' ? 'Управление товарами' : '상품 관리'}</h2>
