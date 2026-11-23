@@ -349,21 +349,20 @@ setAuthReady(true)
     const u = UR.current, authUser = F.isFirebase ? F.auth.currentUser : null
     if (!F.isFirebase || !u) return urls
     if (!authUser || !authUser.emailVerified || authUser.uid !== u.uid) throw new Error('Пожалуйста, войдите в подтверждённый аккаунт заново.')
-    return Promise.all(urls.map(async (dataUrl, i) => {
-      const path = `posts/${u.uid}/${Date.now()}_${i}.jpg`
-      const r = F.ref(F.storage, path)
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+    if (!cloudName || !uploadPreset) throw new Error('Не настроены параметры загрузки фотографий. Попробуйте позже.')
+    return Promise.all(urls.map(async (dataUrl) => {
       const response = await fetch(dataUrl)
       const blob = await response.blob()
       if (!blob.size || blob.size >= 2 * 1024 * 1024) throw new Error('Фото не прошло проверку размера. Удалите его и добавьте ещё раз.')
-      const uploadTask = F.uploadBytes(r, blob, { contentType: 'image/jpeg' })
-      let timer
-      try {
-        await Promise.race([
-          uploadTask,
-          new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Загрузка фото не завершилась за 90 секунд. Проверьте подключение и настройки Firebase Storage.')), 90000) })
-        ])
-      } finally { clearTimeout(timer) }
-      return F.getDownloadURL(r)
+      const form = new FormData()
+      form.append('file', blob, 'community.jpg')
+      form.append('upload_preset', uploadPreset)
+      const result = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: 'POST', body: form })
+      const data = await result.json().catch(() => ({}))
+      if (!result.ok || !data.secure_url) throw new Error(data.error?.message || 'Не удалось загрузить фото. Попробуйте ещё раз.')
+      return data.secure_url
     }))
   }
 
