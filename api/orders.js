@@ -44,10 +44,24 @@ export default async function handler(req, res) {
       }
 
       const orderRef = db.collection('orders').doc()
+      const userRef = db.collection('users').doc(decoded.uid)
       const productRefs = Array.from(quantities.keys()).map((pid) => db.collection('products').doc(pid))
       let savedOrder = null
 
       await db.runTransaction(async (transaction) => {
+        const userSnap = await transaction.get(userRef)
+        if (!userSnap.exists) throw new Error('USER_NOT_FOUND')
+        const userData = userSnap.data() || {}
+        const ownedCoupons = Array.isArray(userData.coupons) ? [...userData.coupons] : []
+        let coupon = null
+        let couponDiscount = 0
+        if (input.couponIndex !== undefined && input.couponIndex !== null && input.couponIndex !== '') {
+          const couponIndex = Number(input.couponIndex)
+          if (!Number.isInteger(couponIndex) || couponIndex < 0 || couponIndex >= ownedCoupons.length) throw new Error('COUPON_NOT_AVAILABLE')
+          coupon = ownedCoupons[couponIndex]
+          if (coupon?.name !== '신규 가입 쿠폰') throw new Error('COUPON_NOT_AVAILABLE')
+          couponDiscount = 3000
+        }
         const snapshots = await Promise.all(productRefs.map((ref) => transaction.get(ref)))
         const productById = new Map()
         snapshots.forEach((snap, index) => {
@@ -74,6 +88,7 @@ export default async function handler(req, res) {
         })
         const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.qty, 0)
         const shipping = subtotal > 0 && subtotal < 50000 ? 4000 : 0
+        if (couponDiscount && subtotal < 30000) throw new Error('COUPON_MINIMUM_NOT_MET')
         const allowedFields = ['name', 'tel', 'email', 'zip', 'addr', 'addr2', 'memo', 'pay']
         const customer = Object.fromEntries(allowedFields.filter((key) => typeof input[key] === 'string').map((key) => [key, input[key]]))
         savedOrder = {
@@ -86,11 +101,17 @@ export default async function handler(req, res) {
           items: orderItems,
           subtotal,
           shipping,
-          total: subtotal + shipping,
+          coupon: coupon ? { name: coupon.name, desc: coupon.desc || '', discount: couponDiscount } : null,
+          discount: couponDiscount,
+          total: subtotal + shipping - couponDiscount,
           bankDetails: input.pay === '무통장입금' ? (input.bankDetails || null) : null,
           ...customer
         }
 
+        if (coupon) {
+          ownedCoupons.splice(Number(input.couponIndex), 1)
+          transaction.update(userRef, { coupons: ownedCoupons })
+        }
         for (const [pid, product] of productById) {
           const nextStock = product.stock - quantities.get(pid)
           transaction.update(product.ref, { stock: nextStock, soldOut: nextStock <= 0 })
@@ -233,6 +254,9 @@ export default async function handler(req, res) {
     console.error('Order API error:', error)
     const messages = {
       PRODUCT_NOT_FOUND: 'Один из товаров больше не доступен',
+      USER_NOT_FOUND: 'Профиль покупателя не найден. Войдите в аккаунт заново.',
+      COUPON_NOT_AVAILABLE: 'Выбранный купон уже недоступен. Обновите страницу и попробуйте снова.',
+      COUPON_MINIMUM_NOT_MET: 'Для использования купона сумма товаров должна быть не менее 30 000 ₩.',
       SOLD_OUT: 'Товар закончился. Обновите корзину.',
       INSUFFICIENT_STOCK: 'На складе осталось меньше товара, чем вы заказали. Измените количество.',
       ORDER_NOT_FOUND: 'Заказ не найден',
