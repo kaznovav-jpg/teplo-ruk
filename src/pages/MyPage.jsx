@@ -27,7 +27,7 @@ function AuthForms({ tab, go }) {
         if (f.pw.value !== f.pw2.value) { toast('비밀번호가 서로 달라요'); return }
         await signup(f.nm.value.trim(), email, f.pw.value); toast('인증 메일을 보냈어요. 이메일의 링크를 누른 뒤 로그인해 주세요.'); go('login')
       } else { await resetPw(email); toast('재설정 안내를 보냈어요') }
-    } catch (err) { console.error(err); setPendingVerification(err?.code === 'auth/email-not-verified'); toast(errMsg(err)) }
+    } catch (err) { console.error(err); setPendingVerification(err?.code === 'auth/email-not-verified'); toast(err?.code === 'auth/user-disabled' && isRu ? 'Доступ к аккаунту ограничен администрацией. Обратитесь в службу поддержки сайта.' : errMsg(err)) }
   }
   return (
     <div className="wrap sec">
