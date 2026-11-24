@@ -867,9 +867,8 @@ const deleteArticle = async (article) => {
           </label>
           <div className="acts" style={{ marginTop: 10, flexWrap: 'wrap' }}>
             <button type="button" className="btn ghost" disabled={!!userActionBusy} onClick={() => runUserAction('warn', member)}>{lang === 'ru' ? 'Отправить предупреждение' : '경고 보내기'}</button>
-            {member.status === 'blocked'
-              ? <button type="button" className="btn" disabled={!!userActionBusy} onClick={() => runUserAction('unblock', member)}>{lang === 'ru' ? 'Разблокировать' : '차단 해제'}</button>
-              : <button type="button" className="btn" disabled={!!userActionBusy} onClick={() => runUserAction('block', member)}>{lang === 'ru' ? 'Заблокировать' : '차단'}</button>}
+            <button type="button" className="btn" disabled={!!userActionBusy || member.status === 'blocked'} onClick={() => runUserAction('block', member)}>{lang === 'ru' ? 'Заблокировать' : '차단'}</button>
+            <button type="button" className="btn ghost" disabled={!!userActionBusy || member.status !== 'blocked'} onClick={() => runUserAction('unblock', member)}>{lang === 'ru' ? 'Разблокировать' : '차단 해제'}</button>
             <button type="button" className="btn ghost" disabled={!!userActionBusy} onClick={() => runUserAction('delete', member)}>{lang === 'ru' ? 'Удалить навсегда' : '영구 삭제'}</button>
           </div>
           {userActionBusy?.startsWith(member.uid + ':') && <p className="muted">{lang === 'ru' ? 'Выполняется…' : '처리 중…'}</p>}
