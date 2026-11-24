@@ -60,19 +60,20 @@ export function ClassDetail() {
       <Crumb items={[<Link to="/classes">클래스</Link>, c.title]} />
       <div className="cl">
         <div>
-          <div className="vid" style={{ backgroundImage: `url(${c.thumb})` }}><button className="play" aria-label="소개 영상 재생" onClick={() => toast('소개 영상은 샘플이에요')}>▶</button><span className="cap">소개 영상 (샘플)</span></div>
+          <div className="vid" style={{ backgroundImage: `url(${c.thumb})` }}><button className="play" aria-label="소개 영상 재생" onClick={() => toast('소개 영상은 샘플이에요')}>▶</button><span className="cap">{c.videoLabel || (ru ? 'Видео-презентация (пример)' : '소개 영상 (샘플)')}</span></div>
           <p style={{ marginTop: 18 }}>{typeBadge(c.type)}<span className="badge line">{c.kind}</span><span className="badge line">{c.level}</span></p>
           <h1 style={{ fontSize: '1.7rem', margin: '8px 0' }}>{ru ? (c.titleRu || c.title) : c.title}</h1><p>{ru ? (c.introRu || c.intro) : c.intro}</p>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>커리큘럼</h2>
           <ol className="list">{lessons.map((l, i) => <li key={i}><span className="chip">{ru ? `Урок ${i + 1}` : `${i + 1}강`}</span><span style={{ flex: 1 }}>{Array.isArray(l)?l[0]:l.title}</span><span className="muted">{Array.isArray(l)?l[1]:l.minutes}{ru ? ' мин' : '분'}</span></li>)}</ol>
-          <h2 className="mt" style={{ fontSize: '1.3rem' }}>준비물</h2>
-          <ul className="list">{c.kit && <li>재료키트가 함께 배송돼요.</li>}{(Array.isArray(c.materials) ? c.materials : []).map((m) => <li key={m}>{m}</li>)}</ul>
-          <h2 className="mt" style={{ fontSize: '1.3rem' }}>강사 소개</h2>
+          <h2 className="mt" style={{ fontSize: '1.3rem' }}>{ru ? 'Материалы' : '준비물'}</h2>
+          {(ru ? c.materialsIntroRu : c.materialsIntro) && <p>{ru ? c.materialsIntroRu : c.materialsIntro}</p>}
+          <ul className="list">{c.kit && <li>{ru ? 'Набор материалов доставляется вместе с заказом.' : '재료키트가 함께 배송돼요.'}</li>}{(Array.isArray(c.materials) ? c.materials : []).map((m) => <li key={m}>{m}</li>)}</ul>
+          <h2 className="mt" style={{ fontSize: '1.3rem' }}>{ru ? 'Об авторе курса' : '강사 소개'}</h2>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
-            <div style={{ flex: 1, minWidth: 200 }}>{a ? <><Link to={`/artists/${a.id}`}><b>{a.name}</b></Link><p className="muted">{a.field}</p><p>{a.bio}</p></> : <p className="muted">Информация о мастере пока не добавлена.</p>}</div>{a && <FollowBtn a={a} />}
+            <div style={{ flex: 1, minWidth: 200 }}>{a ? <><Link to={`/artists/${a.id}`}><b>{a.name}</b></Link><p className="muted">{a.field}</p><p>{a.bio}</p></> : <p className="muted">{ru ? (c.authorTextRu || 'Информация об авторе пока не добавлена.') : (c.authorText || '강사 정보가 아직 등록되지 않았어요.')}</p>}{a && (ru ? c.authorTextRu : c.authorText) && <p>{ru ? c.authorTextRu : c.authorText}</p>}</div>{a && <FollowBtn a={a} />}
           </div>
-          <h2 className="mt" style={{ fontSize: '1.3rem' }}>수강 후기</h2>
-          <ul className="rvs">{D.extras.reviews.map((r) => <li key={r.name}>★★★★★ <b>{r.name}</b><p>{r.text}</p></li>)}</ul>
+          <h2 className="mt" style={{ fontSize: '1.3rem' }}>{ru ? 'Отзывы учеников' : '수강 후기'}</h2>
+          {(ru ? c.reviewsTextRu : c.reviewsText) ? <p>{ru ? c.reviewsTextRu : c.reviewsText}</p> : <p className="muted">{ru ? 'Отзывы пока не добавлены.' : '아직 후기가 등록되지 않았어요.'}</p>}
         </div>
         <aside className="sum" style={{ position: 'sticky', top: 90 }}>
           <p className="serif" style={{ fontSize: '1.5rem' }}>{c.price ? won(c.price) : '무료'}</p>{c.kit && <p className="muted">재료키트 포함 패키지</p>}
