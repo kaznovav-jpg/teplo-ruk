@@ -67,8 +67,8 @@ export default function MyPage() {
     ? ['Заказ оформлен', 'Ожидание оплаты', 'Оплата завершена', 'Изготавливается', 'В пути', 'Доставлено']
     : ['주문 접수', '결제 대기', '결제 완료', '제작중', '배송중', '배송완료']
   const NAV = isRu
-    ? [['dash', 'Обзор'], ['master', 'Стать мастером'], ['orders', 'Мои заказы'], ['class', 'Мои курсы и записи'], ['fav', 'Избранное'], ['act', 'Моя активность'], ['coupon', 'Купоны и баллы'], ['profile', 'Профиль']]
-    : [['dash', '요약'], ['master', '작가 신청'], ['orders', '주문내역'], ['class', '내 클래스·예약'], ['fav', '즐겨찾기'], ['act', '내 활동'], ['coupon', '쿠폰·적립금'], ['profile', '프로필 관리']]
+    ? [['dash', 'Обзор'], ['master', 'Стать мастером'], ['orders', 'Мои заказы'], ['class', 'Мои курсы и записи'], ['fav', 'Избранное'], ['act', 'Моя активность'], ['coupon', 'Купоны'], ['profile', 'Профиль']]
+    : [['dash', '요약'], ['master', '작가 신청'], ['orders', '주문내역'], ['class', '내 클래스·예약'], ['fav', '즐겨찾기'], ['act', '내 활동'], ['coupon', '쿠폰'], ['profile', '프로필 관리']]
   const { user, S, orders, posts, cancelRes, logout, updateUser, toast, cartCount, adminEvents, isFirebase } = useApp()
   const myc = useMyComments(user)
   const [masterApplication, setMasterApplication] = useState(null)
