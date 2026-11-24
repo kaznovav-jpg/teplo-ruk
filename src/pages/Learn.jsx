@@ -64,7 +64,7 @@ export function ClassDetail() {
       <Crumb items={[<Link to="/classes">클래스</Link>, c.title]} />
       <div className="cl">
         <div>
-          <div className="vid" style={{ backgroundImage: `url(${c.thumb})` }}><button className="play" aria-label="소개 영상 재생" onClick={() => toast('소개 영상은 샘플이에요')}>▶</button><span className="cap">{c.videoLabel || (ru ? 'Видео-презентация (пример)' : '소개 영상 (샘플)')}</span></div>
+          <div className="vid">{c.thumb ? <img src={c.thumb} alt={ru ? (c.titleRu || c.title) : c.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span className="cap">{ru ? 'Фотография мастер-класса пока не добавлена' : '클래스 사진이 아직 등록되지 않았어요'}</span>}</div>
           <p style={{ marginTop: 18 }}>{typeBadge(c.type, typeText)}<span className="badge line">{kindText}</span><span className="badge line">{levelText}</span></p>
           <h1 style={{ fontSize: '1.7rem', margin: '8px 0' }}>{ru ? (c.titleRu || c.title) : c.title}</h1><p>{ru ? (c.introRu || c.intro) : c.intro}</p>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>{ru ? 'Программа курса' : '커리큘럼'}</h2>
