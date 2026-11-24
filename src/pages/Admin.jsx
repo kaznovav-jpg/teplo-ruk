@@ -1576,7 +1576,7 @@ const deleteArticle = async (article) => {
           </div>
           <label style={{display:'flex',gap:8,alignItems:'center'}}><input type="checkbox" checked={classForm.kit} onChange={e=>setClassForm(p=>({...p,kit:e.target.checked}))}/>Включён набор материалов</label>
           <label>Материалы (каждый с новой строки)<textarea className="field" rows={3} value={classForm.materialsText} onChange={e=>setClassForm(p=>({...p,materialsText:e.target.value}))}/></label>
-          <label>Уроки: название|минуты (каждый с новой строки)<textarea className="field" rows={4} value={classForm.lessonsText} onChange={e=>setClassForm(p=>({...p,lessonsText:e.target.value}))}/></label>
+          <label>Уроки (каждая строка: название | длительность в минутах; длительность можно менять вручную)<textarea className="field" rows={4} value={classForm.lessonsText} onChange={e=>setClassForm(p=>({...p,lessonsText:e.target.value}))}/><small className="muted">Например: Подготовка и инструменты | 15</small></label>
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" className="btn" onClick={saveClass}>{editingClassId?'Сохранить изменения':'Добавить мастер-класс'}</button>{editingClassId&&<button type="button" className="btn ghost" onClick={resetClassForm}>Отмена</button>}</div>
         </section>
           </>
