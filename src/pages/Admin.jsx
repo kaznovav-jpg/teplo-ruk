@@ -165,8 +165,9 @@ export default function Admin() {
   artist: 'a1'
 })
 
-const [classForm, setClassForm] = useState({ title:'', titleRu:'', intro:'', introRu:'', videoLabel:'', materialsIntroRu:'', materialsIntro:'', authorTextRu:'', authorText:'', artist:'a2', price:'0', field:'뜨개질', fieldRu:'Вязание', level:'초급', levelRu:'Начальный', minutes:'60', type:'무료', typeRu:'Бесплатно', thumb:'', kind:'동영상', kindRu:'Видео', cat:'knit', kit:false, materialsText:'', lessonsText:'Подготовка и инструменты|10' })
+const [classForm, setClassForm] = useState({ title:'', titleRu:'', intro:'', introRu:'', videoLabel:'', materialsIntroRu:'', materialsIntro:'', authorTextRu:'', authorText:'', artist:'a2', price:'0', field:'뜨개질', fieldRu:'Вязание', level:'초급', levelRu:'Начальный', minutes:'60', type:'무료', typeRu:'Бесплатно', thumb:'', kind:'동영상', kindRu:'Видео', cat:'knit', kit:false, materialsText:'', lessonsText:'' })
 const [classImageUploading, setClassImageUploading] = useState(false)
+const [lessonEditor, setLessonEditor] = useState([{ titleRu:'', title:'', minutes:'10', videoUrl:'', materialsText:'' }])
 const [artistForm, setArtistForm] = useState({ id:'', name:'', field:'', fieldRu:'', bio:'', bioRu:'', cover:'', story:'', storyRu:'', followers:'0', newsText:'' })
 const [editingArtistId, setEditingArtistId] = useState(null)
 const [collectionForm, setCollectionForm] = useState({ id:'', title:'', titleRu:'', desc:'', descRu:'', productIds:'' })
@@ -305,7 +306,8 @@ const [previewArticle, setPreviewArticle] = useState(false)
   const editClass = (item) => {
     setSelectedMasterclassView('add')
     setEditingClassId(item.id)
-    setClassForm({ title:item.title||'', titleRu:item.titleRu||'', intro:item.intro||'', introRu:item.introRu||'', artist:item.artist||'a2', price:String(item.price??0), field:item.field||'', fieldRu:item.fieldRu||'', level:item.level||'초급', levelRu:item.levelRu||'Начальный', minutes:String(item.minutes||60), type:item.type||'무료', typeRu:item.typeRu||'Бесплатно', thumb:item.thumb||'', kind:item.kind||'동영상', kindRu:item.kindRu||'Видео', cat:item.cat||'knit', kit:!!item.kit, materialsText:(item.materials||[]).join('\n'), videoLabel:item.videoLabel||'', materialsIntroRu:item.materialsIntroRu||'', materialsIntro:item.materialsIntro||'', authorTextRu:item.authorTextRu||'', authorText:item.authorText||'', lessonsText:(item.lessons||[]).map(x=>Array.isArray(x)?x.join('|'):[x.title||'',x.minutes||10].join('|')).join('\n') })
+    setClassForm({ title:item.title||'', titleRu:item.titleRu||'', intro:item.intro||'', introRu:item.introRu||'', artist:item.artist||'a2', price:String(item.price??0), field:item.field||'', fieldRu:item.fieldRu||'', level:item.level||'초급', levelRu:item.levelRu||'Начальный', minutes:String(item.minutes||60), type:item.type||'무료', typeRu:item.typeRu||'Бесплатно', thumb:item.thumb||'', kind:item.kind||'동영상', kindRu:item.kindRu||'Видео', cat:item.cat||'knit', kit:!!item.kit, materialsText:(item.materials||[]).join('\n'), videoLabel:item.videoLabel||'', materialsIntroRu:item.materialsIntroRu||'', materialsIntro:item.materialsIntro||'', authorTextRu:item.authorTextRu||'', authorText:item.authorText||'', lessonsText:'', })
+    setLessonEditor((item.lessons||[]).map((x)=>({ titleRu:x.titleRu||x.title||'', title:x.title||'', minutes:String(x.minutes||10), videoUrl:x.videoUrl||'', materialsText:(x.materials||[]).map(m=>[m.labelRu||'',m.label||'',m.url||''].join('|')).join('\n') })).concat([]).length ? (item.lessons||[]).map((x)=>({ titleRu:x.titleRu||x.title||'', title:x.title||'', minutes:String(x.minutes||10), videoUrl:x.videoUrl||'', materialsText:(x.materials||[]).map(m=>[m.labelRu||'',m.label||'',m.url||''].join('|')).join('\n') })) : [{ titleRu:'', title:'', minutes:'10', videoUrl:'', materialsText:'' }])
     window.scrollTo({top:0,behavior:'smooth'})
   }
   const uploadClassPhoto = async (file) => {
@@ -326,8 +328,9 @@ const [previewArticle, setPreviewArticle] = useState(false)
   const saveClass = async () => {
     if (!classForm.title.trim() || !classForm.titleRu.trim()) { alert('Введите название мастер-класса на русском и корейском языках.'); return }
     if (!isFirebase) { alert('Firebase 연결이 필요합니다.'); return }
-    const data = { title:classForm.title.trim(), titleRu:classForm.titleRu.trim(), intro:classForm.intro||'', introRu:classForm.introRu||'', artist:classForm.artist, price:Math.max(0,Number(classForm.price||0)), field:classForm.field, fieldRu:classForm.fieldRu, level:classForm.level, levelRu:classForm.levelRu, minutes:Math.max(1,Number(classForm.minutes||60)), type:classForm.type, typeRu:classForm.typeRu, thumb:classForm.thumb.trim(), kind:classForm.kind, kindRu:classForm.kindRu, cat:classForm.cat, kit:!!classForm.kit, materials:classForm.materialsText.split('\n').map(x=>x.trim()).filter(Boolean), videoLabel:classForm.videoLabel||'', materialsIntroRu:classForm.materialsIntroRu||'', materialsIntro:classForm.materialsIntro||'', authorTextRu:classForm.authorTextRu||'', authorText:classForm.authorText||'', lessons:classForm.lessonsText.split('\n').map(line=>{const p=line.split('|');return {title:p[0]?.trim()||'',minutes:Math.max(1,Number(p[1]||10))}}).filter(x=>x.title) }
-    try { if(editingClassId) await F.setDoc(F.doc(F.db,'classes',editingClassId),data,{merge:true}); else await F.addDoc(F.collection(F.db,'classes'),data); resetClassForm(); alert('Мастер-класс сохранён. Каталог обновится автоматически.') }
+    const cleanLessons = lessonEditor.filter(x => x.titleRu.trim() || x.title.trim()).map(x => ({ titleRu:x.titleRu.trim(), title:x.title.trim(), minutes:Math.max(1,Number(x.minutes||10)), videoUrl:x.videoUrl.trim(), materials:x.materialsText.split('\n').map(line=>{const p=line.split('|');return {labelRu:(p[0]||'').trim(),label:(p[1]||'').trim(),url:(p[2]||'').trim()}}).filter(m=>m.labelRu||m.label||m.url) }))
+    const data = { title:classForm.title.trim(), titleRu:classForm.titleRu.trim(), intro:classForm.intro||'', introRu:classForm.introRu||'', artist:classForm.artist, price:Math.max(0,Number(classForm.price||0)), field:classForm.field, fieldRu:classForm.fieldRu, level:classForm.level, levelRu:classForm.levelRu, minutes:Math.max(1,Number(classForm.minutes||60)), type:classForm.type, typeRu:classForm.typeRu, thumb:classForm.thumb.trim(), kind:classForm.kind, kindRu:classForm.kindRu, cat:classForm.cat, kit:!!classForm.kit, materials:classForm.materialsText.split('\n').map(x=>x.trim()).filter(Boolean), videoLabel:classForm.videoLabel||'', materialsIntroRu:classForm.materialsIntroRu||'', materialsIntro:classForm.materialsIntro||'', authorTextRu:classForm.authorTextRu||'', authorText:classForm.authorText||'', lessons:cleanLessons }
+    try { if(editingClassId) await F.setDoc(F.doc(F.db,'classes',editingClassId),data,{merge:true}); else await F.addDoc(F.collection(F.db,'classes'),data); resetClassForm(); setLessonEditor([{ titleRu:'', title:'', minutes:'10', videoUrl:'', materialsText:'' }]); alert('Мастер-класс сохранён. Каталог обновится автоматически.') }
     catch(error) { console.error('Class save error:',error); alert('Не удалось сохранить мастер-класс.') }
   }
 
@@ -1580,7 +1583,18 @@ const deleteArticle = async (article) => {
             <label>Формат<select className="field" value={classForm.kind} onChange={e=>setClassForm(p=>({...p,kind:e.target.value,kindRu:e.target.value==='오프라인'?'Очно':'Видео'}))}><option value="동영상">Видео</option><option value="오프라인">Очно</option></select></label>
           </div>
                     <label>Материалы (каждый с новой строки)<textarea className="field" rows={3} value={classForm.materialsText} onChange={e=>setClassForm(p=>({...p,materialsText:e.target.value}))}/></label>
-          <label>Уроки (каждая строка: название | длительность в минутах; длительность можно менять вручную)<textarea className="field" rows={4} value={classForm.lessonsText} onChange={e=>setClassForm(p=>({...p,lessonsText:e.target.value}))}/><small className="muted">Например: Подготовка и инструменты | 15</small></label>
+          <div style={{display:'grid',gap:14,marginTop:14}}>
+            <h3>Уроки мастер-класса</h3>
+            {lessonEditor.map((lesson,index)=><section key={index} style={{border:'1px solid #E5DCD2',borderRadius:10,padding:14,display:'grid',gap:8}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><strong>Урок {index+1}</strong><button type="button" className="btn ghost" onClick={()=>setLessonEditor(prev=>prev.filter((_,i)=>i!==index))}>Удалить урок</button></div>
+              <label>Название урока (RU)<input className="field" value={lesson.titleRu} onChange={e=>setLessonEditor(prev=>prev.map((x,i)=>i===index?{...x,titleRu:e.target.value}:x))}/></label>
+              <label>Название урока (KO)<input className="field" value={lesson.title} onChange={e=>setLessonEditor(prev=>prev.map((x,i)=>i===index?{...x,title:e.target.value}:x))}/></label>
+              <label>Длительность (минуты)<input className="field" type="number" min="1" value={lesson.minutes} onChange={e=>setLessonEditor(prev=>prev.map((x,i)=>i===index?{...x,minutes:e.target.value}:x))}/></label>
+              <label>Ссылка на видео урока<input className="field" value={lesson.videoUrl} onChange={e=>setLessonEditor(prev=>prev.map((x,i)=>i===index?{...x,videoUrl:e.target.value}:x))} placeholder="https://..."/></label>
+              <label>Материалы урока (каждая строка: название RU | название KO | ссылка)<textarea className="field" rows={2} value={lesson.materialsText} onChange={e=>setLessonEditor(prev=>prev.map((x,i)=>i===index?{...x,materialsText:e.target.value}:x))}/></label>
+            </section>)}
+            <button type="button" className="btn ghost" onClick={()=>setLessonEditor(prev=>[...prev,{titleRu:'',title:'',minutes:'10',videoUrl:'',materialsText:''}])}>+ Добавить урок</button>
+          </div>
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" className="btn" onClick={saveClass}>{editingClassId?'Сохранить изменения':'Добавить мастер-класс'}</button>{editingClassId&&<button type="button" className="btn ghost" onClick={resetClassForm}>Отмена</button>}</div>
         </section>
           </>
