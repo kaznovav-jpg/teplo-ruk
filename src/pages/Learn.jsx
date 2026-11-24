@@ -98,6 +98,31 @@ export function ClassDetail() {
   )
 }
 
+const getYoutubeEmbedUrl = (url) => {
+  try {
+    const parsed = new URL(url)
+    const host = parsed.hostname.replace(/^www\\./, '')
+    let videoId = ''
+    if (host === 'youtu.be') videoId = parsed.pathname.split('/').filter(Boolean)[0] || ''
+    else if (host.endsWith('youtube.com')) {
+      const parts = parsed.pathname.split('/').filter(Boolean)
+      if (parsed.pathname === '/watch') videoId = parsed.searchParams.get('v') || ''
+      else if (['embed', 'shorts', 'live'].includes(parts[0])) videoId = parts[1] || ''
+    }
+    if (!videoId) return ''
+    let start = Number(parsed.searchParams.get('start') || 0)
+    if (!start && parsed.searchParams.get('t')) {
+      const t = parsed.searchParams.get('t')
+      const match = t.match(/^(?:(\\d+)h)?(?:(\\d+)m)?(?:(\\d+)s)?$/)
+      if (match) start = Number(match[1] || 0) * 3600 + Number(match[2] || 0) * 60 + Number(match[3] || 0)
+      else if (/^\\d+$/.test(t)) start = Number(t)
+    }
+    return `https://www.youtube-nocookie.com/embed/${videoId}${start > 0 ? `?start=${start}` : ''}`
+  } catch {
+    return ''
+  }
+}
+
 export function Learn() {
   const { id } = useParams(), { S, toggleDone, setNote, toast, classes, user } = useApp()
   const { lang } = useLanguage()
@@ -123,7 +148,7 @@ export function Learn() {
       <h1 style={{ fontSize: '1.5rem', marginBottom: 14 }}>{ru ? (c.titleRu || c.title) : c.title}</h1>
       <div className="cl">
         <div>
-          {current.videoUrl ? <video className="vid" src={current.videoUrl} controls playsInline preload="metadata" poster={c.thumb || undefined} style={{ width: '100%', height: 'auto', aspectRatio: '16/9', objectFit: 'contain', background: '#2F2B28' }} /> : <div className="vid" style={{ backgroundImage: `url(${c.thumb})` }}><span className="cap">{ru ? `Урок ${n+1}` : `${n+1}강`} {lessonTitle(current)}</span></div>}
+          {current.videoUrl ? (getYoutubeEmbedUrl(current.videoUrl) ? <iframe className="vid" src={getYoutubeEmbedUrl(current.videoUrl)} title={lessonTitle(current) || (ru ? `Урок ${n + 1}` : `${n + 1}강`)} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen style={{ width: '100%', aspectRatio: '16/9', border: 0, background: '#2F2B28' }} /> : <video className="vid" src={current.videoUrl} controls playsInline preload="metadata" poster={c.thumb || undefined} style={{ width: '100%', height: 'auto', aspectRatio: '16/9', objectFit: 'contain', background: '#2F2B28' }} />) : <div className="vid" style={{ backgroundImage: `url(${c.thumb})` }}><span className="cap">{ru ? `Урок ${n+1}` : `${n+1}강`} {lessonTitle(current)}</span></div>}
           <div className="acts" style={{ margin: '14px 0' }}>
             <button className="btn ghost" disabled={!n} onClick={() => setN(n - 1)}>{ru ? 'Предыдущий урок' : '이전 강'}</button>
             <button className={'btn' + (dn ? ' ghost' : '')} onClick={() => toggleDone(c.id, n)}>{dn ? (ru ? 'Отменить отметку' : '완료 취소') : (ru ? 'Отметить как пройденный' : '수강 완료 표시')}</button>
