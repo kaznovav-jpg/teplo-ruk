@@ -11,7 +11,12 @@ import FilePicker from '../components/FilePicker.jsx'
 import { optimizeImage } from '../lib/optimizeImage.js'
 
 const AUTH = ['login', 'signup', 'find']
-const errMsg = (e) => ({ 'auth/email-not-verified': '이메일 인증이 필요해요. 받은 메일의 링크를 눌러 주세요.', 'auth/invalid-credential': '이메일 또는 비밀번호가 맞지 않아요', 'auth/email-already-in-use': '이미 가입된 이메일이에요', 'auth/weak-password': '비밀번호는 6자 이상이어야 해요', 'auth/popup-closed-by-user': '로그인 창이 닫혔어요' }[e?.code] || '처리하지 못했어요. 잠시 후 다시 시도해 주세요')
+const errMsg = (e, isRu) => {
+  if (e?.code === 'auth/user-disabled') return isRu
+    ? 'Ваш аккаунт заблокирован администрацией. Вход на сайт временно недоступен. Если вы считаете, что это ошибка, свяжитесь с администрацией.'
+    : '관리자에 의해 계정이 차단되었습니다. 사이트에 로그인할 수 없습니다. 오류라고 생각하시면 관리자에게 문의해 주세요.'
+  return ({ 'auth/email-not-verified': '이메일 인증이 필요해요. 받은 메일의 링크를 눌러 주세요.', 'auth/invalid-credential': '이메일 또는 비밀번호가 맞지 않아요', 'auth/email-already-in-use': '이미 가입된 이메일이에요', 'auth/weak-password': '비밀번호는 6자 이상이어야 해요', 'auth/popup-closed-by-user': '로그인 창이 닫혔어요' }[e?.code] || '처리하지 못했어요. 잠시 후 다시 시도해 주세요')
+}
 
 function AuthForms({ tab, go }) {
   const { login, signup, resetPw, resendVerification, toast } = useApp()
@@ -27,7 +32,7 @@ function AuthForms({ tab, go }) {
         if (f.pw.value !== f.pw2.value) { toast('비밀번호가 서로 달라요'); return }
         await signup(f.nm.value.trim(), email, f.pw.value); toast('인증 메일을 보냈어요. 이메일의 링크를 누른 뒤 로그인해 주세요.'); go('login')
       } else { await resetPw(email); toast('재설정 안내를 보냈어요') }
-    } catch (err) { console.error(err); setPendingVerification(err?.code === 'auth/email-not-verified'); toast(err?.code === 'auth/user-disabled' && isRu ? 'Доступ к аккаунту ограничен администрацией. Обратитесь в службу поддержки сайта.' : errMsg(err)) }
+    } catch (err) { console.error(err); setPendingVerification(err?.code === 'auth/email-not-verified'); toast(errMsg(err, isRu)) }
   }
   return (
     <div className="wrap sec">
