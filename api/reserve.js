@@ -46,6 +46,8 @@ export default async function handler(req, res) {
     }
 
     const decoded = await getAuth(app).verifyIdToken(token)
+    const accountSnap = await db.collection('users').doc(decoded.uid).get()
+    if (accountSnap.exists && accountSnap.data().status === 'blocked') return res.status(403).json({ error: 'Аккаунт временно заблокирован администрацией' })
     const uid = decoded.uid
     const { eventId, action } = req.body || {}
 
