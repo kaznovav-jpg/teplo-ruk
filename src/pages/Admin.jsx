@@ -10,6 +10,10 @@ export default function Admin() {
   const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, updateOrderStatus, deleteOrder, adminEvents, masterApplications, artistWorks, products, articles, classes, artists, artistCollections, customOrders = [], posts = [], isFirebase } = useApp()
     const { lang } = useLanguage()
   const [activeSection, setActiveSection] = useState('overview')
+  const [managedUsers, setManagedUsers] = useState([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [userWarningDrafts, setUserWarningDrafts] = useState({})
+  const [userActionBusy, setUserActionBusy] = useState(null)
   const [orderToDelete, setOrderToDelete] = useState(null)
   const [ordersSearch, setOrdersSearch] = useState('')
   const [communitySearch, setCommunitySearch] = useState('')
@@ -97,6 +101,63 @@ export default function Admin() {
       alert(lang === 'ru' ? 'Не удалось сохранить реквизиты.' : '계좌 정보 저장에 실패했습니다.')
     } finally { setBankSaving(false) }
   }
+  const loadManagedUsers = async () => {
+    if (!isFirebase || !F.auth.currentUser) return
+    setUsersLoading(true)
+    try {
+      const token = await F.auth.currentUser.getIdToken()
+      const response = await fetch('/api/admin-users', { headers: { Authorization: `Bearer ${token}` } })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.error || 'Не удалось загрузить пользователей')
+      setManagedUsers(result.users || [])
+    } catch (error) {
+      console.error('Admin users load error:', error)
+      alert(lang === 'ru' ? (error.message || 'Не удалось загрузить пользователей.') : '회원 목록을 불러오지 못했습니다.')
+    } finally { setUsersLoading(false) }
+  }
+  useEffect(() => {
+    if (activeSection === 'users' && isAdmin) loadManagedUsers()
+  }, [activeSection, isAdmin])
+
+  const runUserAction = async (action, target) => {
+    const uid = target.uid
+    const message = String(userWarningDrafts[uid] || '').trim()
+    if (action === 'warn' && !message) {
+      alert(lang === 'ru' ? 'Напишите текст предупреждения.' : '경고 메시지를 입력해 주세요.')
+      return
+    }
+    const prompts = {
+      block: lang === 'ru' ? 'Заблокировать этого пользователя? Он потеряет возможность входить на сайт.' : '이 사용자를 차단하시겠습니까?',
+      unblock: lang === 'ru' ? 'Восстановить доступ этому пользователю?' : '이 사용자의 차단을 해제하시겠습니까?',
+      delete: lang === 'ru' ? 'Удалить аккаунт навсегда? Публикации, комментарии, работы мастера и записи также будут удалены. Заказы сохранятся для учёта.' : '계정을 영구 삭제하시겠습니까? 게시글, 댓글, 작가 작품 및 예약도 삭제됩니다. 주문 기록은 보존됩니다.'
+    }
+    if (action !== 'warn' && !window.confirm(prompts[action])) return
+    setUserActionBusy(uid + ':' + action)
+    try {
+      const token = await F.auth.currentUser.getIdToken()
+      const response = await fetch('/api/admin-users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ action, uid, ...(action === 'warn' ? { message } : {}) })
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.error || 'Не удалось выполнить действие')
+      if (action === 'warn') {
+        setUserWarningDrafts((prev) => ({ ...prev, [uid]: '' }))
+        alert(lang === 'ru' ? 'Предупреждение отправлено в личный кабинет пользователя.' : '경고 메시지가 사용자 마이페이지로 전송되었습니다.')
+      } else if (action === 'delete') {
+        setManagedUsers((prev) => prev.filter((item) => item.uid !== uid))
+        alert(lang === 'ru' ? 'Аккаунт и пользовательские публикации удалены. Заказы сохранены.' : '계정 및 사용자 콘텐츠가 삭제되었습니다. 주문 기록은 보존됩니다.')
+      } else {
+        setManagedUsers((prev) => prev.map((item) => item.uid === uid ? { ...item, status: action === 'block' ? 'blocked' : 'active', disabled: action === 'block' } : item))
+        alert(lang === 'ru' ? (action === 'block' ? 'Пользователь заблокирован.' : 'Доступ пользователя восстановлен.') : (action === 'block' ? '사용자가 차단되었습니다.' : '사용자 차단이 해제되었습니다.'))
+      }
+    } catch (error) {
+      console.error('Admin user action error:', error)
+      alert(lang === 'ru' ? (error.message || 'Не удалось выполнить действие.') : '작업을 완료하지 못했습니다.')
+    } finally { setUserActionBusy(null) }
+  }
+
   const sendCustomOrderReply = async (request) => {
     const message = String(customOrderReplies[request.id] || '').trim()
     if (!request.email) {
@@ -739,6 +800,7 @@ const deleteArticle = async (article) => {
       }}>
         {[
           { id: 'overview', ru: 'Обзор', ko: '대시보드', icon: '⌂' },
+          { id: 'users', ru: 'Пользователи', ko: '회원 관리', icon: '♙' },
           { id: 'orders', ru: 'Заказы и оплата', ko: '주문 및 결제', icon: '₩' },
           { id: 'masters', ru: 'Мастера и их работы', ko: '작가 및 작품', icon: '✿' },
           { id: 'artistCatalog', ru: 'Страница «Работы мастеров»', ko: '작가 작품 페이지 관리', icon: '▧' },
@@ -779,6 +841,41 @@ const deleteArticle = async (article) => {
           </button>
         ))}
       </nav>
+
+      {activeSection === 'users' && <>
+        <h2>{lang === 'ru' ? 'Управление пользователями' : '회원 관리'}</h2>
+        <p className="muted">{lang === 'ru' ? 'Список зарегистрированных аккаунтов. Предупреждения приходят пользователю во внутренние сообщения личного кабинета.' : '가입 회원 목록입니다. 경고는 사용자의 마이페이지 알림으로 전달됩니다.'}</p>
+        <div className="acts" style={{ margin: '14px 0' }}>
+          <button type="button" className="btn" onClick={loadManagedUsers} disabled={usersLoading}>{usersLoading ? (lang === 'ru' ? 'Загрузка…' : '불러오는 중…') : (lang === 'ru' ? 'Обновить список' : '목록 새로고침')}</button>
+          <span className="muted">{lang === 'ru' ? 'Всего аккаунтов: ' : '전체 회원: '}{managedUsers.length}</span>
+        </div>
+        {!isFirebase && <p>{lang === 'ru' ? 'Для управления пользователями необходимо подключение Firebase.' : '회원 관리를 위해 Firebase 연결이 필요합니다.'}</p>}
+        {usersLoading && <p className="muted">{lang === 'ru' ? 'Загружаем список…' : '회원 목록을 불러오는 중…'}</p>}
+        {!usersLoading && managedUsers.map((member) => <article className="box" key={member.uid} style={{ padding: 16, marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+            <strong>{member.name || (lang === 'ru' ? 'Без имени' : '이름 없음')}</strong>
+            <span className="badge line">{member.status === 'blocked' ? (lang === 'ru' ? 'Заблокирован' : '차단됨') : (lang === 'ru' ? 'Активен' : '정상')}</span>
+          </div>
+          <p style={{ margin: '6px 0' }}>{member.email || '—'}</p>
+          <p className="muted" style={{ margin: '4px 0', fontSize: 13 }}>
+            {lang === 'ru' ? 'Регистрация: ' : '가입일: '}{member.createdAt ? new Date(member.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR') : '—'}
+            {member.lastSignInAt ? ' · ' + (lang === 'ru' ? 'Последний вход: ' : '최근 로그인: ') + new Date(member.lastSignInAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR') : ''}
+          </p>
+          <label style={{ display: 'grid', gap: 6, marginTop: 12 }}>
+            <span>{lang === 'ru' ? 'Отправить предупреждение в личный кабинет' : '마이페이지로 경고 메시지 보내기'}</span>
+            <textarea className="field" rows={3} maxLength={2000} value={userWarningDrafts[member.uid] || ''} onChange={(e) => setUserWarningDrafts((prev) => ({ ...prev, [member.uid]: e.target.value }))} placeholder={lang === 'ru' ? 'Опишите, какой материал нарушает правила и что нужно исправить…' : '규칙 위반 내용과 수정이 필요한 사항을 작성해 주세요…'} />
+          </label>
+          <div className="acts" style={{ marginTop: 10, flexWrap: 'wrap' }}>
+            <button type="button" className="btn ghost" disabled={!!userActionBusy} onClick={() => runUserAction('warn', member)}>{lang === 'ru' ? 'Отправить предупреждение' : '경고 보내기'}</button>
+            {member.status === 'blocked'
+              ? <button type="button" className="btn" disabled={!!userActionBusy} onClick={() => runUserAction('unblock', member)}>{lang === 'ru' ? 'Разблокировать' : '차단 해제'}</button>
+              : <button type="button" className="btn" disabled={!!userActionBusy} onClick={() => runUserAction('block', member)}>{lang === 'ru' ? 'Заблокировать' : '차단'}</button>}
+            <button type="button" className="btn ghost" disabled={!!userActionBusy} onClick={() => runUserAction('delete', member)}>{lang === 'ru' ? 'Удалить навсегда' : '영구 삭제'}</button>
+          </div>
+          {userActionBusy?.startsWith(member.uid + ':') && <p className="muted">{lang === 'ru' ? 'Выполняется…' : '처리 중…'}</p>}
+        </article>)}
+        {!usersLoading && !managedUsers.length && <p className="muted">{lang === 'ru' ? 'Пользователи пока не найдены.' : '등록된 회원이 없습니다.'}</p>}
+      </>}
 
       {activeSection === 'overview' && (
         <section>
