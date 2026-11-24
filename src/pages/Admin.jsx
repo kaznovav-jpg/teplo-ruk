@@ -167,7 +167,8 @@ export default function Admin() {
 
 const [classForm, setClassForm] = useState({ title:'', titleRu:'', intro:'', introRu:'', videoLabel:'', materialsIntroRu:'', materialsIntro:'', authorTextRu:'', authorText:'', artist:'a2', price:'0', field:'뜨개질', fieldRu:'Вязание', level:'초급', levelRu:'Начальный', minutes:'60', type:'무료', typeRu:'Бесплатно', thumb:'', kind:'동영상', kindRu:'Видео', cat:'knit', kit:false, materialsText:'', lessonsText:'' })
 const [classImageUploading, setClassImageUploading] = useState(false)
-const [lessonEditor, setLessonEditor] = useState([{ titleRu:'', title:'', minutes:'10', videoUrl:'', materialsText:'' }])
+const [lessonEditor, setLessonEditor] = useState([{ titleRu:'', title:'', minutes:'10', videoUrl:'', photos:[], materialsText:'' }])
+const [lessonUploads, setLessonUploads] = useState({})
 const [artistForm, setArtistForm] = useState({ id:'', name:'', field:'', fieldRu:'', bio:'', bioRu:'', cover:'', story:'', storyRu:'', followers:'0', newsText:'' })
 const [editingArtistId, setEditingArtistId] = useState(null)
 const [collectionForm, setCollectionForm] = useState({ id:'', title:'', titleRu:'', desc:'', descRu:'', productIds:'' })
@@ -301,14 +302,15 @@ const [previewArticle, setPreviewArticle] = useState(false)
 }
   const resetClassForm = () => {
     setClassForm({ title:'', titleRu:'', intro:'', introRu:'', videoLabel:'', materialsIntroRu:'', materialsIntro:'', authorTextRu:'', authorText:'', artist:'a2', price:'0', field:'뜨개질', fieldRu:'Вязание', level:'초급', levelRu:'Начальный', minutes:'60', type:'무료', typeRu:'Бесплатно', thumb:'', kind:'동영상', kindRu:'Видео', cat:'knit', kit:false, materialsText:'', lessonsText:'' })
-    setLessonEditor([{ titleRu:'', title:'', minutes:'10', videoUrl:'', materialsText:'' }])
+    setLessonEditor([{ titleRu:'', title:'', minutes:'10', videoUrl:'', photos:[], materialsText:'' }])
+    setLessonUploads({})
     setEditingClassId(null)
   }
   const editClass = (item) => {
     setSelectedMasterclassView('add')
     setEditingClassId(item.id)
     setClassForm({ title:item.title||'', titleRu:item.titleRu||'', intro:item.intro||'', introRu:item.introRu||'', artist:item.artist||'a2', price:String(item.price??0), field:item.field||'', fieldRu:item.fieldRu||'', level:item.level||'초급', levelRu:item.levelRu||'Начальный', minutes:String(item.minutes||60), type:item.type||'무료', typeRu:item.typeRu||'Бесплатно', thumb:item.thumb||'', kind:item.kind||'동영상', kindRu:item.kindRu||'Видео', cat:item.cat||'knit', kit:!!item.kit, materialsText:(item.materials||[]).join('\n'), videoLabel:item.videoLabel||'', materialsIntroRu:item.materialsIntroRu||'', materialsIntro:item.materialsIntro||'', authorTextRu:item.authorTextRu||'', authorText:item.authorText||'', lessonsText:'', })
-    setLessonEditor((item.lessons||[]).map((x)=>({ titleRu:x.titleRu||(x.title||'').split('/')[0].trim(), title:(x.title||'').includes('/')?(x.title||'').split('/').slice(1).join('/').trim():(x.title||''), minutes:String(x.minutes||10), videoUrl:x.videoUrl||'', materialsText:(x.materials||[]).map(m=>[m.labelRu||'',m.label||'',m.url||''].join('|')).join('\n') })).concat([]).length ? (item.lessons||[]).map((x)=>({ titleRu:x.titleRu||x.title||'', title:x.title||'', minutes:String(x.minutes||10), videoUrl:x.videoUrl||'', materialsText:(x.materials||[]).map(m=>[m.labelRu||'',m.label||'',m.url||''].join('|')).join('\n') })) : [{ titleRu:'', title:'', minutes:'10', videoUrl:'', materialsText:'' }])
+    setLessonEditor((item.lessons||[]).map((x)=>({ titleRu:x.titleRu||(x.title||'').split('/')[0].trim(), title:(x.title||'').includes('/')?(x.title||'').split('/').slice(1).join('/').trim():(x.title||''), minutes:String(x.minutes||10), videoUrl:x.videoUrl||'', photos:Array.isArray(x.photos)?x.photos:[], materialsText:(x.materials||[]).map(m=>[m.labelRu||'',m.label||'',m.url||''].join('|')).join('\n') })).concat([]).length ? (item.lessons||[]).map((x)=>({ titleRu:x.titleRu||x.title||'', title:x.title||'', minutes:String(x.minutes||10), videoUrl:x.videoUrl||'', photos:Array.isArray(x.photos)?x.photos:[], materialsText:(x.materials||[]).map(m=>[m.labelRu||'',m.label||'',m.url||''].join('|')).join('\n') })) : [{ titleRu:'', title:'', minutes:'10', videoUrl:'', materialsText:'' }])
     window.scrollTo({top:0,behavior:'smooth'})
   }
   const uploadClassPhoto = async (file) => {
@@ -326,10 +328,48 @@ const [previewArticle, setPreviewArticle] = useState(false)
     }
   }
 
+  const uploadLessonVideo = async (index, file) => {
+    if (!file) return
+    if (!file.type?.startsWith('video/')) { alert('Выберите видеофайл.'); return }
+    if (file.size > 100 * 1024 * 1024) { alert('Размер видео не должен превышать 100 МБ.'); return }
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+    if (!cloudName || !uploadPreset) { alert('Не настроены параметры загрузки Cloudinary.'); return }
+    setLessonUploads(prev => ({ ...prev, [index]: { ...(prev[index] || {}), video: true } }))
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('upload_preset', uploadPreset)
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, { method: 'POST', body: formData })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error?.message || 'Upload failed')
+      setLessonEditor(prev => prev.map((lesson, i) => i === index ? { ...lesson, videoUrl: result.secure_url } : lesson))
+      alert('Видео урока успешно загружено!')
+    } catch (error) {
+      console.error('Lesson video upload error:', error)
+      alert('Не удалось загрузить видео: ' + error.message)
+    } finally {
+      setLessonUploads(prev => ({ ...prev, [index]: { ...(prev[index] || {}), video: false } }))
+    }
+  }
+  const uploadLessonPhotos = async (index, files) => {
+    const selected = Array.from(files || [])
+    if (!selected.length) return
+    if (selected.some(file => !file.type?.startsWith('image/'))) { alert('Выберите только фотографии.'); return }
+    setLessonUploads(prev => ({ ...prev, [index]: { ...(prev[index] || {}), photos: true } }))
+    try {
+      const urls = await Promise.all(selected.map(file => uploadImage(file)))
+      const uploaded = urls.filter(Boolean)
+      if (uploaded.length) setLessonEditor(prev => prev.map((lesson, i) => i === index ? { ...lesson, photos: [...(lesson.photos || []), ...uploaded] } : lesson))
+    } finally {
+      setLessonUploads(prev => ({ ...prev, [index]: { ...(prev[index] || {}), photos: false } }))
+    }
+  }
+
   const saveClass = async () => {
     if (!classForm.title.trim() || !classForm.titleRu.trim()) { alert('Введите название мастер-класса на русском и корейском языках.'); return }
     if (!isFirebase) { alert('Firebase 연결이 필요합니다.'); return }
-    const cleanLessons = lessonEditor.filter(x => x.titleRu.trim() || x.title.trim()).map(x => ({ titleRu:x.titleRu.trim(), title:x.title.trim(), minutes:Math.max(1,Number(x.minutes||10)), videoUrl:x.videoUrl.trim(), materials:x.materialsText.split('\n').map(line=>{const p=line.split('|');return {labelRu:(p[0]||'').trim(),label:(p[1]||'').trim(),url:(p[2]||'').trim()}}).filter(m=>m.labelRu||m.label||m.url) }))
+    const cleanLessons = lessonEditor.filter(x => x.titleRu.trim() || x.title.trim()).map(x => ({ titleRu:x.titleRu.trim(), title:x.title.trim(), minutes:Math.max(1,Number(x.minutes||10)), videoUrl:x.videoUrl.trim(), photos:Array.isArray(x.photos)?x.photos:[], materials:x.materialsText.split('\n').map(line=>{const p=line.split('|');return {labelRu:(p[0]||'').trim(),label:(p[1]||'').trim(),url:(p[2]||'').trim()}}).filter(m=>m.labelRu||m.label||m.url) }))
     const data = { title:classForm.title.trim(), titleRu:classForm.titleRu.trim(), intro:classForm.intro||'', introRu:classForm.introRu||'', artist:classForm.artist, price:Math.max(0,Number(classForm.price||0)), field:classForm.field, fieldRu:classForm.fieldRu, level:classForm.level, levelRu:classForm.levelRu, minutes:Math.max(1,Number(classForm.minutes||60)), type:classForm.type, typeRu:classForm.typeRu, thumb:classForm.thumb.trim(), kind:classForm.kind, kindRu:classForm.kindRu, cat:classForm.cat, kit:!!classForm.kit, materials:classForm.materialsText.split('\n').map(x=>x.trim()).filter(Boolean), videoLabel:classForm.videoLabel||'', materialsIntroRu:classForm.materialsIntroRu||'', materialsIntro:classForm.materialsIntro||'', authorTextRu:classForm.authorTextRu||'', authorText:classForm.authorText||'', lessons:cleanLessons }
     try { if(editingClassId) await F.setDoc(F.doc(F.db,'classes',editingClassId),data,{merge:true}); else await F.addDoc(F.collection(F.db,'classes'),data); resetClassForm(); setLessonEditor([{ titleRu:'', title:'', minutes:'10', videoUrl:'', materialsText:'' }]); alert('Мастер-класс сохранён. Каталог обновится автоматически.') }
     catch(error) { console.error('Class save error:',error); alert('Не удалось сохранить мастер-класс.') }
@@ -1592,9 +1632,15 @@ const deleteArticle = async (article) => {
               <label>Название урока (KO)<input className="field" value={lesson.title} onChange={e=>setLessonEditor(prev=>prev.map((x,i)=>i===index?{...x,title:e.target.value}:x))}/></label>
               <label>Длительность (минуты)<input className="field" type="number" min="1" value={lesson.minutes} onChange={e=>setLessonEditor(prev=>prev.map((x,i)=>i===index?{...x,minutes:e.target.value}:x))}/></label>
               <label>Ссылка на видео урока<input className="field" value={lesson.videoUrl} onChange={e=>setLessonEditor(prev=>prev.map((x,i)=>i===index?{...x,videoUrl:e.target.value}:x))} placeholder="https://..."/></label>
+              <label>Загрузить видео с компьютера<input className="field" type="file" accept="video/*" disabled={!!lessonUploads[index]?.video} onChange={e=>{uploadLessonVideo(index,e.target.files?.[0]);e.target.value=''}}/></label>
+              {lessonUploads[index]?.video&&<small className="muted">Загрузка видео...</small>}
+              {lesson.videoUrl&&<p className="muted">Видео добавлено. <a href={lesson.videoUrl} target="_blank" rel="noreferrer">Открыть</a></p>}
+              <label>Фотографии-инструкция (можно выбрать несколько файлов)<input className="field" type="file" accept="image/*" multiple disabled={!!lessonUploads[index]?.photos} onChange={e=>{uploadLessonPhotos(index,e.target.files);e.target.value=''}}/></label>
+              {lessonUploads[index]?.photos&&<small className="muted">Загрузка фотографий...</small>}
+              {!!lesson.photos?.length&&<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(90px,1fr))',gap:8}}>{lesson.photos.map((url,photoIndex)=><div key={url+photoIndex} style={{position:'relative'}}><img src={url} alt={`Фото урока ${index+1}`} style={{width:'100%',height:90,objectFit:'cover',borderRadius:8}}/><button type="button" className="btn ghost" style={{padding:'3px 7px',position:'absolute',top:3,right:3}} onClick={()=>setLessonEditor(prev=>prev.map((x,i)=>i===index?{...x,photos:(x.photos||[]).filter((_,j)=>j!==photoIndex)}:x))}>×</button></div>)}</div>}
               <label>Материалы урока (каждая строка: название RU | название KO | ссылка)<textarea className="field" rows={2} value={lesson.materialsText} onChange={e=>setLessonEditor(prev=>prev.map((x,i)=>i===index?{...x,materialsText:e.target.value}:x))}/></label>
             </section>)}
-            <button type="button" className="btn ghost" onClick={()=>setLessonEditor(prev=>[...prev,{titleRu:'',title:'',minutes:'10',videoUrl:'',materialsText:''}])}>+ Добавить урок</button>
+            <button type="button" className="btn ghost" onClick={()=>setLessonEditor(prev=>[...prev,{titleRu:'',title:'',minutes:'10',videoUrl:'',photos:[],materialsText:''}])}>+ Добавить урок</button>
           </div>
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" className="btn" onClick={saveClass}>{editingClassId?'Сохранить изменения':'Добавить мастер-класс'}</button>{editingClassId&&<button type="button" className="btn ghost" onClick={resetClassForm}>Отмена</button>}</div>
         </section>
