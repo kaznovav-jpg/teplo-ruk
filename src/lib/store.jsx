@@ -119,6 +119,19 @@ setAuthReady(true)
     setUser(u); setS({ ...EMPTY, ...rd(sk(u), {}) }); setAuthReady(true)
   }, [])
 
+  // Immediately end an already-open session if an administrator blocks the account.
+  useEffect(() => {
+    if (!user?.uid || !F.isFirebase || isAdmin) return
+    return F.onSnapshot(F.doc(F.db, 'users', user.uid), (snap) => {
+      if (snap.exists() && snap.data().status === 'blocked') {
+        setUser(null)
+        UR.current = null
+        setS({ ...EMPTY, ...rd('hm_guest', {}) })
+        F.signOut(F.auth).catch(console.error)
+      }
+    }, (error) => console.error('Account status listener error:', error))
+  }, [user?.uid, isAdmin])
+
   const save = useCallback((next) => {
     SR.current = next; setS(next)
     const u = UR.current
