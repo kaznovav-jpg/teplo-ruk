@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { D } from '../lib/data.js'
+import * as F from '../lib/firebase.js'
 import { useLanguage } from '../lib/language.jsx'
 import { useApp } from '../lib/store.jsx'
 import { CATS, won } from '../lib/util.js'
@@ -91,38 +92,50 @@ export function ClassDetail() {
 }
 
 export function Learn() {
-  const { id } = useParams(), { S, toggleDone, setNote, toast, classes } = useApp()
+  const { id } = useParams(), { S, toggleDone, setNote, toast, classes, user } = useApp()
+  const { lang } = useLanguage()
+  const ru = lang === 'ru'
+  const [reviewText, setReviewText] = useState('')
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviews, setReviews] = useState([])
+  const [reviewSaving, setReviewSaving] = useState(false)
   const c = classes.find((x) => x?.id === id) || classes[0]
   useTitle((c?.title || '클래스') + ' 수강')
   const [n, setN] = useState(0), [note, setNoteTxt] = useState(c ? (S.notes[c.id] || '') : '')
   const lessons = Array.isArray(c?.lessons) ? c.lessons : []
+  useEffect(() => { if (!F.isFirebase || !id) return; return F.onSnapshot(F.query(F.collection(F.db, 'classReviews'), F.where('classId', '==', id)), snap => setReviews(snap.docs.map(d => ({...d.data(), id:d.id})).sort((a,b)=>(b.at||'').localeCompare(a.at||''))), console.error) }, [id])
   if (!c) return <div className="wrap empty"><p>클래스를 찾을 수 없어요.</p><Link className="btn" to="/classes">클래스 목록으로</Link></div>
   useEffect(() => { window.scrollTo(0, 0) }, [n])
-  if (!S.enrolled.some((x) => x.id === c.id)) return <div className="wrap empty"><p>수강신청 후 학습할 수 있어요.</p><Link className="btn" style={{ marginTop: 14 }} to={`/classes/${c.id}`}>클래스 보러 가기</Link></div>
-  const L = lessons, done = S.progress[c.id] || [], pct = Math.round((done.length / Math.max(1, L.length)) * 100), dn = done.includes(n)
+  const lessonTitle = (lesson) => ru ? (lesson?.titleRu || lesson?.title || '') : (lesson?.title || lesson?.titleRu || '')
+  const submitReview = async () => { if (!user || !F.isFirebase) { toast(ru ? 'Войдите в аккаунт, чтобы оставить отзыв.' : '후기를 작성하려면 로그인해 주세요.'); return } if (!reviewText.trim()) { toast(ru ? 'Напишите текст отзыва.' : '후기 내용을 입력해 주세요.'); return } setReviewSaving(true); try { await F.setDoc(F.doc(F.db, 'classReviews', `${c.id}_${user.uid}`), {classId:c.id,uid:user.uid,author:user.name||user.email,rating:reviewRating,text:reviewText.trim(),at:new Date().toISOString()}); setReviewText(''); toast(ru ? 'Спасибо! Ваш отзыв опубликован.' : '후기를 등록해 주셔서 감사합니다.') } catch(error) { console.error(error); toast(ru ? 'Не удалось сохранить отзыв.' : '후기를 저장하지 못했어요.') } finally { setReviewSaving(false) } }
+  if (!S.enrolled.some((x) => x.id === c.id)) return <div className="wrap empty"><p>{ru ? 'Сначала запишитесь на мастер-класс.' : '수강신청 후 학습할 수 있어요.'}</p><Link className="btn" style={{ marginTop: 14 }} to={`/classes/${c.id}`}>{ru ? 'К мастер-классу' : '클래스 보러 가기'}</Link></div>
+  const L = lessons, done = S.progress[c.id] || [], pct = Math.round((done.length / Math.max(1, L.length)) * 100), dn = done.includes(n), current = L[n] || {}
   return (
     <div className="wrap">
-      <Crumb items={[<Link to="/classes">클래스</Link>, <Link to={`/classes/${c.id}`}>{c.title}</Link>, '수강']} />
-      <h1 style={{ fontSize: '1.5rem', marginBottom: 14 }}>{c.title}</h1>
+      <Crumb items={[<Link to="/classes">{ru ? 'Мастер-классы' : '클래스'}</Link>, <Link to={`/classes/${c.id}`}>{ru ? (c.titleRu || c.title) : c.title}</Link>, ru ? 'Обучение' : '수강']} />
+      <h1 style={{ fontSize: '1.5rem', marginBottom: 14 }}>{ru ? (c.titleRu || c.title) : c.title}</h1>
       <div className="cl">
         <div>
-          <div className="vid" style={{ backgroundImage: `url(${c.thumb})` }}><button className="play" aria-label="재생" onClick={() => toast('샘플 영상 화면이에요')}>▶</button><span className="cap">{n + 1}강 {Array.isArray(L[n]) ? L[n][0] : L[n]?.title}</span></div>
+          <div className="vid" style={{ backgroundImage: `url(${c.thumb})` }}><button className="play" aria-label="재생" onClick={() => toast('샘플 영상 화면이에요')}>▶</button><span className="cap">{ru ? `Урок ${n+1}` : `${n+1}강`} {lessonTitle(current)}</span></div>
           <div className="acts" style={{ margin: '14px 0' }}>
-            <button className="btn ghost" disabled={!n} onClick={() => setN(n - 1)}>이전 강</button>
-            <button className={'btn' + (dn ? ' ghost' : '')} onClick={() => toggleDone(c.id, n)}>{dn ? '완료 취소' : '수강 완료 표시'}</button>
-            <button className="btn ghost" disabled={n >= L.length - 1} onClick={() => setN(n + 1)}>다음 강</button>
+            <button className="btn ghost" disabled={!n} onClick={() => setN(n - 1)}>{ru ? 'Предыдущий урок' : '이전 강'}</button>
+            <button className={'btn' + (dn ? ' ghost' : '')} onClick={() => toggleDone(c.id, n)}>{dn ? (ru ? 'Отменить отметку' : '완료 취소') : (ru ? 'Отметить как пройденный' : '수강 완료 표시')}</button>
+            <button className="btn ghost" disabled={n >= L.length - 1} onClick={() => setN(n + 1)}>{ru ? 'Следующий урок' : '다음 강'}</button>
           </div>
-          <h2 style={{ fontSize: '1.2rem', marginBottom: 8 }}>메모</h2>
-          <textarea className="field" rows={4} value={note} onChange={(e) => setNoteTxt(e.target.value)} onBlur={() => setNote(c.id, note)} style={{ width: '100%', padding: 12 }} placeholder="강의를 보며 기록해 보세요" aria-label="강의 메모" />
-          <h2 className="mt" style={{ fontSize: '1.2rem' }}>학습 자료</h2>
-          <ul className="list">{['도안 PDF', '준비물 체크리스트', '작품 사진 가이드'].map((t) => <li key={t} style={{ justifyContent: 'space-between' }}><span>{t}</span><button className="btn ghost" onClick={() => toast('자료 다운로드는 샘플이에요')}>다운로드</button></li>)}</ul>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: 8 }}>{ru ? 'Заметки' : '메모'}</h2>
+          <textarea className="field" rows={4} value={note} onChange={(e) => setNoteTxt(e.target.value)} onBlur={() => setNote(c.id, note)} style={{ width: '100%', padding: 12 }} placeholder={ru ? 'Записывайте важное во время урока' : '강의를 보며 기록해 보세요'} aria-label={ru ? 'Заметки к уроку' : '강의 메모'} />
+          <h2 className="mt" style={{ fontSize: '1.2rem' }}>{ru ? 'Материалы урока' : '학습 자료'}</h2>
+          {(current.materials || []).length ? <ul className="list">{current.materials.map((m,i)=><li key={i} style={{justifyContent:'space-between'}}><span>{ru ? (m.labelRu || m.label) : (m.label || m.labelRu)}</span>{m.url && <a className="btn ghost" href={m.url} target="_blank" rel="noreferrer">{ru ? 'Скачать' : '다운로드'}</a>}</li>)}</ul> : <p className="muted">{ru ? 'Материалы к этому уроку пока не добавлены.' : '등록된 학습 자료가 없어요.'}</p>}
+          {current.videoUrl && <p><a className="more" href={current.videoUrl} target="_blank" rel="noreferrer">{ru ? 'Открыть видео урока' : '강의 영상 보기'}</a></p>}
         </div>
         <aside className="sum">
-          <b>학습 진행률 {pct}%</b>
+          <b>{ru ? 'Прогресс обучения' : '학습 진행률'} {pct}%</b>
           <div className="prog" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="학습 진행률"><i style={{ width: pct + '%' }} /></div>
-          {L.map((l, i) => <button key={i} className={'lsn' + (i === n ? ' on' : '')} onClick={() => setN(i)}><span aria-hidden="true">{done.includes(i) ? '✔' : '○'}</span><span style={{ flex: 1 }}>{i + 1}강 {Array.isArray(l) ? l[0] : l?.title}</span><span className="muted">{Array.isArray(l) ? l[1] : l?.minutes}분</span></button>)}
+          {L.map((l, i) => <button key={i} className={'lsn' + (i === n ? ' on' : '')} onClick={() => setN(i)}><span aria-hidden="true">{done.includes(i) ? '✔' : '○'}</span><span style={{ flex: 1 }}>{ru ? `Урок ${i+1}` : `${i+1}강`} {lessonTitle(l)}</span><span className="muted">{Array.isArray(l) ? l[1] : l?.minutes}{ru ? ' мин' : '분'}</span></button>)}
         </aside>
       </div>
+      {pct === 100 && <section className="box" style={{marginTop:24,padding:18}}><h2 style={{fontSize:'1.25rem'}}>{ru ? 'Оставить отзыв о мастер-классе' : '수강 후기 작성'}</h2><p className="muted">{ru ? 'Вы завершили все уроки. Поделитесь впечатлениями.' : '모든 강의를 완료했어요. 수강 경험을 나눠 주세요.'}</p><label>{ru ? 'Оценка' : '평점'} <select className="field" value={reviewRating} onChange={e=>setReviewRating(Number(e.target.value))}><option value={5}>★★★★★</option><option value={4}>★★★★☆</option><option value={3}>★★★☆☆</option><option value={2}>★★☆☆☆</option><option value={1}>★☆☆☆☆</option></select></label><textarea className="field" rows={4} value={reviewText} onChange={e=>setReviewText(e.target.value)} placeholder={ru ? 'Ваш отзыв о мастер-классе...' : '수강 후기를 작성해 주세요.'} style={{width:'100%',marginTop:10}}/><button className="btn" disabled={reviewSaving} onClick={submitReview} style={{marginTop:10}}>{ru ? 'Опубликовать отзыв' : '후기 등록'}</button></section>}
+      {reviews.length>0 && <section className="box" style={{marginTop:20,padding:18}}><h2 style={{fontSize:'1.2rem'}}>{ru ? 'Отзывы учеников' : '수강 후기'}</h2>{reviews.map(r=><article key={r.id} style={{padding:'12px 0',borderBottom:'1px solid #E5DCD2'}}><b>{r.author}</b> · {'★'.repeat(r.rating||5)}<p style={{whiteSpace:'pre-wrap'}}>{r.text}</p></article>)}</section>}
     </div>
   )
 }
