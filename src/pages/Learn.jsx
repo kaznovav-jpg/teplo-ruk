@@ -67,7 +67,7 @@ export function ClassDetail() {
           <ol className="list">{lessons.map((l, i) => <li key={i}><span className="chip">{ru ? `Урок ${i + 1}` : `${i + 1}강`}</span><span style={{ flex: 1 }}>{Array.isArray(l)?l[0]:l.title}</span><span className="muted">{Array.isArray(l)?l[1]:l.minutes}{ru ? ' мин' : '분'}</span></li>)}</ol>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>{ru ? 'Материалы' : '준비물'}</h2>
           {(ru ? c.materialsIntroRu : c.materialsIntro) && <p>{ru ? c.materialsIntroRu : c.materialsIntro}</p>}
-          <ul className="list">{c.kit && <li>{ru ? 'Набор материалов доставляется вместе с заказом.' : '재료키트가 함께 배송돼요.'}</li>}{(Array.isArray(c.materials) ? c.materials : []).map((m) => <li key={m}>{m}</li>)}</ul>
+          <ul className="list">{(Array.isArray(c.materials) ? c.materials : []).map((m) => <li key={m}>{m}</li>)}</ul>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>{ru ? 'Об авторе курса' : '강사 소개'}</h2>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
             <div style={{ flex: 1, minWidth: 200 }}>{a ? <><Link to={`/artists/${a.id}`}><b>{a.name}</b></Link><p className="muted">{a.field}</p><p>{a.bio}</p></> : <p className="muted">{ru ? (c.authorTextRu || 'Информация об авторе пока не добавлена.') : (c.authorText || '강사 정보가 아직 등록되지 않았어요.')}</p>}{a && (ru ? c.authorTextRu : c.authorText) && <p>{ru ? c.authorTextRu : c.authorText}</p>}</div>{a && <FollowBtn a={a} />}
@@ -76,7 +76,7 @@ export function ClassDetail() {
           {(ru ? c.reviewsTextRu : c.reviewsText) ? <p>{ru ? c.reviewsTextRu : c.reviewsText}</p> : <p className="muted">{ru ? 'Отзывы пока не добавлены.' : '아직 후기가 등록되지 않았어요.'}</p>}
         </div>
         <aside className="sum" style={{ position: 'sticky', top: 90 }}>
-          <p className="serif" style={{ fontSize: '1.5rem' }}>{c.price ? won(c.price) : '무료'}</p>{c.kit && <p className="muted">재료키트 포함 패키지</p>}
+          <p className="serif" style={{ fontSize: '1.5rem' }}>{c.price ? won(c.price) : '무료'}</p>
           <div className="row"><span>난이도</span><span>{c.level}</span></div><div className="row"><span>방식</span><span>{c.kind}</span></div><div className="row"><span>{ru ? 'Общая длительность' : '총 시간'}</span><span>{totalMinutes}{ru ? ' мин' : '분'} ({tot}{ru ? ' уроков' : '강'})</span></div>
           {en ? <><p className="muted" style={{ margin: '8px 0' }}>진행률 {pct}%</p><button className="btn block" onClick={() => nav(`/classes/${c.id}/learn`)}>이어서 학습하기</button></>
             : <button className="btn block" style={{ marginTop: 12 }} onClick={() => { enroll(c.id); toast('수강신청이 완료되었어요') }}>{c.price ? '수강신청' : '무료로 시작하기'}</button>}
