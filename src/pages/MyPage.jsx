@@ -8,6 +8,7 @@ import { won } from '../lib/util.js'
 import useTitle from '../lib/useTitle.js'
 import { ProductCard, ClassCard, ArtistCard } from '../components/Cards.jsx'
 import FilePicker from '../components/FilePicker.jsx'
+import { optimizeImage } from '../lib/optimizeImage.js'
 
 const AUTH = ['login', 'signup', 'find']
 const errMsg = (e) => ({ 'auth/email-not-verified': '이메일 인증이 필요해요. 받은 메일의 링크를 눌러 주세요.', 'auth/invalid-credential': '이메일 또는 비밀번호가 맞지 않아요', 'auth/email-already-in-use': '이미 가입된 이메일이에요', 'auth/weak-password': '비밀번호는 6자 이상이어야 해요', 'auth/popup-closed-by-user': '로그인 창이 닫혔어요' }[e?.code] || '처리하지 못했어요. 잠시 후 다시 시도해 주세요')
@@ -94,7 +95,8 @@ export default function MyPage() {
   const uploadMakerImage = async (file) => {
     if (!file) return ''
     const body = new FormData()
-    body.append('file', file)
+    const optimizedFile = await optimizeImage(file)
+    body.append('file', optimizedFile, optimizedFile.name || 'photo.webp')
     body.append('upload_preset', 'teplo_ruk_upload')
     const response = await fetch('https://api.cloudinary.com/v1_1/sfnfmwiv/image/upload', { method: 'POST', body })
     const result = await response.json()
