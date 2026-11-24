@@ -62,7 +62,7 @@ export function ClassDetail() {
         <div>
           <div className="vid" style={{ backgroundImage: `url(${c.thumb})` }}><button className="play" aria-label="소개 영상 재생" onClick={() => toast('소개 영상은 샘플이에요')}>▶</button><span className="cap">소개 영상 (샘플)</span></div>
           <p style={{ marginTop: 18 }}>{typeBadge(c.type)}<span className="badge line">{c.kind}</span><span className="badge line">{c.level}</span></p>
-          <h1 style={{ fontSize: '1.7rem', margin: '8px 0' }}>{c.title}</h1><p>{c.intro}</p>
+          <h1 style={{ fontSize: '1.7rem', margin: '8px 0' }}>{ru ? (c.titleRu || c.title) : c.title}</h1><p>{ru ? (c.introRu || c.intro) : c.intro}</p>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>커리큘럼</h2>
           <ol className="list">{lessons.map((l, i) => <li key={i}><span className="chip">{ru ? `Урок ${i + 1}` : `${i + 1}강`}</span><span style={{ flex: 1 }}>{Array.isArray(l)?l[0]:l.title}</span><span className="muted">{Array.isArray(l)?l[1]:l.minutes}{ru ? ' мин' : '분'}</span></li>)}</ol>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>준비물</h2>
