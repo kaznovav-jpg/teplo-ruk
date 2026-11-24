@@ -4,6 +4,7 @@ import { useLanguage } from '../lib/language.jsx'
 import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
 import FilePicker from '../components/FilePicker.jsx'
+import { optimizeImage } from '../lib/optimizeImage.js'
 
 export default function Admin() {
   const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, updateOrderStatus, deleteOrder, adminEvents, masterApplications, artistWorks, products, articles, classes, artists, artistCollections, customOrders = [], posts = [], isFirebase } = useApp()
@@ -210,7 +211,8 @@ const [previewArticle, setPreviewArticle] = useState(false)
   }
 
   const formData = new FormData()
-  formData.append('file', file)
+  const optimizedFile = await optimizeImage(file)
+  formData.append('file', optimizedFile, optimizedFile.name || 'photo.webp')
   formData.append('upload_preset', uploadPreset)
 
   try {
