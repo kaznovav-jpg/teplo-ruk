@@ -180,7 +180,7 @@ export default function MyPage() {
   const C = {
     dash: <div className="stats">
       <Link className="stat" to="/cart"><b>{cartCount}</b>장바구니</Link>{stat('fav', wish.length, '찜')}{stat('class', S.enrolled.length, '수강 중 클래스')}
-      {stat('class', S.reservations.length, '일정 예약')}{stat('orders', orders.length, '주문')}{stat('coupon', `${(user.coupons || []).length}장`, `쿠폰 · ${(user.points || 0).toLocaleString('ko-KR')}P`)}
+      {stat('class', S.reservations.length, '일정 예약')}{stat('orders', orders.length, '주문')}{stat('coupon', `${(user.coupons || []).length}${isRu ? ' шт.' : '장'}`, isRu ? 'Купоны' : '쿠폰')}
     </div>,
     master: <section className="box" style={{ maxWidth: 620 }}>
       <h2>{isRu ? 'Стать мастером «Тепло Рук»' : '손길의 온기 작가 신청'}</h2>
