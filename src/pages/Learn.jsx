@@ -45,6 +45,8 @@ export function Classes() {
 
 export function ClassDetail() {
   const { id } = useParams(), nav = useNavigate(), { S, enroll, toast, classes, artists } = useApp()
+  const { lang } = useLanguage()
+  const ru = lang === 'ru'
   const c = classes.find((x) => x?.id === id) || classes[0]
   const artistList = artists?.length ? artists : D.artists
   const a = artistList.find((x) => x?.id === c?.artist) || artistList[0] || null
@@ -52,7 +54,7 @@ export function ClassDetail() {
   if (!c) return <div className="wrap empty"><p>Мастер-класс не найден.</p><Link className="btn" to="/classes">Вернуться к мастер-классам</Link></div>
   const lessons = Array.isArray(c.lessons) ? c.lessons : []
   const en = S.enrolled.some((x) => x?.id === c.id), tot = lessons.length
-  const pct = Math.round(((S.progress[c.id] || []).length / Math.max(1, tot)) * 100), mins = lessons.reduce((sum, lesson) => sum + Number(Array.isArray(lesson) ? lesson[1] : lesson?.minutes || 0), 0)
+  const pct = Math.round(((S.progress[c.id] || []).length / Math.max(1, tot)) * 100), mins = lessons.reduce((sum, lesson) => sum + Number(Array.isArray(lesson) ? lesson[1] : lesson?.minutes || 0), 0), totalMinutes = Number(c.minutes || mins)
   return (
     <div className="wrap">
       <Crumb items={[<Link to="/classes">클래스</Link>, c.title]} />
@@ -62,7 +64,7 @@ export function ClassDetail() {
           <p style={{ marginTop: 18 }}>{typeBadge(c.type)}<span className="badge line">{c.kind}</span><span className="badge line">{c.level}</span></p>
           <h1 style={{ fontSize: '1.7rem', margin: '8px 0' }}>{c.title}</h1><p>{c.intro}</p>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>커리큘럼</h2>
-          <ol className="list">{lessons.map((l, i) => <li key={i}><span className="chip">{i + 1}강</span><span style={{ flex: 1 }}>{Array.isArray(l)?l[0]:l.title}</span><span className="muted">{Array.isArray(l)?l[1]:l.minutes}분</span></li>)}</ol>
+          <ol className="list">{lessons.map((l, i) => <li key={i}><span className="chip">{ru ? `Урок ${i + 1}` : `${i + 1}강`}</span><span style={{ flex: 1 }}>{Array.isArray(l)?l[0]:l.title}</span><span className="muted">{Array.isArray(l)?l[1]:l.minutes}{ru ? ' мин' : '분'}</span></li>)}</ol>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>준비물</h2>
           <ul className="list">{c.kit && <li>재료키트가 함께 배송돼요.</li>}{(Array.isArray(c.materials) ? c.materials : []).map((m) => <li key={m}>{m}</li>)}</ul>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>강사 소개</h2>
@@ -74,7 +76,7 @@ export function ClassDetail() {
         </div>
         <aside className="sum" style={{ position: 'sticky', top: 90 }}>
           <p className="serif" style={{ fontSize: '1.5rem' }}>{c.price ? won(c.price) : '무료'}</p>{c.kit && <p className="muted">재료키트 포함 패키지</p>}
-          <div className="row"><span>난이도</span><span>{c.level}</span></div><div className="row"><span>방식</span><span>{c.kind}</span></div><div className="row"><span>총 시간</span><span>{mins}분 ({tot}강)</span></div>
+          <div className="row"><span>난이도</span><span>{c.level}</span></div><div className="row"><span>방식</span><span>{c.kind}</span></div><div className="row"><span>{ru ? 'Общая длительность' : '총 시간'}</span><span>{totalMinutes}{ru ? ' мин' : '분'} ({tot}{ru ? ' уроков' : '강'})</span></div>
           {en ? <><p className="muted" style={{ margin: '8px 0' }}>진행률 {pct}%</p><button className="btn block" onClick={() => nav(`/classes/${c.id}/learn`)}>이어서 학습하기</button></>
             : <button className="btn block" style={{ marginTop: 12 }} onClick={() => { enroll(c.id); toast('수강신청이 완료되었어요') }}>{c.price ? '수강신청' : '무료로 시작하기'}</button>}
           <div style={{ marginTop: 10 }}><Heart id={c.id} text /></div>
