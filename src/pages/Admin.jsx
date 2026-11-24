@@ -3,6 +3,7 @@ import { useApp } from '../lib/store.jsx'
 import { useLanguage } from '../lib/language.jsx'
 import { D } from '../lib/data.js'
 import * as F from '../lib/firebase.js'
+import FilePicker from '../components/FilePicker.jsx'
 
 export default function Admin() {
   const { user, isAdmin, adminReservations, adminOrders, confirmOrderPayment, updateOrderFulfillment, reviewOrderCancellation, updateOrderStatus, deleteOrder, adminEvents, masterApplications, artistWorks, products, articles, classes, artists, artistCollections, customOrders = [], posts = [], isFirebase } = useApp()
@@ -1379,7 +1380,7 @@ const deleteArticle = async (article) => {
     {lang === 'ru' ? 'Или выберите несколько фотографий с компьютера:' : '또는 컴퓨터에서 사진 여러 장 선택:'}
   </span>
 
-  <input
+  <FilePicker label={lang === 'ru' ? 'Выбрать фотографии' : '사진 선택'}
     type="file"
     className="field"
     accept="image/png,image/jpeg,image/webp"
@@ -1608,7 +1609,7 @@ const deleteArticle = async (article) => {
           <label>Ссылка на фотографию<input className="field" value={classForm.thumb} onChange={e=>setClassForm(p=>({...p,thumb:e.target.value}))} placeholder="https://..."/></label>
           <label style={{display:'grid',gap:8}}>
             <span>Или загрузить фотографию с компьютера</span>
-            <input className="field" type="file" accept="image/*" disabled={classImageUploading} onChange={e=>{const file=e.target.files?.[0];if(file)uploadClassPhoto(file);e.target.value=''}}/>
+            <FilePicker label={lang === 'ru' ? 'Выбрать фотографию' : '사진 선택'} className="field" type="file" accept="image/*" disabled={classImageUploading} onChange={e=>{const file=e.target.files?.[0];if(file)uploadClassPhoto(file);e.target.value=''}}/>
             {classImageUploading&&<small className="muted">Загрузка фотографии...</small>}
           </label>
           {classForm.thumb&&<img src={classForm.thumb} alt="" style={{width:180,maxHeight:130,objectFit:'cover',borderRadius:8}}/>}
@@ -1632,10 +1633,10 @@ const deleteArticle = async (article) => {
               <label>Название урока (KO)<input className="field" value={lesson.title} onChange={e=>setLessonEditor(prev=>prev.map((x,i)=>i===index?{...x,title:e.target.value}:x))}/></label>
               <label>Длительность (минуты)<input className="field" type="number" min="1" value={lesson.minutes} onChange={e=>setLessonEditor(prev=>prev.map((x,i)=>i===index?{...x,minutes:e.target.value}:x))}/></label>
               <label>Ссылка на видео урока<input className="field" value={lesson.videoUrl} onChange={e=>setLessonEditor(prev=>prev.map((x,i)=>i===index?{...x,videoUrl:e.target.value}:x))} placeholder="https://..."/></label>
-              <label>Загрузить видео с компьютера<input className="field" type="file" accept="video/*" disabled={!!lessonUploads[index]?.video} onChange={e=>{uploadLessonVideo(index,e.target.files?.[0]);e.target.value=''}}/></label>
+              <label>Загрузить видео с компьютера<FilePicker label={lang === 'ru' ? 'Выбрать видео' : '동영상 선택'} className="field" type="file" accept="video/*" disabled={!!lessonUploads[index]?.video} onChange={e=>{uploadLessonVideo(index,e.target.files?.[0]);e.target.value=''}}/></label>
               {lessonUploads[index]?.video&&<small className="muted">Загрузка видео...</small>}
               {lesson.videoUrl&&<p className="muted">Видео добавлено. <a href={lesson.videoUrl} target="_blank" rel="noreferrer">Открыть</a></p>}
-              <label>Фотографии-инструкция (можно выбрать несколько файлов)<input className="field" type="file" accept="image/*" multiple disabled={!!lessonUploads[index]?.photos} onChange={e=>{uploadLessonPhotos(index,e.target.files);e.target.value=''}}/></label>
+              <label>Фотографии-инструкция (можно выбрать несколько файлов)<FilePicker label={lang === 'ru' ? 'Выбрать фотографии' : '사진 선택'} className="field" type="file" accept="image/*" multiple disabled={!!lessonUploads[index]?.photos} onChange={e=>{uploadLessonPhotos(index,e.target.files);e.target.value=''}}/></label>
               {lessonUploads[index]?.photos&&<small className="muted">Загрузка фотографий...</small>}
               {!!lesson.photos?.length&&<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(90px,1fr))',gap:8}}>{lesson.photos.map((url,photoIndex)=><div key={url+photoIndex} style={{position:'relative'}}><img src={url} alt={`Фото урока ${index+1}`} style={{width:'100%',height:90,objectFit:'cover',borderRadius:8}}/><button type="button" className="btn ghost" style={{padding:'3px 7px',position:'absolute',top:3,right:3}} onClick={()=>setLessonEditor(prev=>prev.map((x,i)=>i===index?{...x,photos:(x.photos||[]).filter((_,j)=>j!==photoIndex)}:x))}>×</button></div>)}</div>}
               <label>Материалы урока (каждая строка: название RU | название KO | ссылка)<textarea className="field" rows={2} value={lesson.materialsText} onChange={e=>setLessonEditor(prev=>prev.map((x,i)=>i===index?{...x,materialsText:e.target.value}:x))}/></label>
@@ -1769,7 +1770,7 @@ const deleteArticle = async (article) => {
 <label>
   {lang === 'ru' ? 'Фотографии статьи' : '아티클 사진'}
 
-  <input
+  <FilePicker label={lang === 'ru' ? 'Выбрать фотографии' : '사진 선택'}
     className="field"
     type="file"
     accept="image/png,image/jpeg,image/webp"
@@ -2137,7 +2138,7 @@ const deleteArticle = async (article) => {
   </label>
   <label>
     {lang === 'ru' ? 'Фотографии занятия' : '수업 사진'}
-    <input
+    <FilePicker label={lang === 'ru' ? 'Выбрать фотографии' : '사진 선택'}
       type="file"
       className="field"
       accept="image/png,image/jpeg,image/webp"
