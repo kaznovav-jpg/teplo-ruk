@@ -104,8 +104,8 @@ export function Learn() {
   const [n, setN] = useState(0), [note, setNoteTxt] = useState(c ? (S.notes[c.id] || '') : '')
   const lessons = Array.isArray(c?.lessons) ? c.lessons : []
   useEffect(() => { if (!F.isFirebase || !id) return; return F.onSnapshot(F.query(F.collection(F.db, 'classReviews'), F.where('classId', '==', id)), snap => setReviews(snap.docs.map(d => ({...d.data(), id:d.id})).sort((a,b)=>(b.at||'').localeCompare(a.at||''))), console.error) }, [id])
-  if (!c) return <div className="wrap empty"><p>클래스를 찾을 수 없어요.</p><Link className="btn" to="/classes">클래스 목록으로</Link></div>
   useEffect(() => { window.scrollTo(0, 0) }, [n])
+  if (!c) return <div className="wrap empty"><p>클래스를 찾을 수 없어요.</p><Link className="btn" to="/classes">클래스 목록으로</Link></div>
   const lessonTitle = (lesson) => ru ? (lesson?.titleRu || lesson?.title || '') : (lesson?.title || lesson?.titleRu || '')
   const submitReview = async () => { if (!user || !F.isFirebase) { toast(ru ? 'Войдите в аккаунт, чтобы оставить отзыв.' : '후기를 작성하려면 로그인해 주세요.'); return } if (!reviewText.trim()) { toast(ru ? 'Напишите текст отзыва.' : '후기 내용을 입력해 주세요.'); return } setReviewSaving(true); try { await F.setDoc(F.doc(F.db, 'classReviews', `${c.id}_${user.uid}`), {classId:c.id,uid:user.uid,author:user.name||user.email,rating:reviewRating,text:reviewText.trim(),at:new Date().toISOString()}); setReviewText(''); toast(ru ? 'Спасибо! Ваш отзыв опубликован.' : '후기를 등록해 주셔서 감사합니다.') } catch(error) { console.error(error); toast(ru ? 'Не удалось сохранить отзыв.' : '후기를 저장하지 못했어요.') } finally { setReviewSaving(false) } }
   if (!S.enrolled.some((x) => x.id === c.id)) return <div className="wrap empty"><p>{ru ? 'Сначала запишитесь на мастер-класс.' : '수강신청 후 학습할 수 있어요.'}</p><Link className="btn" style={{ marginTop: 14 }} to={`/classes/${c.id}`}>{ru ? 'К мастер-классу' : '클래스 보러 가기'}</Link></div>
