@@ -34,8 +34,11 @@ export default async function handler(req, res) {
         users.push(...page.users)
         pageToken = page.pageToken
       } while (pageToken)
-      const profiles = await Promise.all(users.map((u) => db.collection('users').doc(u.uid).get()))
-      const result = users.map((u, i) => {
+      const adminAccounts = await db.collection('admins').get()
+      const adminIds = new Set(adminAccounts.docs.map((doc) => doc.id))
+      const memberUsers = users.filter((u) => !adminIds.has(u.uid))
+      const profiles = await Promise.all(memberUsers.map((u) => db.collection('users').doc(u.uid).get()))
+      const result = memberUsers.map((u, i) => {
         const profile = profiles[i].exists ? profiles[i].data() : {}
         return {
           uid: u.uid,
