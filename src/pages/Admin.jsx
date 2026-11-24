@@ -1563,7 +1563,7 @@ const deleteArticle = async (article) => {
           <label>Информация об авторе курса (KO)<textarea className="field" rows={2} value={classForm.authorText} onChange={e=>setClassForm(p=>({...p,authorText:e.target.value}))}/></label>
           <label>Отзывы учеников (RU)<textarea className="field" rows={3} value={classForm.reviewsTextRu} onChange={e=>setClassForm(p=>({...p,reviewsTextRu:e.target.value}))} placeholder="Оставьте пустым, если отзывов пока нет"/></label>
           <label>Отзывы учеников (KO)<textarea className="field" rows={3} value={classForm.reviewsText} onChange={e=>setClassForm(p=>({...p,reviewsText:e.target.value}))}/></label>
-          <label>Ссылка на фотографию<input className="field" value={classForm.thumb onChange={e=>setClassForm(p=>({...p,thumb:e.target.value}))} placeholder="https://..."/></label>
+          <label>Ссылка на фотографию<input className="field" value={classForm.thumb} onChange={e=>setClassForm(p=>({...p,thumb:e.target.value}))} placeholder="https://..."/></label>
           <label style={{display:'grid',gap:8}}>
             <span>Или загрузить фотографию с компьютера</span>
             <input className="field" type="file" accept="image/*" disabled={classImageUploading} onChange={e=>{const file=e.target.files?.[0];if(file)uploadClassPhoto(file);e.target.value=''}}/>
