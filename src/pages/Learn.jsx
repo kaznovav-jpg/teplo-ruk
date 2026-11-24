@@ -123,12 +123,13 @@ export function Learn() {
       <h1 style={{ fontSize: '1.5rem', marginBottom: 14 }}>{ru ? (c.titleRu || c.title) : c.title}</h1>
       <div className="cl">
         <div>
-          <div className="vid" style={{ backgroundImage: `url(${c.thumb})` }}><button className="play" aria-label="재생" onClick={() => toast('샘플 영상 화면이에요')}>▶</button><span className="cap">{ru ? `Урок ${n+1}` : `${n+1}강`} {lessonTitle(current)}</span></div>
+          {current.videoUrl ? <video className="vid" src={current.videoUrl} controls playsInline preload="metadata" poster={c.thumb || undefined} style={{ width: '100%', height: 'auto', aspectRatio: '16/9', objectFit: 'contain', background: '#2F2B28' }} /> : <div className="vid" style={{ backgroundImage: `url(${c.thumb})` }}><span className="cap">{ru ? `Урок ${n+1}` : `${n+1}강`} {lessonTitle(current)}</span></div>}
           <div className="acts" style={{ margin: '14px 0' }}>
             <button className="btn ghost" disabled={!n} onClick={() => setN(n - 1)}>{ru ? 'Предыдущий урок' : '이전 강'}</button>
             <button className={'btn' + (dn ? ' ghost' : '')} onClick={() => toggleDone(c.id, n)}>{dn ? (ru ? 'Отменить отметку' : '완료 취소') : (ru ? 'Отметить как пройденный' : '수강 완료 표시')}</button>
             <button className="btn ghost" disabled={n >= L.length - 1} onClick={() => setN(n + 1)}>{ru ? 'Следующий урок' : '다음 강'}</button>
           </div>
+          {(current.photos || []).length > 0 && <section style={{ margin: '18px 0' }}><h2 style={{ fontSize: '1.2rem', marginBottom: 10 }}>{ru ? 'Фотографии-инструкция' : '사진 안내'}</h2><div style={{ display: 'grid', gap: 12 }}>{current.photos.map((url, i) => <img key={url + i} src={url} alt={ru ? `Шаг ${i + 1}` : `단계 ${i + 1}`} style={{ width: '100%', height: 'auto', borderRadius: 10, objectFit: 'contain' }} />)}</div></section>}
           <h2 style={{ fontSize: '1.2rem', marginBottom: 8 }}>{ru ? 'Заметки' : '메모'}</h2>
           <textarea className="field" rows={4} value={note} onChange={(e) => setNoteTxt(e.target.value)} onBlur={() => setNote(c.id, note)} style={{ width: '100%', padding: 12 }} placeholder={ru ? 'Записывайте важное во время урока' : '강의를 보며 기록해 보세요'} aria-label={ru ? 'Заметки к уроку' : '강의 메모'} />
           <h2 className="mt" style={{ fontSize: '1.2rem' }}>{ru ? 'Материалы урока' : '학습 자료'}</h2>
