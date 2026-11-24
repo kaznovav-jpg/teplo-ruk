@@ -62,7 +62,7 @@ service cloud.firestore {
         && request.resource.data.rating is int
         && request.resource.data.rating >= 1
         && request.resource.data.rating <= 5;
-      allow update, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow update, delete: if isActiveUser() && resource.data.uid == request.auth.uid;
     }
 
     match /events/{id} {
@@ -92,7 +92,7 @@ service cloud.firestore {
 
     match /reservations/{id} {
       allow read: if isAdmin()
-        || (request.auth != null && resource.data.uid == request.auth.uid);
+        || (isActiveUser() && resource.data.uid == request.auth.uid);
       allow create, update, delete: if false;
     }
 
@@ -124,7 +124,7 @@ service cloud.firestore {
           )
         )
       ) || (
-        request.auth != null
+        isActiveUser()
         && resource.data.uid == request.auth.uid
         && (!('fulfillmentStatus' in resource.data)
           || !(resource.data.fulfillmentStatus in ['shipped', 'delivered']))
@@ -140,20 +140,20 @@ service cloud.firestore {
 
     match /posts/{id} {
       allow read: if true;
-      allow create: if request.auth != null
+      allow create: if isActiveUser()
         && request.resource.data.uid == request.auth.uid;
       allow update: if isAdmin()
-        || (request.auth != null && resource.data.uid == request.auth.uid
+        || (isActiveUser() && resource.data.uid == request.auth.uid
           && request.resource.data.uid == resource.data.uid);
       allow delete: if isAdmin()
-        || (request.auth != null && resource.data.uid == request.auth.uid);
+        || (isActiveUser() && resource.data.uid == request.auth.uid);
     }
 
     match /comments/{id} {
       allow read: if true;
       allow create: if request.auth != null
         && request.resource.data.uid == request.auth.uid;
-      allow delete: if request.auth != null
+      allow delete: if isActiveUser()
         && resource.data.uid == request.auth.uid;
     }
 
@@ -179,12 +179,12 @@ service cloud.firestore {
     }
 
     match /masterApplications/{uid} {
-      allow create: if request.auth != null
+      allow create: if isActiveUser()
         && request.auth.uid == uid
         && request.resource.data.uid == uid
         && request.resource.data.status == 'pending';
       allow get: if isAdmin()
-        || (request.auth != null && request.auth.uid == uid);
+        || (isActiveUser() && request.auth.uid == uid);
       allow list: if isAdmin();
       allow update: if isAdmin()
         || (isActiveUser()
@@ -199,13 +199,13 @@ service cloud.firestore {
     match /artistWorks/{workId} {
       allow read: if isAdmin()
         || resource.data.status == 'approved'
-        || (request.auth != null && resource.data.artistUid == request.auth.uid);
-      allow create: if request.auth != null
+        || (isActiveUser() && resource.data.artistUid == request.auth.uid);
+      allow create: if isActiveUser()
         && request.resource.data.artistUid == request.auth.uid
         && request.resource.data.status == 'pending'
         && exists(/databases/$(database)/documents/masterProfiles/$(request.auth.uid));
       allow update: if isAdmin()
-        || (request.auth != null
+        || (isActiveUser()
           && resource.data.artistUid == request.auth.uid
           && exists(/databases/$(database)/documents/masterProfiles/$(request.auth.uid))
           && request.resource.data.artistUid == resource.data.artistUid
