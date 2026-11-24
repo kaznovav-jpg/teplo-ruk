@@ -289,8 +289,7 @@ export default function MyPage() {
       <h2 style={{ fontSize: '1.2rem', margin: '22px 0 10px' }}>내 후기</h2><p className="muted">구매·수강 후 작성한 후기가 여기에 모여요.</p>
     </>,
     coupon: <>
-      <div className="box"><b>적립금</b><p className="serif" style={{ fontSize: '1.6rem' }}>{(user.points || 0).toLocaleString('ko-KR')}P</p></div>
-      {(user.coupons || []).map((c, i) => <div className="box" key={i}><b>{c.name}</b><p className="muted">{c.desc}</p></div>)}{!(user.coupons || []).length && <p className="muted">보유한 쿠폰이 없어요.</p>}
+      {(user.coupons || []).map((c, i) => <div className="box" key={i}><b>{isRu ? (c.name === '신규 가입 쿠폰' ? 'Приветственный купон' : c.name) : c.name}</b><p className="muted">{isRu ? 'Скидка 3 000 ₩ при покупке от 30 000 ₩' : c.desc}</p></div>)}{!(user.coupons || []).length && <p className="muted">{isRu ? 'У вас пока нет купонов.' : '보유한 쿠폰이 없어요.'}</p>}
     </>,
     profile: <form className="form" style={{ maxWidth: 480 }} onSubmit={async (e) => { e.preventDefault(); const f = e.target; await updateUser({ name: f.nm.value.trim(), phone: f.phone.value, addr: f.addr.value }); toast('프로필을 저장했어요') }}>
       <label>이름<input className="field" name="nm" defaultValue={user.name || ''} required /></label>
