@@ -1579,8 +1579,7 @@ const deleteArticle = async (article) => {
             <label>Тип оплаты<select className="field" value={classForm.type} onChange={e=>setClassForm(p=>({...p,type:e.target.value,typeRu:e.target.value==='무료'?'Бесплатно':e.target.value==='패키지'?'Набор материалов':'Платно'}))}><option value="무료">Бесплатно</option><option value="유료">Платно</option><option value="패키지">Набор материалов</option></select></label>
             <label>Формат<select className="field" value={classForm.kind} onChange={e=>setClassForm(p=>({...p,kind:e.target.value,kindRu:e.target.value==='오프라인'?'Очно':'Видео'}))}><option value="동영상">Видео</option><option value="오프라인">Очно</option></select></label>
           </div>
-          <label style={{display:'flex',gap:8,alignItems:'center'}}><input type="checkbox" checked={classForm.kit} onChange={e=>setClassForm(p=>({...p,kit:e.target.checked}))}/>Включён набор материалов</label>
-          <label>Материалы (каждый с новой строки)<textarea className="field" rows={3} value={classForm.materialsText} onChange={e=>setClassForm(p=>({...p,materialsText:e.target.value}))}/></label>
+                    <label>Материалы (каждый с новой строки)<textarea className="field" rows={3} value={classForm.materialsText} onChange={e=>setClassForm(p=>({...p,materialsText:e.target.value}))}/></label>
           <label>Уроки (каждая строка: название | длительность в минутах; длительность можно менять вручную)<textarea className="field" rows={4} value={classForm.lessonsText} onChange={e=>setClassForm(p=>({...p,lessonsText:e.target.value}))}/><small className="muted">Например: Подготовка и инструменты | 15</small></label>
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" className="btn" onClick={saveClass}>{editingClassId?'Сохранить изменения':'Добавить мастер-класс'}</button>{editingClassId&&<button type="button" className="btn ghost" onClick={resetClassForm}>Отмена</button>}</div>
         </section>
