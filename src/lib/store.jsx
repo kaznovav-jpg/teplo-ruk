@@ -150,6 +150,11 @@ setAuthReady(true)
     })
     const result = await response.json()
     if (!response.ok) throw new Error(result.error || 'Не удалось оформить заказ')
+    if (Array.isArray(result.remainingCoupons) && UR.current) {
+      const nextUser = { ...UR.current, coupons: result.remainingCoupons }
+      UR.current = nextUser
+      setUser(nextUser)
+    }
     wr('hm_last', result.order)
   }
   
