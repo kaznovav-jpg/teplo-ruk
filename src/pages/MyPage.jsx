@@ -7,6 +7,7 @@ import { useLanguage } from '../lib/language.jsx'
 import { won } from '../lib/util.js'
 import useTitle from '../lib/useTitle.js'
 import { ProductCard, ClassCard, ArtistCard } from '../components/Cards.jsx'
+import FilePicker from '../components/FilePicker.jsx'
 
 const AUTH = ['login', 'signup', 'find']
 const errMsg = (e) => ({ 'auth/email-not-verified': '이메일 인증이 필요해요. 받은 메일의 링크를 눌러 주세요.', 'auth/invalid-credential': '이메일 또는 비밀번호가 맞지 않아요', 'auth/email-already-in-use': '이미 가입된 이메일이에요', 'auth/weak-password': '비밀번호는 6자 이상이어야 해요', 'auth/popup-closed-by-user': '로그인 창이 닫혔어요' }[e?.code] || '처리하지 못했어요. 잠시 후 다시 시도해 주세요')
@@ -194,7 +195,7 @@ export default function MyPage() {
             <label>{isRu ? 'Описание (русский)' : '설명 (러시아어)'}<textarea className="field" rows={3} value={workForm.descriptionRu} onChange={(e) => setWorkForm({ ...workForm, descriptionRu: e.target.value })} /></label>
             <label>{isRu ? 'Цена (₩)' : '가격 (₩)'}<input className="field" type="number" min="0" value={workForm.price} onChange={(e) => setWorkForm({ ...workForm, price: e.target.value })} required /></label>
             <label>{isRu ? 'Категория' : '카테고리'}<select className="field" value={workForm.category} onChange={(e) => setWorkForm({ ...workForm, category: e.target.value })}><option value="accessory">{isRu ? 'Аксессуары' : '액세서리'}</option><option value="bag">{isRu ? 'Сумки и шитьё' : '가방·바느질'}</option><option value="home">{isRu ? 'Для дома' : '홈 인테리어'}</option><option value="clothes">{isRu ? 'Одежда' : '의류'}</option><option value="knit">{isRu ? 'Вязание' : '뜨개질'}</option><option value="embroidery">{isRu ? 'Вышивка' : '자수'}</option></select></label>
-            <label>{isRu ? 'Фотография работы' : '작품 사진'}<input className="field" type="file" accept="image/*" onChange={async (e) => { try { const url = await uploadMakerImage(e.target.files?.[0]); if (url) setWorkForm((prev) => ({ ...prev, image: url })) } catch (error) { console.error(error); toast(isRu ? 'Не удалось загрузить фото.' : '사진 업로드에 실패했습니다.') } }} /></label>
+            <label>{isRu ? 'Фотография работы' : '작품 사진'}<FilePicker label={isRu ? 'Выбрать фотографию' : '사진 선택'} className="field" type="file" accept="image/*" onChange={async (e) => { try { const url = await uploadMakerImage(e.target.files?.[0]); if (url) setWorkForm((prev) => ({ ...prev, image: url })) } catch (error) { console.error(error); toast(isRu ? 'Не удалось загрузить фото.' : '사진 업로드에 실패했습니다.') } }} /></label>
             {workForm.image && <img src={workForm.image} alt="Предпросмотр работы" style={{ width: 180, height: 140, objectFit: 'cover', borderRadius: 10 }} />}
             <div className="acts"><button className="btn" disabled={workSaving}>{workSaving ? (isRu ? 'Сохранение…' : '저장 중…') : (isRu ? 'Отправить на проверку' : '검토 요청')}</button>{editingWorkId && <button type="button" className="btn ghost" onClick={() => { setEditingWorkId(null); setWorkForm({ title: '', titleRu: '', description: '', descriptionRu: '', price: '', category: 'accessory', image: '' }) }}>{isRu ? 'Отмена' : '취소'}</button>}</div>
           </form>
