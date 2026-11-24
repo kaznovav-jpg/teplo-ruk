@@ -101,7 +101,7 @@ export function ClassDetail() {
 const getYoutubeEmbedUrl = (url) => {
   try {
     const parsed = new URL(url)
-    const host = parsed.hostname.replace(/^www\\./, '')
+    const host = parsed.hostname.replace(/^www\./, '')
     let videoId = ''
     if (host === 'youtu.be') videoId = parsed.pathname.split('/').filter(Boolean)[0] || ''
     else if (host.endsWith('youtube.com')) {
@@ -113,9 +113,9 @@ const getYoutubeEmbedUrl = (url) => {
     let start = Number(parsed.searchParams.get('start') || 0)
     if (!start && parsed.searchParams.get('t')) {
       const t = parsed.searchParams.get('t')
-      const match = t.match(/^(?:(\\d+)h)?(?:(\\d+)m)?(?:(\\d+)s)?$/)
+      const match = t.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/)
       if (match) start = Number(match[1] || 0) * 3600 + Number(match[2] || 0) * 60 + Number(match[3] || 0)
-      else if (/^\\d+$/.test(t)) start = Number(t)
+      else if (/^\d+$/.test(t)) start = Number(t)
     }
     return `https://www.youtube-nocookie.com/embed/${videoId}${start > 0 ? `?start=${start}` : ''}`
   } catch {
