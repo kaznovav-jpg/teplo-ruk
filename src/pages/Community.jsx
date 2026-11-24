@@ -7,6 +7,7 @@ import { BOARDS, isPhoto, dFmt, shrink } from '../lib/util.js'
 import useTitle from '../lib/useTitle.js'
 import { Crumb, Img, ArticleCard, ProductCard, Heart } from '../components/Cards.jsx'
 import Comments from '../components/Comments.jsx'
+import FilePicker from '../components/FilePicker.jsx'
 
 const share = (toast) => { try { navigator.clipboard.writeText(location.href).then(() => toast('링크를 복사했어요'), () => toast('공유 링크를 복사하지 못했어요')) } catch { toast('공유 링크를 복사하지 못했어요') } }
 
@@ -334,7 +335,7 @@ export function Write() {
         <label>제목<input className="field" name="title" required maxLength={60} disabled={busy} /></label>
         <label>내용<textarea className="field" name="body" rows={6} required style={{ padding: 10 }} disabled={busy} /></label>
         <label>태그 (쉼표로 구분)<input className="field" name="tags" placeholder="뜨개, 니트" disabled={busy} /></label>
-        <label>{ru ? "Фотографии (до 4, необязательно)" : "사진 (최대 4장, 선택 사항)"}<input className="field" type="file" accept="image/*" multiple onChange={pick} disabled={busy} /></label>
+        <label>{ru ? "Фотографии (до 4, необязательно)" : "사진 (최대 4장, 선택 사항)"}<FilePicker label={ru ? 'Выбрать фотографии' : '사진 선택'} className="field" type="file" accept="image/*" multiple onChange={pick} disabled={busy} /></label>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {imgs.map((s, i) => <div key={i} style={{ position: 'relative' }}>
             <img src={s} alt={ru ? `Предпросмотр фото ${i + 1}` : `업로드한 사진 ${i + 1} 미리보기`} style={{ width: 88, height: 88, objectFit: 'cover', borderRadius: 8 }} />
