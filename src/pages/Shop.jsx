@@ -239,6 +239,7 @@ export function Checkout() {
   const couponDiscount = couponIndex !== '' && s >= 30000 && coupons[Number(couponIndex)]?.name === '신규 가입 쿠폰' ? 3000 : 0
   const payable = Math.max(0, t - couponDiscount)
   const [bankDetails, setBankDetails] = useState(DEFAULT_BANK_DETAILS)
+  const [submitting, setSubmitting] = useState(false)
   useEffect(() => {
     if (!F.isFirebase) return
     F.getDoc(F.doc(F.db, 'siteSettings', 'payment')).then((snap) => {
@@ -256,6 +257,8 @@ export function Checkout() {
     const d = Object.fromEntries(new FormData(e.target))
     if (couponIndex !== '' && couponDiscount <= 0) { toast(ru ? 'Купон действует при сумме товаров от 30 000 ₩. Уберите купон или добавьте товары.' : '쿠폰은 상품 금액 30,000원 이상부터 사용할 수 있어요. 쿠폰을 해제하거나 상품을 더 담아 주세요.'); return }
     if (couponDiscount > 0 && d.pay === '신용·체크카드') { toast(ru ? 'Для оплаты со скидкой выберите банковский перевод. Оплата картой проходит отдельно в Naver SmartStore.' : '쿠폰 할인을 받으려면 무통장 입금을 선택해 주세요. 카드 결제는 네이버 스마트스토어에서 별도로 진행됩니다.'); return }
+    if (submitting) return
+    setSubmitting(true)
     const storeTab = d.pay === '신용·체크카드' ? window.open('about:blank', '_blank') : null
     try {
       await saveOrder({ paymentStatus: 'awaiting_payment', no: 'HM' + Date.now().toString().slice(-8), date: new Date().toLocaleDateString('ko-KR'), bankDetails: d.pay === '무통장입금' ? bankDetails : null, items: L.map((x) => ({ pid: x.pid, color: x.color, size: x.size, qty: x.qty })), total: payable, couponIndex: couponIndex === '' ? null : Number(couponIndex), bankDetails: d.pay === '무통장입금' ? bankDetails : null, ...d })
@@ -264,12 +267,13 @@ export function Checkout() {
         if (storeTab) {
           storeTab.location.href = 'https://smartstore.naver.com/miniri'
         } else {
-          toast(ru ? 'Браузер заблокировал новую вкладку. Разрешите всплывающие окна для этого сайта и повторите попытку.' : '새 탭이 차단되었어요. 이 사이트의 팝업을 허용한 뒤 다시 시도해 주세요.')
+          window.location.assign('https://smartstore.naver.com/miniri')
         }
         return
       }
       nav('/order-complete')
     } catch (err) {
+      setSubmitting(false)
       if (storeTab) storeTab.close()
       console.error(err)
       toast(ru ? (err.message || 'Не удалось сохранить заказ. Попробуйте ещё раз.') : (err.message || '주문을 저장하지 못했어요. 다시 시도해 주세요'))
@@ -285,11 +289,11 @@ export function Checkout() {
             <label>{ru ? 'Пожелания по доставке' : '배송 요청사항'}<select className="field" name="memo"><option>{ru ? 'Оставить у двери' : '문 앞에 놓아 주세요'}</option><option>{ru ? 'Оставить у охраны' : '경비실에 맡겨 주세요'}</option><option>{ru ? 'Связаться перед доставкой' : '배송 전 연락 주세요'}</option></select></label></div>
           <div className="lead" style={{ marginBottom: 16 }}><b>{ru ? 'Сроки изготовления и отправки' : '핸드메이드 상품 발송 안내'}</b><p>{ru ? 'Товары в наличии отправляются через 2–3 дня, изделия на заказ — через 7–30 дней.' : '핸드메이드 상품은 제작 기간(재고 2~3일, 주문제작 7~30일)이 지난 뒤 발송돼요.'}</p></div>
           {coupons.length > 0 && <div className="form"><h2>{ru ? 'Купон на скидку' : '할인 쿠폰'}</h2><label>{ru ? 'Выберите купон' : '사용할 쿠폰 선택'}<select className="field" name="couponIndex" value={couponIndex} onChange={(e) => setCouponIndex(e.target.value)}><option value="">{ru ? 'Не использовать купон' : '쿠폰 사용 안 함'}</option>{coupons.map((coupon, index) => <option key={index} value={index}>{ru ? (coupon.name === '신규 가입 쿠폰' ? 'Приветственный купон · скидка 3 000 ₩' : coupon.name) : `${coupon.name} · ${coupon.desc}`}</option>)}</select></label>{couponIndex !== '' && (s >= 30000 ? <p className="muted">{ru ? 'Скидка 3 000 ₩ будет применена к заказу.' : '주문 금액에서 3,000원이 할인됩니다.'}</p> : <p className="muted">{ru ? 'Купон действует при покупке товаров на сумму от 30 000 ₩.' : '상품 금액 30,000원 이상 구매 시 사용할 수 있어요.'}</p>)}</div>}
-          <div className="form"><h2>{ru ? 'Способ оплаты' : '결제수단'}</h2><div className="pay">{paymentMethods.map(([value, label]) => <label key={value}><input type="radio" name="pay" value={value} checked={pay === value} onChange={() => setPay(value)} />{label}</label>)}</div>{pay === '무통장입금' && <><div className="lead" style={{ marginTop: 14 }}><b>{ru ? 'Банковские реквизиты для перевода' : '무통장 입금 계좌 안내'}</b><p>{ru ? 'Банк:' : '은행:'} {bankDetails.bank}</p><p>{ru ? 'Номер счёта:' : '계좌번호:'} <b>{bankDetails.account}</b></p><p>{ru ? 'Получатель:' : '예금주:'} {bankDetails.holder}</p><p>{ru ? 'Сумма к переводу:' : '입금하실 금액:'} <b>{won(payable)}</b></p><p>{ru ? 'Пожалуйста, укажите номер заказа в назначении перевода.' : '입금 시 주문번호를 메모에 기재해 주세요.'}</p></div>{field('depositor', ru ? 'Имя отправителя банковского перевода (как указано в банке)' : '실제 입금자명 (은행에 표시되는 이름)')}</>}{pay === '신용·체크카드' && <div className="lead" style={{ marginTop: 14 }}><b>{ru ? 'Оплата банковской картой через Naver SmartStore' : '네이버 스마트스토어 카드 결제 안내'}</b><p>{ru ? 'После нажатия кнопки «Оформить заказ» вы будете перенаправлены в мой магазин Naver SmartStore, где сможете завершить покупку и оплатить её кредитной или дебетовой картой.' : '주문하기 버튼을 누르면 네이버 스마트스토어 내 상점으로 이동합니다. 해당 상점에서 상품 구매와 신용·체크카드 결제를 완료해 주세요.'}</p></div>}</div>
+          <div className="form"><h2>{ru ? 'Способ оплаты' : '결제수단'}</h2><div className="pay">{paymentMethods.map(([value, label]) => <label key={value}><input type="radio" name="pay" value={value} checked={pay === value} onChange={() => setPay(value)} />{label}</label>)}</div>{pay === '무통장입금' && <><div className="lead" style={{ marginTop: 14 }}><b>{ru ? 'Банковские реквизиты для перевода' : '무통장 입금 계좌 안내'}</b><p>{ru ? 'Банк:' : '은행:'} {bankDetails.bank}</p><p>{ru ? 'Номер счёта:' : '계좌번호:'} <b>{bankDetails.account}</b></p><p>{ru ? 'Получатель:' : '예금주:'} {bankDetails.holder}</p><p>{ru ? 'Сумма к переводу:' : '입금하실 금액:'} <b>{won(payable)}</b></p><p>{ru ? 'Пожалуйста, укажите номер заказа в назначении перевода.' : '입금 시 주문번호를 메모에 기재해 주세요.'}</p></div>{field('depositor', ru ? 'Имя отправителя банковского перевода (как указано в банке)' : '실제 입금자명 (은행에 표시되는 이름)')}</>}{pay === '신용·체크카드' && <div className="lead" style={{ marginTop: 14 }}><b>{ru ? 'Оплата банковской картой через Naver SmartStore' : '네이버 스마트스토어 카드 결제 안내'}</b><p>{ru ? 'После нажатия кнопки заказ будет сохранён, затем откроется мой магазин Naver SmartStore. Если браузер заблокирует новую вкладку, магазин откроется в этой же вкладке.' : '주문하기 버튼을 누르면 주문이 저장된 후 네이버 스마트스토어 내 상점으로 이동합니다. 새 탭이 차단되면 현재 탭에서 상점이 열립니다.'}</p></div>}</div>
           {couponDiscount > 0 && pay === '신용·체크카드' && <p className="muted">{ru ? 'Важно: оплата картой проходит отдельно в Naver SmartStore, поэтому скидка по купону там автоматически не вычитается. Чтобы оплатить сумму со скидкой, выберите банковский перевод.' : '안내: 네이버 스마트스토어 카드 결제 금액에는 쿠폰 할인이 자동 적용되지 않습니다. 할인된 금액으로 결제하려면 무통장 입금을 선택해 주세요.'}</p>}
           <div className="form"><label style={{ display: 'flex', gap: 8, alignItems: 'center', minHeight: 44 }}><input type="checkbox" required style={{ width: 20, height: 20, accentColor: 'var(--pt)' }} />{ru ? 'Я проверил(а) заказ и согласен(на) с условиями использования и обработкой персональных данных.' : '주문 내용을 확인했으며 이용약관·개인정보 수집에 동의합니다.'}</label></div>
         </div>
-        <Summary s={s} sh={sh} t={t} discount={couponDiscount} sticky><button className="btn block" style={{ marginTop: 14 }} disabled={couponIndex !== '' && (couponDiscount <= 0 || pay === '신용·체크카드')}>{ru ? 'Оформить заказ' : '결제하기'}</button></Summary>
+        <Summary s={s} sh={sh} t={t} discount={couponDiscount} sticky><button className="btn block" style={{ marginTop: 14 }} disabled={submitting || (couponIndex !== '' && (couponDiscount <= 0 || pay === '신용·체크카드'))}>{submitting ? (ru ? (pay === '신용·체크카드' ? 'Открываем Naver SmartStore…' : 'Оформляем заказ…') : (pay === '신용·체크카드' ? '네이버 스마트스토어 여는 중…' : '주문 처리 중…')) : (ru ? 'Оформить заказ' : '결제하기')}</button></Summary>
       </form>
     </div>
   )
