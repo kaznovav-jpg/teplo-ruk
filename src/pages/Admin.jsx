@@ -14,6 +14,8 @@ export default function Admin() {
   const [usersLoading, setUsersLoading] = useState(false)
   const [userWarningDrafts, setUserWarningDrafts] = useState({})
   const [userActionBusy, setUserActionBusy] = useState(null)
+  const [usersSearch, setUsersSearch] = useState('')
+  const [expandedUserUid, setExpandedUserUid] = useState(null)
   const [orderToDelete, setOrderToDelete] = useState(null)
   const [ordersSearch, setOrdersSearch] = useState('')
   const [communitySearch, setCommunitySearch] = useState('')
@@ -844,35 +846,55 @@ const deleteArticle = async (article) => {
 
       {activeSection === 'users' && <>
         <h2>{lang === 'ru' ? 'Управление пользователями' : '회원 관리'}</h2>
-        <p className="muted">{lang === 'ru' ? 'Список зарегистрированных аккаунтов. Предупреждения приходят пользователю во внутренние сообщения личного кабинета.' : '가입 회원 목록입니다. 경고는 사용자의 마이페이지 알림으로 전달됩니다.'}</p>
-        <div className="acts" style={{ margin: '14px 0' }}>
+        <p className="muted">{lang === 'ru' ? 'Выберите имя, чтобы открыть управление аккаунтом. Предупреждения приходят во внутренние сообщения личного кабинета.' : '이름을 선택하면 회원 관리 메뉴가 열립니다. 경고는 마이페이지 알림으로 전달됩니다.'}</p>
+        <div className="acts" style={{ margin: '14px 0', flexWrap: 'wrap' }}>
           <button type="button" className="btn" onClick={loadManagedUsers} disabled={usersLoading}>{usersLoading ? (lang === 'ru' ? 'Загрузка…' : '불러오는 중…') : (lang === 'ru' ? 'Обновить список' : '목록 새로고침')}</button>
           <span className="muted">{lang === 'ru' ? 'Всего аккаунтов: ' : '전체 회원: '}{managedUsers.length}</span>
         </div>
+        <label style={{ display: 'grid', gap: 6, maxWidth: 520, margin: '12px 0 18px' }}>
+          <span>{lang === 'ru' ? 'Поиск пользователя' : '회원 검색'}</span>
+          <input className="field" type="search" value={usersSearch} onChange={(e) => setUsersSearch(e.target.value)} placeholder={lang === 'ru' ? 'Введите имя или email…' : '이름 또는 이메일 입력…'} />
+        </label>
         {!isFirebase && <p>{lang === 'ru' ? 'Для управления пользователями необходимо подключение Firebase.' : '회원 관리를 위해 Firebase 연결이 필요합니다.'}</p>}
         {usersLoading && <p className="muted">{lang === 'ru' ? 'Загружаем список…' : '회원 목록을 불러오는 중…'}</p>}
-        {!usersLoading && managedUsers.map((member) => <article className="box" key={member.uid} style={{ padding: 16, marginBottom: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-            <strong>{member.name || (lang === 'ru' ? 'Без имени' : '이름 없음')}</strong>
-            <span className="badge line">{member.status === 'blocked' ? (lang === 'ru' ? 'Заблокирован' : '차단됨') : (lang === 'ru' ? 'Активен' : '정상')}</span>
-          </div>
-          <p style={{ margin: '6px 0' }}>{member.email || '—'}</p>
-          <p className="muted" style={{ margin: '4px 0', fontSize: 13 }}>
-            {lang === 'ru' ? 'Регистрация: ' : '가입일: '}{member.createdAt ? new Date(member.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR') : '—'}
-            {member.lastSignInAt ? ' · ' + (lang === 'ru' ? 'Последний вход: ' : '최근 로그인: ') + new Date(member.lastSignInAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR') : ''}
-          </p>
-          <label style={{ display: 'grid', gap: 6, marginTop: 12 }}>
-            <span>{lang === 'ru' ? 'Отправить предупреждение в личный кабинет' : '마이페이지로 경고 메시지 보내기'}</span>
-            <textarea className="field" rows={3} maxLength={2000} value={userWarningDrafts[member.uid] || ''} onChange={(e) => setUserWarningDrafts((prev) => ({ ...prev, [member.uid]: e.target.value }))} placeholder={lang === 'ru' ? 'Опишите, какой материал нарушает правила и что нужно исправить…' : '규칙 위반 내용과 수정이 필요한 사항을 작성해 주세요…'} />
-          </label>
-          <div className="acts" style={{ marginTop: 10, flexWrap: 'wrap' }}>
-            <button type="button" className="btn ghost" disabled={!!userActionBusy} onClick={() => runUserAction('warn', member)}>{lang === 'ru' ? 'Отправить предупреждение' : '경고 보내기'}</button>
-            <button type="button" className="btn" disabled={!!userActionBusy || member.status === 'blocked'} onClick={() => runUserAction('block', member)}>{lang === 'ru' ? 'Заблокировать' : '차단'}</button>
-            <button type="button" className="btn ghost" disabled={!!userActionBusy || member.status !== 'blocked'} onClick={() => runUserAction('unblock', member)}>{lang === 'ru' ? 'Разблокировать' : '차단 해제'}</button>
-            <button type="button" className="btn ghost" disabled={!!userActionBusy} onClick={() => runUserAction('delete', member)}>{lang === 'ru' ? 'Удалить навсегда' : '영구 삭제'}</button>
-          </div>
-          {userActionBusy?.startsWith(member.uid + ':') && <p className="muted">{lang === 'ru' ? 'Выполняется…' : '처리 중…'}</p>}
-        </article>)}
+        {!usersLoading && managedUsers
+          .filter((member) => {
+            const query = usersSearch.trim().toLocaleLowerCase()
+            return !query || String(member.name || '').toLocaleLowerCase().includes(query) || String(member.email || '').toLocaleLowerCase().includes(query)
+          })
+          .map((member) => <article className="box" key={member.uid} style={{ padding: 12, marginBottom: 8 }}>
+            <button type="button" onClick={() => setExpandedUserUid((current) => current === member.uid ? null : member.uid)} aria-expanded={expandedUserUid === member.uid} style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: 6, border: 0, background: 'transparent', color: '#2F2B28', cursor: 'pointer', textAlign: 'left' }}>
+              <strong>{member.name || (lang === 'ru' ? 'Без имени' : '이름 없음')}</strong>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="badge line">{member.status === 'blocked' ? (lang === 'ru' ? 'Заблокирован' : '차단됨') : (lang === 'ru' ? 'Активен' : '정상')}</span>
+                <span aria-hidden="true">{expandedUserUid === member.uid ? '−' : '+'}</span>
+              </span>
+            </button>
+            {expandedUserUid === member.uid && <>
+              <div style={{ borderTop: '1px solid #E5DCD2', marginTop: 10, paddingTop: 12 }}>
+                <p style={{ margin: '4px 0' }}>{member.email || '—'}</p>
+                <p className="muted" style={{ margin: '4px 0', fontSize: 13 }}>
+                  {lang === 'ru' ? 'Регистрация: ' : '가입일: '}{member.createdAt ? new Date(member.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR') : '—'}
+                  {member.lastSignInAt ? ' · ' + (lang === 'ru' ? 'Последний вход: ' : '최근 로그인: ') + new Date(member.lastSignInAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR') : ''}
+                </p>
+                <label style={{ display: 'grid', gap: 6, marginTop: 12 }}>
+                  <span>{lang === 'ru' ? 'Отправить предупреждение в личный кабинет' : '마이페이지로 경고 메시지 보내기'}</span>
+                  <textarea className="field" rows={3} maxLength={2000} value={userWarningDrafts[member.uid] || ''} onChange={(e) => setUserWarningDrafts((prev) => ({ ...prev, [member.uid]: e.target.value }))} placeholder={lang === 'ru' ? 'Опишите, какой материал нарушает правила и что нужно исправить…' : '규칙 위반 내용과 수정이 필요한 사항을 작성해 주세요…'} />
+                </label>
+                <div className="acts" style={{ marginTop: 10, flexWrap: 'wrap' }}>
+                  <button type="button" className="btn ghost" disabled={!!userActionBusy} onClick={() => runUserAction('warn', member)}>{lang === 'ru' ? 'Отправить предупреждение' : '경고 보내기'}</button>
+                  <button type="button" className="btn" disabled={!!userActionBusy || member.status === 'blocked'} onClick={() => runUserAction('block', member)}>{lang === 'ru' ? 'Заблокировать' : '차단'}</button>
+                  <button type="button" className="btn ghost" disabled={!!userActionBusy || member.status !== 'blocked'} onClick={() => runUserAction('unblock', member)}>{lang === 'ru' ? 'Разблокировать' : '차단 해제'}</button>
+                  <button type="button" className="btn ghost" disabled={!!userActionBusy} onClick={() => runUserAction('delete', member)}>{lang === 'ru' ? 'Удалить навсегда' : '영구 삭제'}</button>
+                </div>
+                {userActionBusy?.startsWith(member.uid + ':') && <p className="muted">{lang === 'ru' ? 'Выполняется…' : '처리 중…'}</p>}
+              </div>
+            </>}
+          </article>)}
+        {!usersLoading && managedUsers.length > 0 && !managedUsers.some((member) => {
+          const query = usersSearch.trim().toLocaleLowerCase()
+          return !query || String(member.name || '').toLocaleLowerCase().includes(query) || String(member.email || '').toLocaleLowerCase().includes(query)
+        }) && <p className="muted">{lang === 'ru' ? 'По вашему запросу ничего не найдено.' : '검색 결과가 없습니다.'}</p>}
         {!usersLoading && !managedUsers.length && <p className="muted">{lang === 'ru' ? 'Пользователи пока не найдены.' : '등록된 회원이 없습니다.'}</p>}
       </>}
 
