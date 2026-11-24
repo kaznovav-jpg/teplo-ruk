@@ -47,12 +47,14 @@ export default async function handler(req, res) {
       const userRef = db.collection('users').doc(decoded.uid)
       const productRefs = Array.from(quantities.keys()).map((pid) => db.collection('products').doc(pid))
       let savedOrder = null
+      let remainingCoupons = []
 
       await db.runTransaction(async (transaction) => {
         const userSnap = await transaction.get(userRef)
         if (!userSnap.exists) throw new Error('USER_NOT_FOUND')
         const userData = userSnap.data() || {}
         const ownedCoupons = Array.isArray(userData.coupons) ? [...userData.coupons] : []
+        remainingCoupons = [...ownedCoupons]
         let coupon = null
         let couponDiscount = 0
         if (input.couponIndex !== undefined && input.couponIndex !== null && input.couponIndex !== '') {
@@ -110,6 +112,7 @@ export default async function handler(req, res) {
 
         if (coupon) {
           ownedCoupons.splice(Number(input.couponIndex), 1)
+          remainingCoupons = [...ownedCoupons]
           transaction.update(userRef, { coupons: ownedCoupons })
         }
         for (const [pid, product] of productById) {
@@ -119,7 +122,7 @@ export default async function handler(req, res) {
         transaction.create(orderRef, savedOrder)
       })
 
-      return res.status(200).json({ success: true, order: { ...savedOrder, id: orderRef.id } })
+      return res.status(200).json({ success: true, order: { ...savedOrder, id: orderRef.id }, remainingCoupons })
     }
 
     if (action === 'updateStatus') {
