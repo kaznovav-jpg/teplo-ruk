@@ -254,6 +254,8 @@ export function Checkout() {
   const submit = async (e) => {
     e.preventDefault()
     const d = Object.fromEntries(new FormData(e.target))
+    if (couponIndex !== '' && couponDiscount <= 0) { toast(ru ? 'Купон действует при сумме товаров от 30 000 ₩. Уберите купон или добавьте товары.' : '쿠폰은 상품 금액 30,000원 이상부터 사용할 수 있어요. 쿠폰을 해제하거나 상품을 더 담아 주세요.'); return }
+    if (couponDiscount > 0 && d.pay === '신용·체크카드') { toast(ru ? 'Для оплаты со скидкой выберите банковский перевод. Оплата картой проходит отдельно в Naver SmartStore.' : '쿠폰 할인을 받으려면 무통장 입금을 선택해 주세요. 카드 결제는 네이버 스마트스토어에서 별도로 진행됩니다.'); return }
     const storeTab = d.pay === '신용·체크카드' ? window.open('about:blank', '_blank') : null
     try {
       await saveOrder({ paymentStatus: 'awaiting_payment', no: 'HM' + Date.now().toString().slice(-8), date: new Date().toLocaleDateString('ko-KR'), bankDetails: d.pay === '무통장입금' ? bankDetails : null, items: L.map((x) => ({ pid: x.pid, color: x.color, size: x.size, qty: x.qty })), total: payable, couponIndex: couponIndex === '' ? null : Number(couponIndex), bankDetails: d.pay === '무통장입금' ? bankDetails : null, ...d })
@@ -287,7 +289,7 @@ export function Checkout() {
           {couponDiscount > 0 && pay === '신용·체크카드' && <p className="muted">{ru ? 'Важно: оплата картой проходит отдельно в Naver SmartStore, поэтому скидка по купону там автоматически не вычитается. Чтобы оплатить сумму со скидкой, выберите банковский перевод.' : '안내: 네이버 스마트스토어 카드 결제 금액에는 쿠폰 할인이 자동 적용되지 않습니다. 할인된 금액으로 결제하려면 무통장 입금을 선택해 주세요.'}</p>}
           <div className="form"><label style={{ display: 'flex', gap: 8, alignItems: 'center', minHeight: 44 }}><input type="checkbox" required style={{ width: 20, height: 20, accentColor: 'var(--pt)' }} />{ru ? 'Я проверил(а) заказ и согласен(на) с условиями использования и обработкой персональных данных.' : '주문 내용을 확인했으며 이용약관·개인정보 수집에 동의합니다.'}</label></div>
         </div>
-        <Summary s={s} sh={sh} t={t} discount={couponDiscount} sticky><button className="btn block" style={{ marginTop: 14 }}>{ru ? 'Оформить заказ' : '결제하기'}</button></Summary>
+        <Summary s={s} sh={sh} t={t} discount={couponDiscount} sticky><button className="btn block" style={{ marginTop: 14 }} disabled={couponIndex !== '' && (couponDiscount <= 0 || pay === '신용·체크카드')}>{ru ? 'Оформить заказ' : '결제하기'}</button></Summary>
       </form>
     </div>
   )
