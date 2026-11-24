@@ -67,11 +67,18 @@ export function ClassDetail() {
           <div className="vid" style={{ backgroundImage: `url(${c.thumb})` }}><button className="play" aria-label="소개 영상 재생" onClick={() => toast('소개 영상은 샘플이에요')}>▶</button><span className="cap">{c.videoLabel || (ru ? 'Видео-презентация (пример)' : '소개 영상 (샘플)')}</span></div>
           <p style={{ marginTop: 18 }}>{typeBadge(c.type, typeText)}<span className="badge line">{kindText}</span><span className="badge line">{levelText}</span></p>
           <h1 style={{ fontSize: '1.7rem', margin: '8px 0' }}>{ru ? (c.titleRu || c.title) : c.title}</h1><p>{ru ? (c.introRu || c.intro) : c.intro}</p>
-          <h2 className="mt" style={{ fontSize: '1.3rem' }}>커리큘럼</h2>
-          <ol className="list">{lessons.map((l, i) => <li key={i}><span className="chip">{ru ? `Урок ${i + 1}` : `${i + 1}강`}</span><span style={{ flex: 1 }}>{Array.isArray(l)?l[0]:l.title}</span><span className="muted">{Array.isArray(l)?l[1]:l.minutes}{ru ? ' мин' : '분'}</span></li>)}</ol>
+          <h2 className="mt" style={{ fontSize: '1.3rem' }}>{ru ? 'Программа курса' : '커리큘럼'}</h2>
+          <ol className="list">{lessons.map((l, i) => {
+            const lessonName = Array.isArray(l) ? l[0] : (ru ? (l.titleRu || l.title || '') : (l.title || l.titleRu || ''))
+            const lessonMinutes = Array.isArray(l) ? l[1] : l.minutes
+            return <li key={i}><span className="chip">{ru ? `Урок ${i + 1}` : `${i + 1}강`}</span><span style={{ flex: 1 }}>{lessonName}</span><span className="muted">{lessonMinutes}{ru ? ' мин' : '분'}</span></li>
+          })}</ol>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>{ru ? 'Материалы' : '준비물'}</h2>
           {(ru ? c.materialsIntroRu : c.materialsIntro) && <p>{ru ? c.materialsIntroRu : c.materialsIntro}</p>}
-          <ul className="list">{(Array.isArray(c.materials) ? c.materials : []).map((m) => <li key={m}>{m}</li>)}</ul>
+          <ul className="list">{(Array.isArray(c.materials) ? c.materials : []).filter((m) => {
+            const korean = /[가-힣]/.test(String(m))
+            return ru ? !korean : korean
+          }).map((m, i) => <li key={i}>{m}</li>)}</ul>
           <h2 className="mt" style={{ fontSize: '1.3rem' }}>{ru ? 'Об авторе курса' : '강사 소개'}</h2>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
             <div style={{ flex: 1, minWidth: 200 }}>{a ? <><Link to={`/artists/${a.id}`}><b>{a.name}</b></Link><p className="muted">{a.field}</p><p>{a.bio}</p></> : <p className="muted">{ru ? (c.authorTextRu || 'Информация об авторе пока не добавлена.') : (c.authorText || '강사 정보가 아직 등록되지 않았어요.')}</p>}{a && (ru ? c.authorTextRu : c.authorText) && <p>{ru ? c.authorTextRu : c.authorText}</p>}</div>{a && <FollowBtn a={a} />}
