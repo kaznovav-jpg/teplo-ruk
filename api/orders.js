@@ -26,6 +26,8 @@ export default async function handler(req, res) {
     if (!token) return fail(res, 401, 'Необходим вход в аккаунт')
 
     const decoded = await getAuth(app).verifyIdToken(token)
+    const accountSnap = await db.collection('users').doc(decoded.uid).get()
+    if (accountSnap.exists && accountSnap.data().status === 'blocked') return fail(res, 403, 'Аккаунт временно заблокирован администрацией')
     if (decoded.email_verified !== true) return fail(res, 403, 'Подтвердите электронную почту')
     const { action } = req.body || {}
 
