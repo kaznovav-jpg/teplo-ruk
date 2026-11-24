@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react'
 import * as F from './firebase'
 import { D } from './data.js'
+import { optimizeImage } from './optimizeImage.js'
 
 /*
  * 앱 전역 상태. Firebase 설정이 있으면 Auth + Firestore + Storage를, 없으면 브라우저 저장(로컬 모드)을 씁니다.
@@ -428,9 +429,11 @@ setAuthReady(true)
     return Promise.all(urls.map(async (dataUrl) => {
       const response = await fetch(dataUrl)
       const blob = await response.blob()
-      if (!blob.size || blob.size >= 2 * 1024 * 1024) throw new Error('Фото не прошло проверку размера. Удалите его и добавьте ещё раз.')
+      if (!blob.size) throw new Error('Не удалось прочитать фотографию. Добавьте её ещё раз.')
+      const optimizedFile = await optimizeImage(blob)
+      if (!optimizedFile.size || optimizedFile.size >= 2 * 1024 * 1024) throw new Error('Фото после сжатия всё ещё больше 2 МБ. Выберите другое изображение.')
       const form = new FormData()
-      form.append('file', blob, 'community.jpg')
+      form.append('file', optimizedFile, optimizedFile.name || 'community.webp')
       form.append('upload_preset', uploadPreset)
       const result = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: 'POST', body: form })
       const data = await result.json().catch(() => ({}))
