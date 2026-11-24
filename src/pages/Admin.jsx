@@ -300,14 +300,15 @@ const [previewArticle, setPreviewArticle] = useState(false)
   }
 }
   const resetClassForm = () => {
-    setClassForm({ title:'', titleRu:'', intro:'', introRu:'', videoLabel:'', materialsIntroRu:'', materialsIntro:'', authorTextRu:'', authorText:'', artist:'a2', price:'0', field:'뜨개질', fieldRu:'Вязание', level:'초급', levelRu:'Начальный', minutes:'60', type:'무료', typeRu:'Бесплатно', thumb:'', kind:'동영상', kindRu:'Видео', cat:'knit', kit:false, materialsText:'', lessonsText:'Подготовка и инструменты|10' })
+    setClassForm({ title:'', titleRu:'', intro:'', introRu:'', videoLabel:'', materialsIntroRu:'', materialsIntro:'', authorTextRu:'', authorText:'', artist:'a2', price:'0', field:'뜨개질', fieldRu:'Вязание', level:'초급', levelRu:'Начальный', minutes:'60', type:'무료', typeRu:'Бесплатно', thumb:'', kind:'동영상', kindRu:'Видео', cat:'knit', kit:false, materialsText:'', lessonsText:'' })
+    setLessonEditor([{ titleRu:'', title:'', minutes:'10', videoUrl:'', materialsText:'' }])
     setEditingClassId(null)
   }
   const editClass = (item) => {
     setSelectedMasterclassView('add')
     setEditingClassId(item.id)
     setClassForm({ title:item.title||'', titleRu:item.titleRu||'', intro:item.intro||'', introRu:item.introRu||'', artist:item.artist||'a2', price:String(item.price??0), field:item.field||'', fieldRu:item.fieldRu||'', level:item.level||'초급', levelRu:item.levelRu||'Начальный', minutes:String(item.minutes||60), type:item.type||'무료', typeRu:item.typeRu||'Бесплатно', thumb:item.thumb||'', kind:item.kind||'동영상', kindRu:item.kindRu||'Видео', cat:item.cat||'knit', kit:!!item.kit, materialsText:(item.materials||[]).join('\n'), videoLabel:item.videoLabel||'', materialsIntroRu:item.materialsIntroRu||'', materialsIntro:item.materialsIntro||'', authorTextRu:item.authorTextRu||'', authorText:item.authorText||'', lessonsText:'', })
-    setLessonEditor((item.lessons||[]).map((x)=>({ titleRu:x.titleRu||x.title||'', title:x.title||'', minutes:String(x.minutes||10), videoUrl:x.videoUrl||'', materialsText:(x.materials||[]).map(m=>[m.labelRu||'',m.label||'',m.url||''].join('|')).join('\n') })).concat([]).length ? (item.lessons||[]).map((x)=>({ titleRu:x.titleRu||x.title||'', title:x.title||'', minutes:String(x.minutes||10), videoUrl:x.videoUrl||'', materialsText:(x.materials||[]).map(m=>[m.labelRu||'',m.label||'',m.url||''].join('|')).join('\n') })) : [{ titleRu:'', title:'', minutes:'10', videoUrl:'', materialsText:'' }])
+    setLessonEditor((item.lessons||[]).map((x)=>({ titleRu:x.titleRu||(x.title||'').split('/')[0].trim(), title:(x.title||'').includes('/')?(x.title||'').split('/').slice(1).join('/').trim():(x.title||''), minutes:String(x.minutes||10), videoUrl:x.videoUrl||'', materialsText:(x.materials||[]).map(m=>[m.labelRu||'',m.label||'',m.url||''].join('|')).join('\n') })).concat([]).length ? (item.lessons||[]).map((x)=>({ titleRu:x.titleRu||x.title||'', title:x.title||'', minutes:String(x.minutes||10), videoUrl:x.videoUrl||'', materialsText:(x.materials||[]).map(m=>[m.labelRu||'',m.label||'',m.url||''].join('|')).join('\n') })) : [{ titleRu:'', title:'', minutes:'10', videoUrl:'', materialsText:'' }])
     window.scrollTo({top:0,behavior:'smooth'})
   }
   const uploadClassPhoto = async (file) => {
