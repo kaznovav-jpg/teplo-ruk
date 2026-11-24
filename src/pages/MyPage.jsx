@@ -68,11 +68,12 @@ export default function MyPage() {
     ? ['Заказ оформлен', 'Ожидание оплаты', 'Оплата завершена', 'Изготавливается', 'В пути', 'Доставлено']
     : ['주문 접수', '결제 대기', '결제 완료', '제작중', '배송중', '배송완료']
   const NAV = isRu
-    ? [['dash', 'Обзор'], ['master', 'Стать мастером'], ['orders', 'Мои заказы'], ['class', 'Мои курсы и записи'], ['fav', 'Избранное'], ['act', 'Моя активность'], ['coupon', 'Купоны'], ['profile', 'Профиль']]
-    : [['dash', '요약'], ['master', '작가 신청'], ['orders', '주문내역'], ['class', '내 클래스·예약'], ['fav', '즐겨찾기'], ['act', '내 활동'], ['coupon', '쿠폰'], ['profile', '프로필 관리']]
+    ? [['dash', 'Обзор'], ['notices', 'Сообщения'], ['master', 'Стать мастером'], ['orders', 'Мои заказы'], ['class', 'Мои курсы и записи'], ['fav', 'Избранное'], ['act', 'Моя активность'], ['coupon', 'Купоны'], ['profile', 'Профиль']]
+    : [['dash', '요약'], ['notices', '알림'], ['master', '작가 신청'], ['orders', '주문내역'], ['class', '내 클래스·예약'], ['fav', '즐겨찾기'], ['act', '내 활동'], ['coupon', '쿠폰'], ['profile', '프로필 관리']]
   const { user, S, orders, posts, cancelRes, logout, updateUser, toast, cartCount, adminEvents, isFirebase } = useApp()
   const myc = useMyComments(user)
   const [masterApplication, setMasterApplication] = useState(null)
+  const [userNotices, setUserNotices] = useState([])
   const [myArtistWorks, setMyArtistWorks] = useState([])
   const [workForm, setWorkForm] = useState({ title: '', titleRu: '', description: '', descriptionRu: '', price: '', category: 'accessory', image: '' })
   const [editingWorkId, setEditingWorkId] = useState(null)
@@ -83,6 +84,19 @@ export default function MyPage() {
       (snap) => setMasterApplication(snap.exists() ? snap.data() : null),
       (error) => console.error('Master application error:', error))
   }, [user?.uid, isFirebase])
+  useEffect(() => {
+    if (!user?.uid || !isFirebase) { setUserNotices([]); return }
+    return F.onSnapshot(
+      F.query(F.collection(F.db, 'userNotifications'), F.where('uid', '==', user.uid)),
+      (snap) => setUserNotices(snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort((a, b) => {
+        const av = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0
+        const bv = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0
+        return bv - av
+      })),
+      (error) => console.error('User notifications error:', error)
+    )
+  }, [user?.uid, isFirebase])
+
   useEffect(() => {
     if (!user?.uid || !isFirebase || masterApplication?.status !== 'approved') { setMyArtistWorks([]); return }
     return F.onSnapshot(
@@ -184,6 +198,21 @@ export default function MyPage() {
       <Link className="stat" to="/cart"><b>{cartCount}</b>장바구니</Link>{stat('fav', wish.length, '찜')}{stat('class', S.enrolled.length, '수강 중 클래스')}
       {stat('class', S.reservations.length, '일정 예약')}{stat('orders', orders.length, '주문')}{stat('coupon', `${(user.coupons || []).length}${isRu ? ' шт.' : '장'}`, isRu ? 'Купоны' : '쿠폰')}
     </div>,
+    notices: <>
+      <h2 style={{ fontSize: '1.2rem', marginBottom: 12 }}>{isRu ? 'Сообщения администрации' : '관리자 알림'}</h2>
+      {userNotices.length ? userNotices.map((notice) => <article className="box" key={notice.id} style={{ marginBottom: 12, border: notice.read ? undefined : '1px solid #B8593B' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+          <b>{notice.title || (isRu ? 'Сообщение администрации' : '관리자 메시지')}</b>
+          {!notice.read && <span className="badge line">{isRu ? 'Новое' : '새 알림'}</span>}
+        </div>
+        <p style={{ whiteSpace: 'pre-wrap', margin: '10px 0' }}>{notice.message}</p>
+        <p className="muted" style={{ fontSize: 12 }}>{notice.createdAt?.toDate ? notice.createdAt.toDate().toLocaleString(isRu ? 'ru-RU' : 'ko-KR') : ''}</p>
+        {!notice.read && <button type="button" className="btn ghost" onClick={async () => {
+          try { await F.updateDoc(F.doc(F.db, 'userNotifications', notice.id), { read: true }) }
+          catch (error) { console.error('Notification read update error:', error); toast(isRu ? 'Не удалось отметить сообщение прочитанным.' : '알림을 읽음으로 표시하지 못했습니다.') }
+        }}>{isRu ? 'Отметить прочитанным' : '읽음으로 표시'}</button>}
+      </article>) : <p className="muted">{isRu ? 'Сообщений от администрации пока нет.' : '관리자 메시지가 없습니다.'}</p>}
+    </>,
     master: <section className="box" style={{ maxWidth: 620 }}>
       <h2>{isRu ? 'Стать мастером «Тепло Рук»' : '손길의 온기 작가 신청'}</h2>
       {masterApplication?.status === 'approved' ? (
