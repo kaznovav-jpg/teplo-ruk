@@ -18,6 +18,7 @@ export default function Messages() {
   const [reportReason, setReportReason] = useState('')
   const [reportOpen, setReportOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [visibleCount, setVisibleCount] = useState(5)
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
   const selectedId = sp.get('c') || ''
@@ -61,6 +62,7 @@ export default function Messages() {
   }, [selectedId, user?.uid, F.isFirebase, ru])
 
   const visibleProfiles = useMemo(() => profiles.filter((p) => (p.name || '').toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())), [profiles, search])
+  const displayedProfiles = visibleProfiles.slice(0, visibleCount)
 
   const startConversation = async (profile) => {
     if (!user?.uid || !profile?.uid || !F.isFirebase) return
@@ -150,13 +152,16 @@ export default function Messages() {
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,300px),1fr))', gap: 20, alignItems: 'start' }}>
       <section style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: 16 }}>
         <h2 style={{ fontSize: '1.2rem', marginBottom: 12 }}>{ru ? 'Участники' : '회원 찾기'}</h2>
-        <input className="field" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={ru ? 'Поиск по имени' : '이름으로 검색'} aria-label={ru ? 'Поиск участников' : '회원 검색'} />
+        <input className="field" value={search} onChange={(e) => { setSearch(e.target.value); setVisibleCount(5) }} placeholder={ru ? 'Поиск по имени' : '이름으로 검색'} aria-label={ru ? 'Поиск участников' : '회원 검색'} />
+        <p className="muted" style={{ fontSize: '.85rem', margin: '8px 0 0' }}>{ru ? `Показано ${Math.min(displayedProfiles.length, visibleProfiles.length)} из ${visibleProfiles.length}` : `${visibleProfiles.length}명 중 ${Math.min(displayedProfiles.length, visibleProfiles.length)}명 표시`}</p>
         <div style={{ marginTop: 10, maxHeight: 260, overflowY: 'auto' }}>
-          {visibleProfiles.length ? visibleProfiles.map((profile) => <div key={profile.uid} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '10px 0', borderBottom: '1px solid var(--line)' }}>
+          {visibleProfiles.length ? displayedProfiles.map((profile) => <div key={profile.uid} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '10px 0', borderBottom: '1px solid var(--line)' }}>
             <span>{profile.name || (ru ? 'Участник' : '회원')}</span>
             <button className="btn ghost" onClick={() => startConversation(profile)}>{ru ? 'Написать' : '쪽지 보내기'}</button>
           </div>) : <p className="muted" style={{ padding: 12 }}>{ru ? 'Участники не найдены.' : '검색 결과가 없습니다.'}</p>}
         </div>
+        {visibleProfiles.length > displayedProfiles.length && <button type="button" className="btn ghost" style={{ width: '100%', marginTop: 10 }} onClick={() => setVisibleCount((count) => count + 5)}>{ru ? 'Показать ещё 5' : '5명 더 보기'}</button>}
+        {visibleCount > 5 && visibleProfiles.length > 5 && <button type="button" className="btn ghost" style={{ width: '100%', marginTop: 6 }} onClick={() => setVisibleCount(5)}>{ru ? 'Свернуть список' : '목록 접기'}</button>}
       </section>
       <section style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: 16 }}>
         <h2 style={{ fontSize: '1.2rem', marginBottom: 12 }}>{ru ? 'Мои переписки' : '내 대화'}</h2>
