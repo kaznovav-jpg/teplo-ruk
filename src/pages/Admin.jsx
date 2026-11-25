@@ -11,6 +11,7 @@ export default function Admin() {
     const { lang } = useLanguage()
   const [activeSection, setActiveSection] = useState('overview')
   const [managedUsers, setManagedUsers] = useState([])
+  const [messageReports, setMessageReports] = useState([])
   const [usersLoading, setUsersLoading] = useState(false)
   const [userWarningDrafts, setUserWarningDrafts] = useState({})
   const [userActionBusy, setUserActionBusy] = useState(null)
@@ -120,6 +121,14 @@ export default function Admin() {
   useEffect(() => {
     if (activeSection === 'users' && isAdmin) loadManagedUsers()
   }, [activeSection, isAdmin])
+
+  useEffect(() => {
+    if (activeSection !== 'messageReports' || !isAdmin || !isFirebase) return
+    return F.onSnapshot(F.query(F.collection(F.db, 'messageReports'), F.orderBy('createdAt', 'desc')), (snap) => {
+      setMessageReports(snap.docs.map((item) => ({ ...item.data(), id: item.id })))
+    }, (error) => console.error('Message reports load error:', error))
+  }, [activeSection, isAdmin, isFirebase])
+
 
   const runUserAction = async (action, target) => {
     const uid = target.uid
@@ -803,6 +812,7 @@ const deleteArticle = async (article) => {
         {[
           { id: 'overview', ru: 'Обзор', ko: '대시보드', icon: '⌂' },
           { id: 'users', ru: 'Пользователи', ko: '회원 관리', icon: '♙' },
+          { id: 'messageReports', ru: 'Жалобы на сообщения', ko: '쪽지 신고', icon: '⚑' },
           { id: 'orders', ru: 'Заказы и оплата', ko: '주문 및 결제', icon: '₩' },
           { id: 'masters', ru: 'Мастера и их работы', ko: '작가 및 작품', icon: '✿' },
           { id: 'artistCatalog', ru: 'Страница «Работы мастеров»', ko: '작가 작품 페이지 관리', icon: '▧' },
@@ -843,6 +853,28 @@ const deleteArticle = async (article) => {
           </button>
         ))}
       </nav>
+
+      {activeSection === 'messageReports' && <>
+        <h2>{lang === 'ru' ? 'Жалобы на личные сообщения' : '쪽지 신고 관리'}</h2>
+        <p className="muted" style={{ marginBottom: 16 }}>{lang === 'ru' ? 'Здесь показываются только сообщения, на которые участники пожаловались. Администрация не получает доступ к остальным личным перепискам.' : '회원이 신고한 메시지만 표시됩니다. 관리자는 그 외의 개인 대화 내용을 볼 수 없습니다.'}</p>
+        {messageReports.length ? <div style={{ display: 'grid', gap: 12 }}>
+          {messageReports.map((report) => <article key={report.id} style={{ border: '1px solid #E5DCD2', borderRadius: 10, padding: 16, background: '#fff' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+              <strong>{lang === 'ru' ? 'Жалоба' : '신고'} · {report.status === 'reviewed' ? (lang === 'ru' ? 'Рассмотрена' : '검토 완료') : (lang === 'ru' ? 'Новая' : '신규')}</strong>
+              <small className="muted">{report.createdAt ? new Date(report.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR') : ''}</small>
+            </div>
+            <p style={{ marginTop: 8 }}>{lang === 'ru' ? 'Отправитель жалобы' : '신고자'}: <code>{report.reporterUid}</code></p>
+            <p>{lang === 'ru' ? 'На пользователя' : '신고 대상'}: <code>{report.reportedUid}</code></p>
+            <p style={{ marginTop: 8 }}><strong>{lang === 'ru' ? 'Причина' : '신고 사유'}:</strong> {report.reason}</p>
+            {report.messageText && <blockquote style={{ marginTop: 8, padding: 12, background: '#FAF7F2', borderLeft: '3px solid #B8593B', whiteSpace: 'pre-wrap' }}>{report.messageText}</blockquote>}
+            {report.status !== 'reviewed' && <button type="button" className="btn" style={{ marginTop: 12 }} onClick={async () => {
+              try {
+                await F.updateDoc(F.doc(F.db, 'messageReports', report.id), { status: 'reviewed' })
+              } catch (error) { console.error('Report review error:', error); alert(lang === 'ru' ? 'Не удалось обновить статус жалобы.' : '신고 상태를 변경하지 못했습니다.') }
+            }}>{lang === 'ru' ? 'Отметить рассмотренной' : '검토 완료로 표시'}</button>}
+          </article>)}
+        </div> : <p className="muted">{lang === 'ru' ? 'Жалоб пока нет.' : '접수된 신고가 없습니다.'}</p>}
+      </>}
 
       {activeSection === 'users' && <>
         <h2>{lang === 'ru' ? 'Управление пользователями' : '회원 관리'}</h2>
