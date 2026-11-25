@@ -52,8 +52,14 @@ service cloud.firestore {
           return isActiveUser()
             && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
         }
+        function canReceiveMessage() {
+          let people = get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+          let recipientUid = people[0] == request.auth.uid ? people[1] : people[0];
+          return isAdmin()
+            || !exists(/databases/$(database)/documents/users/$(recipientUid)/blockedUsers/$(request.auth.uid));
+        }
         allow read: if isParticipant();
-        allow create: if isParticipant()
+        allow create: if isParticipant() && canReceiveMessage()
           && request.resource.data.keys().hasOnly(['senderUid', 'senderName', 'text', 'createdAt'])
           && request.resource.data.senderUid == request.auth.uid
           && request.resource.data.senderName is string
@@ -76,6 +82,38 @@ service cloud.firestore {
           'reservations', 'likes'
         ]);
       allow delete: if false;
+
+      // Список заблокированных собеседников видит и меняет только владелец аккаунта.
+      match /blockedUsers/{blockedUid} {
+        allow read: if isActiveUser() && request.auth.uid == uid;
+        allow create: if isActiveUser()
+          && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['uid', 'name', 'createdAt'])
+          && request.resource.data.uid == blockedUid
+          && request.resource.data.name is string
+          && !exists(/databases/$(database)/documents/admins/$(blockedUid));
+        allow delete: if isActiveUser() && request.auth.uid == uid
+          && !exists(/databases/$(database)/documents/admins/$(blockedUid));
+        allow update: if false;
+      }
+    }
+
+    match /messageReports/{reportId} {
+      allow create: if isActiveUser()
+        && request.resource.data.keys().hasOnly(['reporterUid', 'reportedUid', 'conversationId', 'messageId', 'messageText', 'reason', 'createdAt'])
+        && request.resource.data.reporterUid == request.auth.uid
+        && request.resource.data.reportedUid is string
+        && request.resource.data.reportedUid != request.auth.uid
+        && request.resource.data.conversationId is string
+        && exists(/databases/$(database)/documents/conversations/$(request.resource.data.conversationId))
+        && request.auth.uid in get(/databases/$(database)/documents/conversations/$(request.resource.data.conversationId)).data.participants
+        && request.resource.data.reportedUid in get(/databases/$(database)/documents/conversations/$(request.resource.data.conversationId)).data.participants
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() > 0
+        && request.resource.data.reason.size() <= 500
+        && request.resource.data.messageText is string
+        && request.resource.data.messageText.size() <= 2000;
+      allow read, update, delete: if isAdmin();
     }
 
     match /userNotifications/{notificationId} {
