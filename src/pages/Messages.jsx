@@ -14,6 +14,9 @@ export default function Messages() {
   const [profiles, setProfiles] = useState([])
   const [conversations, setConversations] = useState([])
   const [messages, setMessages] = useState([])
+  const [blockedUids, setBlockedUids] = useState([])
+  const [reportReason, setReportReason] = useState('')
+  const [reportOpen, setReportOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
@@ -42,6 +45,13 @@ export default function Messages() {
       setConversations(list)
     }, (error) => { console.error('Conversation list error:', error); toast(ru ? 'Не удалось загрузить переписки.' : '대화 목록을 불러오지 못했습니다.') })
   }, [user?.uid, F.isFirebase, ru])
+
+  useEffect(() => {
+    if (!user?.uid || !F.isFirebase) { setBlockedUids([]); return }
+    return F.onSnapshot(F.collection(F.db, 'users', user.uid, 'blockedUsers'), (snap) => {
+      setBlockedUids(snap.docs.map((d) => d.id))
+    }, (error) => console.error('Blocked users load error:', error))
+  }, [user?.uid, F.isFirebase])
 
   useEffect(() => {
     if (!selectedId || !user?.uid || !F.isFirebase) { setMessages([]); return }
@@ -74,10 +84,47 @@ export default function Messages() {
     }
   }
 
+  const toggleBlock = async () => {
+    if (!otherUid || !user?.uid) return
+    const ref = F.doc(F.db, 'users', user.uid, 'blockedUsers', otherUid)
+    try {
+      if (blockedUids.includes(otherUid)) {
+        await F.deleteDoc(ref)
+        toast(ru ? 'Пользователь снова может писать вам.' : '이 회원의 쪽지 차단을 해제했습니다.')
+      } else {
+        await F.setDoc(ref, { uid: otherUid, name: otherName, createdAt: new Date().toISOString() })
+        toast(ru ? 'Сообщения от этого пользователя заблокированы.' : '이 회원의 쪽지를 차단했습니다.')
+      }
+    } catch (error) {
+      console.error('Block user error:', error)
+      toast(ru ? 'Не удалось изменить блокировку. Администраторов блокировать нельзя.' : '차단을 변경하지 못했습니다. 관리자는 차단할 수 없습니다.')
+    }
+  }
+
+  const submitReport = async (event) => {
+    event.preventDefault()
+    if (!reportReason.trim() || !otherUid || !selected) return
+    try {
+      await F.addDoc(F.collection(F.db, 'messageReports'), {
+        reporterUid: user.uid, reportedUid: otherUid, conversationId: selected.id,
+        messageId: messages[messages.length - 1]?.id || '',
+        messageText: messages[messages.length - 1]?.text || '',
+        reason: reportReason.trim().slice(0, 500), createdAt: new Date().toISOString()
+      })
+      setReportReason('')
+      setReportOpen(false)
+      toast(ru ? 'Жалоба отправлена администрации.' : '신고가 관리자에게 전송되었습니다.')
+    } catch (error) {
+      console.error('Message report error:', error)
+      toast(ru ? 'Не удалось отправить жалобу.' : '신고를 보내지 못했습니다.')
+    }
+  }
+
   const sendMessage = async (event) => {
     event.preventDefault()
     const text = draft.trim()
     if (!text || !selected || busy) return
+    if (blockedUids.includes(otherUid)) { toast(ru ? 'Сначала снимите блокировку этого пользователя.' : '차단을 해제한 후 메시지를 보내세요.'); return }
     setBusy(true)
     const now = new Date().toISOString()
     try {
@@ -123,7 +170,18 @@ export default function Messages() {
       </section>
     </div>
     {selected && <section style={{ marginTop: 20, background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: 16 }}>
-      <h2 style={{ fontSize: '1.2rem', marginBottom: 12 }}>{otherName}</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
+        <h2 style={{ fontSize: '1.2rem' }}>{otherName}</h2>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button type="button" className="btn ghost" onClick={toggleBlock}>{blockedUids.includes(otherUid) ? (ru ? 'Разблокировать' : '차단 해제') : (ru ? 'Заблокировать' : '쪽지 차단')}</button>
+          <button type="button" className="btn ghost" onClick={() => setReportOpen((value) => !value)}>{ru ? 'Пожаловаться' : '신고하기'}</button>
+        </div>
+      </div>
+      {reportOpen && <form onSubmit={submitReport} style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
+        <textarea className="field" rows={3} maxLength={500} value={reportReason} onChange={(e) => setReportReason(e.target.value)} placeholder={ru ? 'Опишите причину жалобы (до 500 символов)' : '신고 사유를 입력하세요 (최대 500자)'} required />
+        <button className="btn" disabled={!reportReason.trim()}>{ru ? 'Отправить жалобу' : '신고 제출'}</button>
+      </form>}
+      {blockedUids.includes(otherUid) && <p className="muted" style={{ marginBottom: 10 }}>{ru ? 'Вы заблокировали сообщения от этого участника.' : '이 회원의 쪽지를 차단한 상태입니다.'}</p>}
       <div aria-live="polite" style={{ minHeight: 180, maxHeight: 380, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, padding: 8, background: 'var(--bg)', borderRadius: 8 }}>
         {messages.length ? messages.map((message) => <div key={message.id} style={{ alignSelf: message.senderUid === user.uid ? 'flex-end' : 'flex-start', maxWidth: '85%', padding: '9px 12px', borderRadius: 10, background: message.senderUid === user.uid ? 'var(--sub)' : 'var(--card)', border: '1px solid var(--line)', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
           <div style={{ fontSize: '.78rem', color: 'var(--tx2)', marginBottom: 3 }}>{message.senderUid === user.uid ? (ru ? 'Вы' : '나') : (message.senderName || otherName)}</div>{message.text}
