@@ -58,10 +58,15 @@ export default function Messages() {
     const id = participants.map((uid) => encodeURIComponent(uid)).join('__')
     const names = { [user.uid]: user.name || '', [profile.uid]: profile.name || '' }
     try {
-      await F.setDoc(F.doc(F.db, 'conversations', id), {
-        participants, names, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-        lastMessage: '', lastSenderUid: user.uid
-      }, { merge: true })
+      const conversationRef = F.doc(F.db, 'conversations', id)
+      const existing = await F.getDoc(conversationRef)
+      if (!existing.exists()) {
+        const now = new Date().toISOString()
+        await F.setDoc(conversationRef, {
+          participants, names, createdAt: now, updatedAt: now,
+          lastMessage: '', lastSenderUid: user.uid
+        })
+      }
       setSp({ c: id })
     } catch (error) {
       console.error('Start conversation error:', error)
