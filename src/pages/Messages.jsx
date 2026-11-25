@@ -136,9 +136,18 @@ export default function Messages() {
         lastMessage: text.slice(0, 160), lastSenderUid: user.uid, updatedAt: now
       })
       setDraft('')
-    } catch (error) {
+       } catch (error) {
       console.error('Send message error:', error)
-      toast(ru ? 'Сообщение не отправлено. Проверьте подключение и попробуйте снова.' : '메시지를 보내지 못했습니다. 다시 시도해 주세요.')
+
+      if (error.code === 'permission-denied') {
+        toast(ru
+          ? 'Сообщение не отправлено. Этот пользователь заблокировал вас, поэтому вы не можете отправлять ему сообщения.'
+          : '메시지가 전송되지 않았습니다. 이 사용자가 회원님을 차단하여 메시지를 보낼 수 없습니다.')
+      } else {
+        toast(ru
+          ? 'Сообщение не отправлено. Проверьте подключение и попробуйте снова.'
+          : '메시지를 보내지 못했습니다. 다시 시도해 주세요.')
+      }
     } finally { setBusy(false) }
   }
 
