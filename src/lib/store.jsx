@@ -119,6 +119,16 @@ setAuthReady(true)
     setUser(u); setS({ ...EMPTY, ...rd(sk(u), {}) }); setAuthReady(true)
   }, [])
 
+  // Keep a minimal public directory profile separate from private account data.
+  useEffect(() => {
+    if (!user?.uid || !F.isFirebase || !user.name) return
+    F.setDoc(F.doc(F.db, 'publicProfiles', user.uid), {
+      uid: user.uid,
+      name: String(user.name).slice(0, 80),
+      updatedAt: new Date().toISOString()
+    }, { merge: true }).catch((error) => console.error('Public profile sync error:', error))
+  }, [user?.uid, user?.name])
+
   // Immediately end an already-open session if an administrator blocks the account.
   useEffect(() => {
     if (!user?.uid || !F.isFirebase || isAdmin) return
