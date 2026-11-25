@@ -14,6 +14,18 @@ service cloud.firestore {
           || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status != 'blocked');
     }
 
+    // Публичный каталог участников: только имя и UID, без email и контактных данных.
+    match /publicProfiles/{uid} {
+      allow read: if isActiveUser();
+      allow create, update: if isActiveUser()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'updatedAt'])
+        && request.resource.data.uid == uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 80;
+      allow delete: if false;
+    }
+
     match /users/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow create: if request.auth != null && request.auth.uid == uid
