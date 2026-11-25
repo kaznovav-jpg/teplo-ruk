@@ -28,7 +28,7 @@ service cloud.firestore {
 
     // Личные переписки доступны только двум указанным участникам.
     match /conversations/{conversationId} {
-      allow read: if isActiveUser() && resource.data.participants is list
+      allow read: if isActiveUser()
         && request.auth.uid in resource.data.participants;
       allow create: if isActiveUser()
         && request.resource.data.keys().hasOnly(['participants', 'names', 'createdAt', 'updatedAt', 'lastMessage', 'lastSenderUid'])
@@ -70,6 +70,31 @@ service cloud.firestore {
         allow update, delete: if false;
       }
     }
+    // Жалобы: пользователь может отправить жалобу только на участника своей переписки; читать их может только администратор.
+    match /messageReports/{reportId} {
+      allow create: if isActiveUser()
+        && request.resource.data.keys().hasOnly([
+          'reporterUid', 'reportedUid', 'conversationId',
+          'messageId', 'messageText', 'reason', 'createdAt'
+        ])
+        && request.resource.data.reporterUid == request.auth.uid
+        && request.resource.data.reportedUid is string
+        && request.resource.data.reportedUid != request.auth.uid
+        && request.resource.data.conversationId is string
+        && exists(/databases/$(database)/documents/conversations/$(request.resource.data.conversationId))
+        && request.auth.uid in get(/databases/$(database)/documents/conversations/$(request.resource.data.conversationId)).data.participants
+        && request.resource.data.reportedUid in get(/databases/$(database)/documents/conversations/$(request.resource.data.conversationId)).data.participants
+        && request.resource.data.messageId is string
+        && request.resource.data.messageText is string
+        && request.resource.data.messageText.size() <= 2000
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() > 0
+        && request.resource.data.reason.size() <= 500
+        && request.resource.data.createdAt is string;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
     match /users/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow create: if request.auth != null && request.auth.uid == uid
