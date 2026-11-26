@@ -88,7 +88,7 @@ export default function MyPage() {
   const [masterApplication, setMasterApplication] = useState(null)
   const [userNotices, setUserNotices] = useState([])
   const [myArtistWorks, setMyArtistWorks] = useState([])
-  const [workForm, setWorkForm] = useState({ title: '', titleRu: '', description: '', descriptionRu: '', price: '', category: 'accessory', image: '' })
+  const [workForm, setWorkForm] = useState({ title: '', titleRu: '', description: '', descriptionRu: '', contact: '', category: 'accessory', images: [] })
   const [editingWorkId, setEditingWorkId] = useState(null)
   const [workSaving, setWorkSaving] = useState(false)
   useEffect(() => {
@@ -134,8 +134,8 @@ export default function MyPage() {
   const saveMakerWork = async (e) => {
     e.preventDefault()
     if (!isFirebase) { toast(isRu ? 'Для отправки работы необходимо подключение Firebase.' : '작품을 등록하려면 Firebase 연결이 필요합니다.'); return }
-    if (!workForm.title.trim() || !workForm.titleRu.trim() || !workForm.image || !workForm.price) {
-      toast(isRu ? 'Заполните названия, цену и загрузите фотографию.' : '작품명, 가격과 사진을 입력해 주세요.')
+    if (!workForm.title.trim() || !workForm.titleRu.trim() || !workForm.contact.trim() || !workForm.images.length) {
+      toast(isRu ? 'Заполните названия, контактные данные и добавьте хотя бы одну фотографию.' : '작품명, 연락처를 입력하고 사진을 한 장 이상 추가해 주세요.')
       return
     }
     setWorkSaving(true)
@@ -146,9 +146,10 @@ export default function MyPage() {
       titleRu: workForm.titleRu.trim(),
       description: workForm.description.trim(),
       descriptionRu: workForm.descriptionRu.trim(),
-      price: Number(workForm.price),
+      contact: workForm.contact.trim(),
       category: workForm.category,
-      image: workForm.image,
+      images: workForm.images,
+      image: workForm.images[0],
       agreedToTermsAt: new Date().toISOString(),
       sellerTermsVersion: '1.0',
       status: 'pending',
@@ -157,7 +158,7 @@ export default function MyPage() {
     try {
       if (editingWorkId) await F.setDoc(F.doc(F.db, 'artistWorks', editingWorkId), data, { merge: true })
       else await F.addDoc(F.collection(F.db, 'artistWorks'), { ...data, createdAt: new Date().toISOString() })
-      setWorkForm({ title: '', titleRu: '', description: '', descriptionRu: '', price: '', category: 'accessory', image: '' })
+      setWorkForm({ title: '', titleRu: '', description: '', descriptionRu: '', contact: '', category: 'accessory', images: [] })
       setEditingWorkId(null)
       toast(isRu ? 'Работа отправлена на проверку администратора.' : '작품이 관리자 검토로 전송되었습니다.')
     } catch (error) {
@@ -167,7 +168,7 @@ export default function MyPage() {
   }
   const editMakerWork = (work) => {
     setEditingWorkId(work.id)
-    setWorkForm({ title: work.title || '', titleRu: work.titleRu || '', description: work.description || '', descriptionRu: work.descriptionRu || '', price: String(work.price || ''), category: work.category || 'accessory', image: work.image || '' })
+    setWorkForm({ title: work.title || '', titleRu: work.titleRu || '', description: work.description || '', descriptionRu: work.descriptionRu || '', contact: work.contact || '', category: work.category || 'accessory', images: work.images?.length ? work.images.slice(0, 3) : (work.image ? [work.image] : []) })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   const deleteMakerWork = async (work) => {
@@ -239,15 +240,33 @@ export default function MyPage() {
             <label>{isRu ? 'Название (русский)' : '작품명 (러시아어)'}<input className="field" value={workForm.titleRu} onChange={(e) => setWorkForm({ ...workForm, titleRu: e.target.value })} required /></label>
             <label>{isRu ? 'Описание (корейский)' : '설명 (한국어)'}<textarea className="field" rows={3} value={workForm.description} onChange={(e) => setWorkForm({ ...workForm, description: e.target.value })} /></label>
             <label>{isRu ? 'Описание (русский)' : '설명 (러시아어)'}<textarea className="field" rows={3} value={workForm.descriptionRu} onChange={(e) => setWorkForm({ ...workForm, descriptionRu: e.target.value })} /></label>
-            <label>{isRu ? 'Цена (₩)' : '가격 (₩)'}<input className="field" type="number" min="0" value={workForm.price} onChange={(e) => setWorkForm({ ...workForm, price: e.target.value })} required /></label>
             <label>{isRu ? 'Категория' : '카테고리'}<select className="field" value={workForm.category} onChange={(e) => setWorkForm({ ...workForm, category: e.target.value })}><option value="accessory">{isRu ? 'Аксессуары' : '액세서리'}</option><option value="bag">{isRu ? 'Сумки и шитьё' : '가방·바느질'}</option><option value="home">{isRu ? 'Для дома' : '홈 인테리어'}</option><option value="clothes">{isRu ? 'Одежда' : '의류'}</option><option value="knit">{isRu ? 'Вязание' : '뜨개질'}</option><option value="embroidery">{isRu ? 'Вышивка' : '자수'}</option></select></label>
-            <label>{isRu ? 'Фотография работы' : '작품 사진'}<FilePicker label={isRu ? 'Выбрать фотографию' : '사진 선택'} className="field" type="file" accept="image/*" onChange={async (e) => { try { const url = await uploadMakerImage(e.target.files?.[0]); if (url) setWorkForm((prev) => ({ ...prev, image: url })) } catch (error) { console.error(error); toast(isRu ? 'Не удалось загрузить фото.' : '사진 업로드에 실패했습니다.') } }} /></label>
-            {workForm.image && <img src={workForm.image} alt="Предпросмотр работы" style={{ width: 180, height: 140, objectFit: 'cover', borderRadius: 10 }} />}
+            <label>{isRu ? 'Контакты для связи с вами' : '연락 가능한 연락처'}<input className="field" value={workForm.contact} onChange={(e) => setWorkForm({ ...workForm, contact: e.target.value })} placeholder={isRu ? 'Телефон, KakaoTalk ID, Instagram или ссылка' : '전화번호, 카카오톡 ID, 인스타그램 또는 링크'} required /></label>
+            <label>{isRu ? 'Фотографии работы (до 3)' : '작품 사진 (최대 3장)'}<FilePicker label={isRu ? 'Выбрать фотографии' : '사진 선택'} className="field" type="file" multiple accept="image/*" onChange={async (e) => {
+              const files = Array.from(e.target.files || [])
+              if (!files.length) return
+              if (workForm.images.length + files.length > 3) {
+                toast(isRu ? 'Можно добавить не более 3 фотографий.' : '사진은 최대 3장까지 등록할 수 있습니다.')
+                e.target.value = ''
+                return
+              }
+              try {
+                const urls = []
+                for (const file of files) urls.push(await uploadMakerImage(file))
+                setWorkForm((prev) => ({ ...prev, images: [...prev.images, ...urls].slice(0, 3) }))
+              } catch (error) {
+                console.error(error)
+                toast(isRu ? 'Не удалось загрузить фото.' : '사진 업로드에 실패했습니다.')
+              }
+              e.target.value = ''
+            }} /></label>
+            <p className="muted">{isRu ? 'Добавлено фотографий: ' + workForm.images.length + ' из 3' : '등록된 사진: ' + workForm.images.length + '/3'}</p>
+            {workForm.images.length > 0 && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{workForm.images.map((url, index) => <div key={url} style={{ position: 'relative' }}><img src={url} alt={isRu ? 'Фото работы ' + (index + 1) : '작품 사진 ' + (index + 1)} style={{ width: 120, height: 100, objectFit: 'cover', borderRadius: 8 }} /><button type="button" className="btn ghost" onClick={() => setWorkForm((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))}>{isRu ? 'Удалить' : '삭제'}</button></div>)}</div>}
             <label style={{ display: 'flex', gap: 9, alignItems: 'flex-start', lineHeight: 1.6, margin: '12px 0' }}><input type="checkbox" required style={{ width: 20, height: 20, flexShrink: 0, marginTop: 3, accentColor: 'var(--pt)' }} /><span>{isRu ? <>Я ознакомился(ась) с <Link className="more" to="/maker-terms" target="_blank" rel="noreferrer">правилами размещения товаров</Link> и подтверждаю, что работа создана мной лично или у меня есть необходимые права на её публикацию.</> : <><Link className="more" to="/maker-terms" target="_blank" rel="noreferrer">상품 등록 운영정책</Link>을 확인하고 동의하며, 직접 제작했거나 게시에 필요한 권리를 보유한 작품임을 확인합니다.</>}</span></label>
             <div className="acts"><button className="btn" disabled={workSaving}>{workSaving ? (isRu ? 'Сохранение…' : '저장 중…') : (isRu ? 'Отправить на проверку' : '검토 요청')}</button>{editingWorkId && <button type="button" className="btn ghost" onClick={() => { setEditingWorkId(null); setWorkForm({ title: '', titleRu: '', description: '', descriptionRu: '', price: '', category: 'accessory', image: '' }) }}>{isRu ? 'Отмена' : '취소'}</button>}</div>
           </form>
           <h3 style={{ marginTop: 28 }}>{isRu ? 'Мои работы и их статус' : '내 작품 및 검토 상태'}</h3>
-          {myArtistWorks.length ? <div className="grid g3">{myArtistWorks.map((work) => <div className="box" key={work.id}><img src={work.image} alt={work.title} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: 8 }} /><b>{isRu ? work.titleRu : work.title}</b><p>{Number(work.price || 0).toLocaleString('ko-KR')} ₩</p><p className="muted">{isRu ? ({ pending: 'На проверке', approved: 'Опубликовано', rejected: 'Нужно исправить' }[work.status] || work.status) : ({ pending: '검토 중', approved: '공개 중', rejected: '수정 필요' }[work.status] || work.status)}</p><div className="acts"><button className="btn ghost" onClick={() => editMakerWork(work)}>{isRu ? 'Изменить' : '수정'}</button><button className="btn ghost" onClick={() => deleteMakerWork(work)}>{isRu ? 'Удалить' : '삭제'}</button></div></div>)}</div> : <p className="muted">{isRu ? 'Вы ещё не добавили работы.' : '아직 등록한 작품이 없습니다.'}</p>}
+          {myArtistWorks.length ? <div className="grid g3">{myArtistWorks.map((work) => <div className="box" key={work.id}><img src={work.image} alt={work.title} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: 8 }} /><b>{isRu ? work.titleRu : work.title}</b><p className="muted">{work.contact}</p><p className="muted">{isRu ? ({ pending: 'На проверке', approved: 'Опубликовано', rejected: 'Нужно исправить' }[work.status] || work.status) : ({ pending: '검토 중', approved: '공개 중', rejected: '수정 필요' }[work.status] || work.status)}</p><div className="acts"><button className="btn ghost" onClick={() => editMakerWork(work)}>{isRu ? 'Изменить' : '수정'}</button><button className="btn ghost" onClick={() => deleteMakerWork(work)}>{isRu ? 'Удалить' : '삭제'}</button></div></div>)}</div> : <p className="muted">{isRu ? 'Вы ещё не добавили работы.' : '아직 등록한 작품이 없습니다.'}</p>}
         </div>
       ) : masterApplication?.status === 'pending' ? (
         <p>{isRu ? 'Ваша заявка отправлена и ожидает проверки администратора. Мы сообщим о решении.' : '신청이 접수되어 관리자 검토를 기다리고 있습니다. 승인 결과를 안내해 드리겠습니다.'}</p>
