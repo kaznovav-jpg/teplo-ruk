@@ -9,7 +9,7 @@ const auth = getAuth(app)
 const db = getFirestore(app)
 
 const fail = (res, status, error) => res.status(status).json({ error })
-const normalize = (value) => String(value || '').normalize('NFKC').trim().replace(/\\s+/g, ' ').toLocaleLowerCase()
+const normalize = (value) => String(value || '').normalize('NFKC').trim().replace(/\s+/g, ' ').toLocaleLowerCase()
 const keyFor = (value) => createHash('sha256').update(normalize(value)).digest('hex')
 
 export default async function handler(req, res) {
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : ''
     if (!token) return fail(res, 401, 'Необходима авторизация')
     const decoded = await auth.verifyIdToken(token)
-    const name = String(req.body?.name || '').normalize('NFKC').trim().replace(/\\s+/g, ' ')
+    const name = String(req.body?.name || '').normalize('NFKC').trim().replace(/\s+/g, ' ')
     const normalized = normalize(name)
     if (!name || name.length > 40) return fail(res, 400, 'Имя должно содержать от 1 до 40 символов.')
 
