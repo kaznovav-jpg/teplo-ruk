@@ -45,7 +45,7 @@ export default function Layout() {
     ? siteDesign.menu.map((item) => [lang === 'ru' ? item.ru : item.ko, item.url || '/'])
     : fallbackMenu
   console.log('Текущий язык сайта:', lang)
-  const nav = useNavigate(), { pathname } = useLocation()
+  const nav = useNavigate(), { pathname, search: locationSearch } = useLocation()
   const [notice, setNotice] = useState(true), [open, setOpen] = useState(false), [search, setSearch] = useState(false)
   const [kw, setKw] = useState(''), [scrolled, setScrolled] = useState(false), [top, setTop] = useState(false)
   const [supportInfo, setSupportInfo] = useState({ phone: '010-5175-2515', email: 'vic-kaznova@narod.ru', hoursRu: 'будни 10:00–17:00', hoursKo: '평일 10:00~17:00', breakRu: 'Обед 12:30–13:30 · Выходные и праздники — выходные', breakKo: '점심 12:30~13:30 · 주말/공휴일 휴무' })
@@ -53,7 +53,7 @@ export default function Layout() {
   const originalTextRef = useRef(new WeakMap())
   const originalAttrRef = useRef(new WeakMap())
 
-  useEffect(() => { window.scrollTo(0, 0); setOpen(false); setSearch(false) }, [pathname])
+  useEffect(() => { window.scrollTo(0, 0); setOpen(false); setSearch(false) }, [pathname, locationSearch])
 
   useEffect(() => {
     if (!F.isFirebase) return
