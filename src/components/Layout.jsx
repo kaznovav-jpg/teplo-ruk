@@ -33,7 +33,17 @@ const MENU_RU = [
 export default function Layout() {
   const { user, cartCount, logout, toast, isFirebase, isAdmin } = useApp()
     const { lang, changeLanguage } = useLanguage()
-  const MENU = lang === 'ru' ? MENU_RU : MENU_KO
+  const [siteDesign, setSiteDesign] = useState(null)
+  useEffect(() => {
+    if (!F.isFirebase) return
+    return F.onSnapshot(F.doc(F.db, 'siteSettings', 'design'), (snap) => {
+      if (snap.exists()) setSiteDesign(snap.data())
+    }, (error) => console.error('Site design load error:', error))
+  }, [])
+  const fallbackMenu = lang === 'ru' ? MENU_RU : MENU_KO
+  const MENU = Array.isArray(siteDesign?.menu) && siteDesign.menu.length
+    ? siteDesign.menu.map((item) => [lang === 'ru' ? item.ru : item.ko, item.url || '/'])
+    : fallbackMenu
   console.log('Текущий язык сайта:', lang)
   const nav = useNavigate(), { pathname } = useLocation()
   const [notice, setNotice] = useState(true), [open, setOpen] = useState(false), [search, setSearch] = useState(false)
