@@ -1420,7 +1420,7 @@ const deleteArticle = async (article) => {
             </div>
             <p className="muted" style={{ marginBottom: 12 }}>{lang === 'ru' ? 'Так работа будет выглядеть в разделе «Работы мастеров».' : '작가 작품 페이지에 표시될 모습입니다.'}</p>
             <article className="box" style={{ padding: 14 }}>
-              {(previewWork.images?.length ? previewWork.images : (previewWork.image ? [previewWork.image] : [])).map((url, index) => <img key={url + index} src={url} alt={lang === 'ru' ? 'Фото работы ' + (index + 1) : '작품 사진 ' + (index + 1)} style={{ width: '100%', maxHeight: 360, objectFit: 'contain', borderRadius: 8, marginBottom: 8 }} />)
+              {(previewWork.images?.length ? previewWork.images : (previewWork.image ? [previewWork.image] : [])).map((url, index) => <img key={url + index} src={url} alt={lang === 'ru' ? 'Фото работы ' + (index + 1) : '작품 사진 ' + (index + 1)} style={{ width: '100%', maxHeight: 360, objectFit: 'contain', borderRadius: 8, marginBottom: 8 }} />)}
               <h3 style={{ marginTop: 10 }}>{lang === 'ru' ? (previewWork.titleRu || previewWork.title) : (previewWork.title || previewWork.titleRu)}</h3>
               <p className="muted" style={{ marginTop: 8, marginBottom: 6 }}>{lang === 'ru' ? 'Описание' : '설명'}</p>
               <p>{lang === 'ru' ? (previewWork.descriptionRu || previewWork.description || 'Описание не добавлено') : (previewWork.description || previewWork.descriptionRu || '설명이 없습니다')}</p>
