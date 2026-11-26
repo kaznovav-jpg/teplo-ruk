@@ -24,12 +24,18 @@ export default async function handler(req, res) {
     if (!name || name.length > 40) return fail(res, 400, 'Имя должно содержать от 1 до 40 символов.')
 
     // Check existing accounts and profiles, including accounts created before unique names were introduced.
-    const [authUsers, profiles, privateProfiles] = await Promise.all([
-      auth.listUsers(1000),
+    const [profiles, privateProfiles] = await Promise.all([
       db.collection('publicProfiles').get(),
       db.collection('users').get()
     ])
-    const duplicateAuth = authUsers.users.some((user) => user.uid !== decoded.uid && normalize(user.displayName) === normalized)
+    const authUsers = []
+    let pageToken
+    do {
+      const page = await auth.listUsers(1000, pageToken)
+      authUsers.push(...page.users)
+      pageToken = page.pageToken
+    } while (pageToken)
+    const duplicateAuth = authUsers.some((user) => user.uid !== decoded.uid && normalize(user.displayName) === normalized)
     const duplicatePublic = profiles.docs.some((doc) => doc.id !== decoded.uid && normalize(doc.data().name) === normalized)
     const duplicatePrivate = privateProfiles.docs.some((doc) => doc.id !== decoded.uid && normalize(doc.data().name) === normalized)
     if (duplicateAuth || duplicatePublic || duplicatePrivate) {
