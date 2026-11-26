@@ -29,6 +29,27 @@ export default function Admin() {
   const [supportSaving, setSupportSaving] = useState(false)
   const [footerForm, setFooterForm] = useState({"descriptionRu":"Мы делимся теплом вещей ручной работы и знаниями, созданными с душой.","descriptionKo":"한 땀 한 땀 손으로 만든 따뜻한 물건과 배움을 전합니다.","instagram":"","blog":"","youtube":"","termsLabelRu":"Условия использования","termsLabelKo":"이용약관","privacyLabelRu":"Политика конфиденциальности","privacyLabelKo":"개인정보처리방침","shippingLabelRu":"Доставка и обмен","shippingLabelKo":"배송·교환 안내","termsUrl":"/info?t=이용약관","privacyUrl":"/info?t=개인정보처리방침","shippingUrl":"/info?t=배송·교환 안내","companyNameRu":"Тепло Рук","companyNameKo":"손길의 온기","representative":"홍길동","businessNumber":"000-00-00000","ecommerceNumber":"제0000-경기-0000호","addressRu":"Кёнгидо, г. Хвасон (пример адреса)","addressKo":"경기도 화성시 (샘플 주소)","copyrightRu":"© 2026 Handmade. Все права защищены.","copyrightKo":"© 2026 Handmade. All rights reserved."})
   const [footerSaving, setFooterSaving] = useState(false)
+  const [designSaving, setDesignSaving] = useState(false)
+  const [designImageUploading, setDesignImageUploading] = useState(null)
+  const [designForm, setDesignForm] = useState({
+    menu: [
+      { ru: 'Виды рукоделия', ko: '공예 종류', url: '/category?c=all' },
+      { ru: 'Мастер-классы', ko: '클래스', url: '/classes' },
+      { ru: 'Работы мастеров', ko: '작가 작품', url: '/artists' },
+      { ru: 'Расписание', ko: '일정·시간표', url: '/schedule' },
+      { ru: 'Статьи и блог', ko: '아티클·블로그', url: '/articles' },
+      { ru: 'Фотофорум и сообщество', ko: '포토 포럼·커뮤니티', url: '/community' },
+      { ru: 'Личные сообщения', ko: '회원 쪽지', url: '/messages' },
+      { ru: 'Моя корзина', ko: '내 장바구니', url: '/cart' },
+      { ru: 'Информация о сайте', ko: '사이트 안내', url: '/sitemap' },
+      { ru: 'Моя страница', ko: '마이페이지', url: '/mypage' }
+    ],
+    slides: [
+      { ruTitle: 'Тепло, рождённое в руках', koTitle: '손끝에서 피어난 따뜻함', ruText: 'Сумки и вязаные изделия, созданные с заботой и вниманием к каждой детали.', koText: '한 점씩 정성껏 만든 가방과 니트를 만나보세요.', url: '/category?c=all', image: 'https://picsum.photos/seed/h1/1600/700' },
+      { ruTitle: 'Уютное вязание этой осенью', koTitle: '이번 가을, 포근한 뜨개', ruText: 'Откройте для себя новые вязаные шарфы и жилеты.', koText: '손뜨개 머플러와 베스트를 새로 선보입니다.', url: '/category?c=knit', image: 'https://picsum.photos/seed/h2/1600/700' },
+      { ruTitle: 'Учимся, создаём и делимся', koTitle: '배우고, 만들고, 나누는 공방', ruText: 'Знакомьтесь с мастер-классами и сообществом мастеров.', koText: '수공예 클래스와 작가 커뮤니티를 만나보세요.', url: '/classes', image: 'https://picsum.photos/seed/h3/1600/700' }
+    ]
+  })
   const [customOrderReplies, setCustomOrderReplies] = useState({})
   const [sendingCustomOrderId, setSendingCustomOrderId] = useState(null)
   // Удаляем только заранее известные демонстрационные записи, созданные шаблоном сайта.
@@ -65,6 +86,36 @@ export default function Admin() {
       if (snap.exists()) setFooterForm((prev) => ({ ...prev, ...snap.data() }))
     }).catch((error) => console.error('Footer settings load error:', error))
   }, [isFirebase])
+  useEffect(() => {
+    if (!isFirebase) return
+    F.getDoc(F.doc(F.db, 'siteSettings', 'design')).then((snap) => {
+      if (snap.exists()) setDesignForm((prev) => ({ ...prev, ...snap.data() }))
+    }).catch((error) => console.error('Site design settings load error:', error))
+  }, [isFirebase])
+  const saveDesignDetails = async () => {
+    if (!isFirebase) { alert('Firebase 연결이 필요합니다.'); return }
+    if (designForm.menu.some((item) => !item.ru.trim() || !item.ko.trim() || !item.url.trim())) {
+      alert(lang === 'ru' ? 'Заполните название и адрес каждой ссылки меню.' : '메뉴 이름과 링크 주소를 모두 입력해 주세요.')
+      return
+    }
+    setDesignSaving(true)
+    try {
+      await F.setDoc(F.doc(F.db, 'siteSettings', 'design'), designForm, { merge: true })
+      alert(lang === 'ru' ? 'Меню и главный баннер сохранены.' : '메뉴와 메인 배너가 저장되었습니다.')
+    } catch (error) {
+      console.error('Site design save error:', error)
+      alert(lang === 'ru' ? 'Не удалось сохранить оформление сайта.' : '사이트 디자인 저장에 실패했습니다.')
+    } finally { setDesignSaving(false) }
+  }
+  const uploadDesignImage = async (index, file) => {
+    if (!file) return
+    if (!file.type?.startsWith('image/')) { alert('Выберите файл изображения.'); return }
+    setDesignImageUploading(index)
+    try {
+      const url = await uploadImage(file)
+      if (url) setDesignForm((prev) => ({ ...prev, slides: prev.slides.map((slide, i) => i === index ? { ...slide, image: url } : slide) }))
+    } finally { setDesignImageUploading(null) }
+  }
   const saveFooterDetails = async () => {
     if (!isFirebase) { alert('Firebase 연결이 필요합니다.'); return }
     setFooterSaving(true)
@@ -848,6 +899,7 @@ const deleteArticle = async (article) => {
           { id: 'customOrders', ru: 'Индивидуальные заказы', ko: '주문제작 문의', icon: '✉' },
           { id: 'bank', ru: 'Банковские реквизиты', ko: '입금 계좌 관리', icon: '₩' },
           { id: 'support', ru: 'Служба поддержки', ko: '고객센터 정보', icon: '☎' },
+          { id: 'design', ru: 'Меню и главный баннер', ko: '메뉴 및 메인 배너', icon: '▣' },
           { id: 'footer', ru: 'Нижняя часть сайта', ko: '사이트 하단 정보', icon: '▤' }
         ].map((item) => (
           <button
@@ -2399,6 +2451,39 @@ const deleteArticle = async (article) => {
           </label>
           <button type="button" className="btn" disabled={bankSaving} onClick={saveBankDetails}>{bankSaving ? (lang === 'ru' ? 'Сохранение…' : '저장 중…') : (lang === 'ru' ? 'Сохранить реквизиты' : '계좌 정보 저장')}</button>
         </div>
+      </section>}
+      {activeSection === 'design' && <section style={{ maxWidth: 900 }}>
+        <h2>{lang === 'ru' ? 'Управление меню и главным баннером' : '메뉴 및 메인 배너 관리'}</h2>
+        <p className="muted">{lang === 'ru' ? 'Здесь можно менять названия и адреса ссылок верхнего меню, а также тексты и фоновые фотографии главного баннера.' : '상단 메뉴 이름과 링크 주소, 메인 배너의 문구와 배경 사진을 변경할 수 있습니다.'}</p>
+        <h3 style={{ marginTop: 24 }}>{lang === 'ru' ? 'Верхнее меню' : '상단 메뉴'}</h3>
+        <div style={{ display: 'grid', gap: 12 }}>
+          {designForm.menu.map((item, index) => <div key={index} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 8, padding: 12, border: '1px solid #E5DCD2', borderRadius: 10 }}>
+            <label>{lang === 'ru' ? 'Название (русский)' : '메뉴 이름 (러시아어)'}<input className="field" value={item.ru} onChange={e => setDesignForm(p => ({ ...p, menu: p.menu.map((x,i) => i === index ? { ...x, ru: e.target.value } : x) }))}/></label>
+            <label>{lang === 'ru' ? 'Название (корейский)' : '메뉴 이름 (한국어)'}<input className="field" value={item.ko} onChange={e => setDesignForm(p => ({ ...p, menu: p.menu.map((x,i) => i === index ? { ...x, ko: e.target.value } : x) }))}/></label>
+            <label>{lang === 'ru' ? 'Адрес страницы' : '페이지 링크'}<input className="field" value={item.url} onChange={e => setDesignForm(p => ({ ...p, menu: p.menu.map((x,i) => i === index ? { ...x, url: e.target.value } : x) }))} placeholder="/classes"/></label>
+            <button type="button" className="btn ghost" onClick={() => setDesignForm(p => ({ ...p, menu: p.menu.filter((_,i) => i !== index) }))}>{lang === 'ru' ? 'Удалить пункт' : '메뉴 삭제'}</button>
+          </div>)}
+          <button type="button" className="btn ghost" onClick={() => setDesignForm(p => ({ ...p, menu: [...p.menu, { ru: '', ko: '', url: '/' }] }))}>{lang === 'ru' ? '+ Добавить пункт меню' : '+ 메뉴 추가'}</button>
+        </div>
+        <h3 style={{ marginTop: 30 }}>{lang === 'ru' ? 'Главный баннер (слайды)' : '메인 배너 (슬라이드)'}</h3>
+        <div style={{ display: 'grid', gap: 18 }}>
+          {designForm.slides.map((slide, index) => <div key={index} style={{ display: 'grid', gap: 10, padding: 14, border: '1px solid #E5DCD2', borderRadius: 10 }}>
+            <strong>{lang === 'ru' ? 'Слайд' : '슬라이드'} {index + 1}</strong>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 10 }}>
+              <label>{lang === 'ru' ? 'Заголовок (русский)' : '제목 (러시아어)'}<input className="field" value={slide.ruTitle} onChange={e => setDesignForm(p => ({ ...p, slides: p.slides.map((x,i) => i === index ? { ...x, ruTitle: e.target.value } : x) }))}/></label>
+              <label>{lang === 'ru' ? 'Заголовок (корейский)' : '제목 (한국어)'}<input className="field" value={slide.koTitle} onChange={e => setDesignForm(p => ({ ...p, slides: p.slides.map((x,i) => i === index ? { ...x, koTitle: e.target.value } : x) }))}/></label>
+              <label>{lang === 'ru' ? 'Описание (русский)' : '설명 (러시아어)'}<textarea className="field" rows={2} value={slide.ruText} onChange={e => setDesignForm(p => ({ ...p, slides: p.slides.map((x,i) => i === index ? { ...x, ruText: e.target.value } : x) }))}/></label>
+              <label>{lang === 'ru' ? 'Описание (корейский)' : '설명 (한국어)'}<textarea className="field" rows={2} value={slide.koText} onChange={e => setDesignForm(p => ({ ...p, slides: p.slides.map((x,i) => i === index ? { ...x, koText: e.target.value } : x) }))}/></label>
+              <label>{lang === 'ru' ? 'Ссылка кнопки' : '버튼 링크'}<input className="field" value={slide.url} onChange={e => setDesignForm(p => ({ ...p, slides: p.slides.map((x,i) => i === index ? { ...x, url: e.target.value } : x) }))} placeholder="/classes"/></label>
+              <label>{lang === 'ru' ? 'Адрес фоновой фотографии (URL)' : '배경 사진 주소 (URL)'}<input className="field" value={slide.image} onChange={e => setDesignForm(p => ({ ...p, slides: p.slides.map((x,i) => i === index ? { ...x, image: e.target.value } : x) }))} placeholder="https://..."/></label>
+            </div>
+            <FilePicker label={designImageUploading === index ? (lang === 'ru' ? 'Загрузка…' : '업로드 중…') : (lang === 'ru' ? 'Загрузить фоновую фотографию' : '배경 사진 업로드')} type="file" accept="image/png,image/jpeg,image/webp" disabled={designImageUploading !== null} onChange={e => { uploadDesignImage(index, e.target.files?.[0]); e.target.value = '' }}/>
+            {slide.image && <img src={slide.image} alt="" style={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: 8 }}/>}
+            <button type="button" className="btn ghost" onClick={() => setDesignForm(p => ({ ...p, slides: p.slides.filter((_,i) => i !== index) }))}>{lang === 'ru' ? 'Удалить слайд' : '슬라이드 삭제'}</button>
+          </div>)}
+          <button type="button" className="btn ghost" onClick={() => setDesignForm(p => ({ ...p, slides: [...p.slides, { ruTitle: '', koTitle: '', ruText: '', koText: '', url: '/', image: '' }] }))}>{lang === 'ru' ? '+ Добавить слайд' : '+ 슬라이드 추가'}</button>
+        </div>
+        <button type="button" className="btn" disabled={designSaving || designImageUploading !== null} onClick={saveDesignDetails} style={{ marginTop: 20 }}>{designSaving ? (lang === 'ru' ? 'Сохранение…' : '저장 중…') : (lang === 'ru' ? 'Сохранить меню и баннер' : '메뉴 및 배너 저장')}</button>
       </section>}
       {activeSection === 'footer' && <section style={{ maxWidth: 720 }}>
         <h2>{lang === 'ru' ? 'Редактирование нижней части сайта' : '사이트 하단 정보 관리'}</h2>
