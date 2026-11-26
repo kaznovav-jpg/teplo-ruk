@@ -44,6 +44,20 @@ const { lang } = useLanguage()
     <div className="wrap">
       <Crumb items={[<Link to="/category?c=all">{lang === 'ru' ? 'Виды рукоделия' : '공예 종류'}</Link>, name]} />
       <h1 style={{ fontSize: '1.8rem', marginBottom: 18 }}>{name}</h1>
+      {c === 'all' && !s && (
+        <section className="category-choices" aria-label={lang === 'ru' ? 'Виды рукоделия' : '공예 종류'}>
+          <h2 style={{ fontSize: '1.25rem', marginBottom: 14 }}>{lang === 'ru' ? 'Выберите вид рукоделия' : '공예 종류를 선택해 주세요'}</h2>
+          <div className="grid g4">
+            {CATS.map(([id, ko, emoji]) => (
+              <Link key={id} className="box category-choice" to={`/category?c=${id}`}>
+                <span className="category-choice-icon" aria-hidden="true">{emoji}</span>
+                <b>{lang === 'ru' ? (categoryNamesRu[id] || ko) : ko}</b>
+                <span className="muted">{lang === 'ru' ? 'Посмотреть товары' : '상품 보기'} →</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
       <div className="cat-lay">
         <aside className={'filters' + (sheet ? ' on' : '')}>
           <button className="btn ghost block close" style={{ marginBottom: 14 }} onClick={() => setSheet(false)}>필터 닫기</button>
