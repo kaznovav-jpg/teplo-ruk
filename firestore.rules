@@ -92,7 +92,12 @@ service cloud.firestore {
         && request.resource.data.reason.size() <= 500
         && request.resource.data.createdAt is string;
       allow read: if isAdmin();
-      allow update, delete: if false;
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reviewedAt', 'response', 'responseSentAt'])
+        && request.resource.data.status == 'reviewed'
+        && request.resource.data.response is string
+        && request.resource.data.response.size() <= 1000;
+      allow delete: if false;
     }
 
     match /users/{uid} {
@@ -123,11 +128,19 @@ service cloud.firestore {
     }
     match /userNotifications/{notificationId} {
       allow read: if isActiveUser() && resource.data.uid == request.auth.uid;
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['uid', 'title', 'message', 'createdAt', 'read'])
+        && request.resource.data.uid is string
+        && request.resource.data.title is string
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 1500
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.read == false;
       allow update: if isActiveUser()
         && resource.data.uid == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
         && request.resource.data.read == true;
-      allow create, delete: if false;
+      allow delete: if false;
     }
 
     match /admins/{uid} {
