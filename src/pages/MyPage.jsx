@@ -81,12 +81,13 @@ export default function MyPage() {
     ? ['Заказ оформлен', 'Ожидание оплаты', 'Оплата завершена', 'Изготавливается', 'В пути', 'Доставлено']
     : ['주문 접수', '결제 대기', '결제 완료', '제작중', '배송중', '배송완료']
   const NAV = isRu
-    ? [['dash', 'Обзор'], ['notices', 'Сообщения'], ['master', 'Стать мастером'], ['orders', 'Мои заказы'], ['class', 'Мои курсы и записи'], ['fav', 'Избранное'], ['act', 'Моя активность'], ['coupon', 'Купоны'], ['profile', 'Профиль']]
-    : [['dash', '요약'], ['notices', '알림'], ['master', '작가 신청'], ['orders', '주문내역'], ['class', '내 클래스·예약'], ['fav', '즐겨찾기'], ['act', '내 활동'], ['coupon', '쿠폰'], ['profile', '프로필 관리']]
+    ? [['dash', 'Обзор'], ['notices', 'Сообщения'], ['customOrders', 'Индивидуальные запросы'], ['master', 'Стать мастером'], ['orders', 'Мои заказы'], ['class', 'Мои курсы и записи'], ['fav', 'Избранное'], ['act', 'Моя активность'], ['coupon', 'Купоны'], ['profile', 'Профиль']]
+    : [['dash', '요약'], ['notices', '알림'], ['customOrders', '주문제작 문의'], ['master', '작가 신청'], ['orders', '주문내역'], ['class', '내 클래스·예약'], ['fav', '즐겨찾기'], ['act', '내 활동'], ['coupon', '쿠폰'], ['profile', '프로필 관리']]
   const { user, S, orders, posts, cancelRes, logout, updateUser, toast, cartCount, adminEvents, isFirebase } = useApp()
   const myc = useMyComments(user)
   const [masterApplication, setMasterApplication] = useState(null)
   const [userNotices, setUserNotices] = useState([])
+  const [myCustomOrders, setMyCustomOrders] = useState([])
   const [myArtistWorks, setMyArtistWorks] = useState([])
   const [workForm, setWorkForm] = useState({ title: '', titleRu: '', description: '', descriptionRu: '', contact: '', category: 'accessory', images: [] })
   const [editingWorkId, setEditingWorkId] = useState(null)
@@ -97,6 +98,15 @@ export default function MyPage() {
       (snap) => setMasterApplication(snap.exists() ? snap.data() : null),
       (error) => console.error('Master application error:', error))
   }, [user?.uid, isFirebase])
+  useEffect(() => {
+    if (!user?.uid || !isFirebase) { setMyCustomOrders([]); return }
+    return F.onSnapshot(
+      F.query(F.collection(F.db, 'customOrders'), F.where('uid', '==', user.uid)),
+      (snap) => setMyCustomOrders(snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort((a, b) => (b.at || '').localeCompare(a.at || ''))),
+      (error) => console.error('My custom orders error:', error)
+    )
+  }, [user?.uid, isFirebase])
+
   useEffect(() => {
     if (!user?.uid || !isFirebase) { setUserNotices([]); return }
     return F.onSnapshot(
@@ -214,6 +224,22 @@ export default function MyPage() {
       <Link className="stat" to="/cart"><b>{cartCount}</b>장바구니</Link>{stat('fav', wish.length, '찜')}{stat('class', S.enrolled.length, '수강 중 클래스')}
       {stat('class', S.reservations.length, '일정 예약')}{stat('orders', orders.length, '주문')}{stat('coupon', `${(user.coupons || []).length}${isRu ? ' шт.' : '장'}`, isRu ? 'Купоны' : '쿠폰')}
     </div>,
+    customOrders: <>
+      <h2 style={{ fontSize: '1.2rem', marginBottom: 12 }}>{isRu ? 'Мои индивидуальные запросы' : '내 주문제작 문의'}</h2>
+      {myCustomOrders.length ? myCustomOrders.map((request) => <article className="box" key={request.id} style={{ marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+          <b>{isRu ? 'Заявка на индивидуальный заказ' : '주문제작 문의'}</b>
+          <span className="muted">{request.at ? new Date(request.at).toLocaleString(isRu ? 'ru-RU' : 'ko-KR') : ''}</span>
+        </div>
+        <p style={{ whiteSpace: 'pre-wrap', margin: '10px 0' }}>{request.details}</p>
+        <p className="muted">{isRu ? 'Статус: ' : '상태: '}{request.status === 'contacted' ? (isRu ? 'Есть ответ' : '답변 완료') : request.status === 'new' ? (isRu ? 'Принято, ожидает ответа' : '접수 완료 · 답변 대기') : request.status}</p>
+        {request.lastReplyMessage ? <div style={{ marginTop: 12, padding: 14, borderRadius: 8, background: '#FAF7F2', border: '1px solid #EDE3D3' }}>
+          <b>{isRu ? 'Ответ администрации' : '관리자 답변'}</b>
+          <p style={{ whiteSpace: 'pre-wrap', margin: '8px 0' }}>{request.lastReplyMessage}</p>
+          <small className="muted">{request.lastReplyAt ? new Date(request.lastReplyAt).toLocaleString(isRu ? 'ru-RU' : 'ko-KR') : ''}</small>
+        </div> : <p className="muted">{isRu ? 'Администрация ещё не ответила.' : '아직 답변이 등록되지 않았습니다.'}</p>}
+      </article>) : <p className="muted">{isRu ? 'У вас пока нет индивидуальных запросов.' : '접수된 주문제작 문의가 없습니다.'}</p>}
+    </>,
     notices: <>
       <h2 style={{ fontSize: '1.2rem', marginBottom: 12 }}>{isRu ? 'Сообщения администрации' : '관리자 알림'}</h2>
       {userNotices.length ? userNotices.map((notice) => <article className="box" key={notice.id} style={{ marginBottom: 12, border: notice.read ? undefined : '1px solid #B8593B' }}>
