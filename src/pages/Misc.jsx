@@ -21,7 +21,7 @@ export function Sitemap() {
 }
 
 export function Info() {
-  const [sp] = useSearchParams(), t = sp.get('t') || '안내', { toast } = useApp()
+  const [sp] = useSearchParams(), t = sp.get('t') || '안내', { toast, user } = useApp()
   const { lang } = useLanguage()
   const ru = lang === 'ru'
   const customTitle = ru ? 'Индивидуальный заказ' : '주문제작 문의'
@@ -41,12 +41,14 @@ export function Info() {
         <form className="form" onSubmit={async (e) => {
           e.preventDefault()
           if (!F.isFirebase) { toast(ru ? 'Сервис временно недоступен. Попробуйте позже.' : '서비스를 사용할 수 없습니다.'); return }
+          if (!user?.uid) { toast(ru ? 'Войдите в подтверждённый аккаунт, чтобы отправить запрос и получить ответ в личном кабинете.' : '문의 접수와 답변 확인을 위해 로그인해 주세요.'); return }
           const form = e.currentTarget
           const data = new FormData(form)
           const request = {
-            name: String(data.get('name') || '').trim(),
+            uid: user.uid,
+            name: String(data.get('name') || user.name || '').trim(),
             phone: String(data.get('phone') || '').trim(),
-            email: String(data.get('email') || '').trim(),
+            email: String(data.get('email') || user.email || '').trim(),
             details: String(data.get('details') || '').trim(),
             status: 'new',
             at: new Date().toISOString()
