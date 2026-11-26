@@ -45,9 +45,9 @@ export default function Admin() {
       { ru: 'Моя страница', ko: '마이페이지', url: '/mypage' }
     ],
     slides: [
-      { ruTitle: 'Тепло, рождённое в руках', koTitle: '손끝에서 피어난 따뜻함', ruText: 'Сумки и вязаные изделия, созданные с заботой и вниманием к каждой детали.', koText: '한 점씩 정성껏 만든 가방과 니트를 만나보세요.', url: '/category?c=all', image: 'https://picsum.photos/seed/h1/1600/700' },
-      { ruTitle: 'Уютное вязание этой осенью', koTitle: '이번 가을, 포근한 뜨개', ruText: 'Откройте для себя новые вязаные шарфы и жилеты.', koText: '손뜨개 머플러와 베스트를 새로 선보입니다.', url: '/category?c=knit', image: 'https://picsum.photos/seed/h2/1600/700' },
-      { ruTitle: 'Учимся, создаём и делимся', koTitle: '배우고, 만들고, 나누는 공방', ruText: 'Знакомьтесь с мастер-классами и сообществом мастеров.', koText: '수공예 클래스와 작가 커뮤니티를 만나보세요.', url: '/classes', image: 'https://picsum.photos/seed/h3/1600/700' }
+      { ruTitle: 'Тепло, рождённое в руках', koTitle: '손끝에서 피어난 따뜻함', ruText: 'Сумки и вязаные изделия, созданные с заботой и вниманием к каждой детали.', koText: '한 점씩 정성껏 만든 가방과 니트를 만나보세요.', url: '/category?c=all', ruButton: 'Смотреть', koButton: '보러 가기', image: 'https://picsum.photos/seed/h1/1600/700' },
+      { ruTitle: 'Уютное вязание этой осенью', koTitle: '이번 가을, 포근한 뜨개', ruText: 'Откройте для себя новые вязаные шарфы и жилеты.', koText: '손뜨개 머플러와 베스트를 새로 선보입니다.', url: '/category?c=knit', ruButton: 'Смотреть', koButton: '보러 가기', image: 'https://picsum.photos/seed/h2/1600/700' },
+      { ruTitle: 'Учимся, создаём и делимся', koTitle: '배우고, 만들고, 나누는 공방', ruText: 'Знакомьтесь с мастер-классами и сообществом мастеров.', koText: '수공예 클래스와 작가 커뮤니티를 만나보세요.', url: '/classes', ruButton: 'Смотреть', koButton: '보러 가기', image: 'https://picsum.photos/seed/h3/1600/700' }
     ]
   })
   const [customOrderReplies, setCustomOrderReplies] = useState({})
@@ -2475,13 +2475,15 @@ const deleteArticle = async (article) => {
               <label>{lang === 'ru' ? 'Описание (русский)' : '설명 (러시아어)'}<textarea className="field" rows={2} value={slide.ruText} onChange={e => setDesignForm(p => ({ ...p, slides: p.slides.map((x,i) => i === index ? { ...x, ruText: e.target.value } : x) }))}/></label>
               <label>{lang === 'ru' ? 'Описание (корейский)' : '설명 (한국어)'}<textarea className="field" rows={2} value={slide.koText} onChange={e => setDesignForm(p => ({ ...p, slides: p.slides.map((x,i) => i === index ? { ...x, koText: e.target.value } : x) }))}/></label>
               <label>{lang === 'ru' ? 'Ссылка кнопки' : '버튼 링크'}<input className="field" value={slide.url} onChange={e => setDesignForm(p => ({ ...p, slides: p.slides.map((x,i) => i === index ? { ...x, url: e.target.value } : x) }))} placeholder="/classes"/></label>
+              <label>{lang === 'ru' ? 'Текст кнопки (русский)' : '버튼 문구 (러시아어)'}<input className="field" value={slide.ruButton || ''} onChange={e => setDesignForm(p => ({ ...p, slides: p.slides.map((x,i) => i === index ? { ...x, ruButton: e.target.value } : x) }))}/></label>
+              <label>{lang === 'ru' ? 'Текст кнопки (корейский)' : '버튼 문구 (한국어)'}<input className="field" value={slide.koButton || ''} onChange={e => setDesignForm(p => ({ ...p, slides: p.slides.map((x,i) => i === index ? { ...x, koButton: e.target.value } : x) }))}/></label>
               <label>{lang === 'ru' ? 'Адрес фоновой фотографии (URL)' : '배경 사진 주소 (URL)'}<input className="field" value={slide.image} onChange={e => setDesignForm(p => ({ ...p, slides: p.slides.map((x,i) => i === index ? { ...x, image: e.target.value } : x) }))} placeholder="https://..."/></label>
             </div>
             <FilePicker label={designImageUploading === index ? (lang === 'ru' ? 'Загрузка…' : '업로드 중…') : (lang === 'ru' ? 'Загрузить фоновую фотографию' : '배경 사진 업로드')} type="file" accept="image/png,image/jpeg,image/webp" disabled={designImageUploading !== null} onChange={e => { uploadDesignImage(index, e.target.files?.[0]); e.target.value = '' }}/>
             {slide.image && <img src={slide.image} alt="" style={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: 8 }}/>}
             <button type="button" className="btn ghost" onClick={() => setDesignForm(p => ({ ...p, slides: p.slides.filter((_,i) => i !== index) }))}>{lang === 'ru' ? 'Удалить слайд' : '슬라이드 삭제'}</button>
           </div>)}
-          <button type="button" className="btn ghost" onClick={() => setDesignForm(p => ({ ...p, slides: [...p.slides, { ruTitle: '', koTitle: '', ruText: '', koText: '', url: '/', image: '' }] }))}>{lang === 'ru' ? '+ Добавить слайд' : '+ 슬라이드 추가'}</button>
+          <button type="button" className="btn ghost" onClick={() => setDesignForm(p => ({ ...p, slides: [...p.slides, { ruTitle: '', koTitle: '', ruText: '', koText: '', url: '/', ruButton: 'Смотреть', koButton: '보러 가기', image: '' }] }))}>{lang === 'ru' ? '+ Добавить слайд' : '+ 슬라이드 추가'}</button>
         </div>
         <button type="button" className="btn" disabled={designSaving || designImageUploading !== null} onClick={saveDesignDetails} style={{ marginTop: 20 }}>{designSaving ? (lang === 'ru' ? 'Сохранение…' : '저장 중…') : (lang === 'ru' ? 'Сохранить меню и баннер' : '메뉴 및 배너 저장')}</button>
       </section>}
