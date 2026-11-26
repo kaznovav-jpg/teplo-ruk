@@ -15,7 +15,11 @@ const errMsg = (e, isRu) => {
   if (e?.code === 'auth/user-disabled') return isRu
     ? 'Ваш аккаунт заблокирован администрацией. Вход на сайт временно недоступен. Если вы считаете, что это ошибка, свяжитесь с администрацией.'
     : '관리자에 의해 계정이 차단되었습니다. 사이트에 로그인할 수 없습니다. 오류라고 생각하시면 관리자에게 문의해 주세요.'
-  return ({ 'auth/email-not-verified': '이메일 인증이 필요해요. 받은 메일의 링크를 눌러 주세요.', 'auth/invalid-credential': '이메일 또는 비밀번호가 맞지 않아요', 'auth/email-already-in-use': '이미 가입된 이메일이에요', 'auth/weak-password': '비밀번호는 6자 이상이어야 해요', 'auth/popup-closed-by-user': '로그인 창이 닫혔어요' }[e?.code] || '처리하지 못했어요. 잠시 후 다시 시도해 주세요')
+  if (e?.message === 'Это имя уже занято. Пожалуйста, выберите другое.') return isRu
+    ? e.message
+    : '이미 사용 중인 이름입니다. 다른 이름을 선택해 주세요.'
+  if (e?.message && (e.message.includes('Имя должно содержать') || e.message.includes('Не удалось проверить имя'))) return e.message
+  return ({ 'auth/email-not-verified': '이메일 인증이 필요해요. 받은 메일의 링크를 눌러 주세요.', 'auth/invalid-credential': '이메일 또는 비밀번호가 맞지 않아요', 'auth/email-already-in-use': '이미 가입된 이메일이에요', 'auth/weak-password': '비밀번호는 6자 이상이어야 해요', 'auth/popup-closed-by-user': '로그인 창이 닫혔어요' }[e?.code] || '처리하지 못했어요. 잠시 후 다시 시도해 주세요.')
 }
 
 function AuthForms({ tab, go }) {
