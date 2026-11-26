@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { D } from '../lib/data.js'
 import { useLanguage } from '../lib/language.jsx'
 import { useApp } from '../lib/store.jsx'
+import * as F from '../lib/firebase.js'
 import { CATS } from '../lib/util.js'
 import useTitle from '../lib/useTitle.js'
 import { Img, ProductCard, ClassCard, ArticleCard } from '../components/Cards.jsx'
@@ -23,15 +24,26 @@ export default function Home() {
   const { toast } = useApp()
   const { lang } = useLanguage()
   const ru = lang === 'ru'
-  const slides = ru ? SLIDES_RU : SLIDES_KO
+  const [siteSlides, setSiteSlides] = useState(null)
+  useEffect(() => {
+    if (!F.isFirebase) return
+    return F.onSnapshot(F.doc(F.db, 'siteSettings', 'design'), (snap) => {
+      if (snap.exists() && Array.isArray(snap.data().slides)) setSiteSlides(snap.data().slides)
+    }, (error) => console.error('Homepage banner settings load error:', error))
+  }, [])
+  const fallbackSlides = ru ? SLIDES_RU : SLIDES_KO
+  const slides = Array.isArray(siteSlides) && siteSlides.length
+    ? siteSlides.map((s, index) => [ru ? s.ruTitle : s.koTitle, ru ? s.ruText : s.koText, s.url || '/', String(index), s.image || ''])
+    : fallbackSlides.map((s) => [...s, ''])
   const t = (ko, russian) => ru ? russian : ko
   const [i, setI] = useState(0), [hov, setHov] = useState(false), [tab, setTab] = useState('new'), [rv, setRv] = useState(0)
-  const go = (n) => setI((n + 3) % 3)
+  const go = (n) => setI((n + slides.length) % slides.length)
+  useEffect(() => { if (i >= slides.length) setI(0) }, [slides.length, i])
   useEffect(() => {
-    if (hov || matchMedia('(prefers-reduced-motion:reduce)').matches) return
-    const t = setInterval(() => setI((x) => (x + 1) % 3), 5000)
-    return () => clearInterval(t)
-  }, [hov])
+    if (hov || slides.length < 2 || matchMedia('(prefers-reduced-motion:reduce)').matches) return
+    const timer = setInterval(() => setI((x) => (x + 1) % slides.length), 5000)
+    return () => clearInterval(timer)
+  }, [hov, slides.length])
   useEffect(() => { const t = setInterval(() => setRv((x) => (x + 1) % 3), 4500); return () => clearInterval(t) }, [])
 
   const P = D.products, art = D.artists.find(Boolean), ex = D.extras
@@ -43,7 +55,7 @@ export default function Home() {
       <section className="hero" aria-label={t('메인 배너', 'Главный баннер')} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}>
         <div className="slides" style={{ transform: `translateX(-${i * 100}%)` }}>
           {slides.map((s) => (
-            <div key={s[3]} className="slide" style={{ backgroundImage: `url(https://picsum.photos/seed/${s[3]}/1600/700)` }}>
+            <div key={s[3]} className="slide" style={{ backgroundImage: `url(${s[4] || `https://picsum.photos/seed/${s[3]}/1600/700`})` }}>
               <div className="wrap"><h1>{s[0]}</h1><p>{s[1]}</p><Link className="btn" to={s[2]}>{t('보러 가기', 'Смотреть')}</Link></div>
             </div>
           ))}
