@@ -247,6 +247,8 @@ export default function Layout() {
               <Link to={footerInfo.privacyUrl || '/info?t=개인정보처리방침'}>{lang === 'ru' ? footerInfo.privacyLabelRu : footerInfo.privacyLabelKo}</Link>
               <br />
               <Link to={footerInfo.shippingUrl || '/info?t=배송·교환 안내'}>{lang === 'ru' ? footerInfo.shippingLabelRu : footerInfo.shippingLabelKo}</Link>
+              <br />
+              <Link to="/maker-terms">{lang === 'ru' ? 'Условия для мастеров-продавцов' : '입점 및 상품 등록 안내'}</Link>
             </p></div>
           </div>
           <div className="biz">
