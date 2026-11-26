@@ -149,6 +149,8 @@ export default function MyPage() {
       price: Number(workForm.price),
       category: workForm.category,
       image: workForm.image,
+      agreedToTermsAt: new Date().toISOString(),
+      sellerTermsVersion: '1.0',
       status: 'pending',
       updatedAt: new Date().toISOString()
     }
@@ -241,6 +243,7 @@ export default function MyPage() {
             <label>{isRu ? 'Категория' : '카테고리'}<select className="field" value={workForm.category} onChange={(e) => setWorkForm({ ...workForm, category: e.target.value })}><option value="accessory">{isRu ? 'Аксессуары' : '액세서리'}</option><option value="bag">{isRu ? 'Сумки и шитьё' : '가방·바느질'}</option><option value="home">{isRu ? 'Для дома' : '홈 인테리어'}</option><option value="clothes">{isRu ? 'Одежда' : '의류'}</option><option value="knit">{isRu ? 'Вязание' : '뜨개질'}</option><option value="embroidery">{isRu ? 'Вышивка' : '자수'}</option></select></label>
             <label>{isRu ? 'Фотография работы' : '작품 사진'}<FilePicker label={isRu ? 'Выбрать фотографию' : '사진 선택'} className="field" type="file" accept="image/*" onChange={async (e) => { try { const url = await uploadMakerImage(e.target.files?.[0]); if (url) setWorkForm((prev) => ({ ...prev, image: url })) } catch (error) { console.error(error); toast(isRu ? 'Не удалось загрузить фото.' : '사진 업로드에 실패했습니다.') } }} /></label>
             {workForm.image && <img src={workForm.image} alt="Предпросмотр работы" style={{ width: 180, height: 140, objectFit: 'cover', borderRadius: 10 }} />}
+            <label style={{ display: 'flex', gap: 9, alignItems: 'flex-start', lineHeight: 1.6, margin: '12px 0' }}><input type="checkbox" required style={{ width: 20, height: 20, flexShrink: 0, marginTop: 3, accentColor: 'var(--pt)' }} /><span>{isRu ? <>Я ознакомился(ась) с <Link className="more" to="/maker-terms" target="_blank" rel="noreferrer">правилами размещения товаров</Link> и подтверждаю, что работа создана мной лично или у меня есть необходимые права на её публикацию.</> : <><Link className="more" to="/maker-terms" target="_blank" rel="noreferrer">상품 등록 운영정책</Link>을 확인하고 동의하며, 직접 제작했거나 게시에 필요한 권리를 보유한 작품임을 확인합니다.</>}</span></label>
             <div className="acts"><button className="btn" disabled={workSaving}>{workSaving ? (isRu ? 'Сохранение…' : '저장 중…') : (isRu ? 'Отправить на проверку' : '검토 요청')}</button>{editingWorkId && <button type="button" className="btn ghost" onClick={() => { setEditingWorkId(null); setWorkForm({ title: '', titleRu: '', description: '', descriptionRu: '', price: '', category: 'accessory', image: '' }) }}>{isRu ? 'Отмена' : '취소'}</button>}</div>
           </form>
           <h3 style={{ marginTop: 28 }}>{isRu ? 'Мои работы и их статус' : '내 작품 및 검토 상태'}</h3>
