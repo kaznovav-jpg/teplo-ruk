@@ -1369,7 +1369,7 @@ const deleteArticle = async (article) => {
                 <div>
                   <b>{lang === 'ru' ? (work.titleRu || work.title) : (work.title || work.titleRu)}</b>
                   <p>{lang === 'ru' ? (work.descriptionRu || work.description) : (work.description || work.descriptionRu)}</p>
-                  <p>{Number(work.price || 0).toLocaleString('ko-KR')} ₩</p>
+                  {work.contact && <p className="muted">{lang === 'ru' ? 'Контакт: ' : '연락처: '}{work.contact}</p>}
                   <p className="muted">{lang === 'ru' ? 'Статус: ' : '상태: '}{work.status === 'approved' ? (lang === 'ru' ? 'Опубликована' : '공개') : work.status === 'rejected' ? (lang === 'ru' ? 'Отклонена' : '수정 요청') : (lang === 'ru' ? 'На проверке' : '검토 중')}</p>
                   <div className="acts">
                     <button className="btn ghost" onClick={() => setPreviewWork(work)}>{lang === 'ru' ? 'Предпросмотр' : '미리보기'}</button>
@@ -1391,8 +1391,8 @@ const deleteArticle = async (article) => {
           <form className="box" onSubmit={async (event) => {
             event.preventDefault()
             const form = event.currentTarget
-            const changes = { title: form.title.value.trim(), titleRu: form.titleRu.value.trim(), description: form.description.value.trim(), descriptionRu: form.descriptionRu.value.trim(), price: Number(form.price.value || 0), category: form.category.value, image: form.image.value.trim() }
-            if (!changes.title || !changes.image || !Number.isFinite(changes.price) || changes.price < 0) { alert(lang === 'ru' ? 'Проверьте название, фото и цену.' : '제목, 사진, 가격을 확인해 주세요.'); return }
+            const changes = { title: form.title.value.trim(), titleRu: form.titleRu.value.trim(), description: form.description.value.trim(), descriptionRu: form.descriptionRu.value.trim(), contact: form.contact.value.trim(), category: form.category.value, image: form.image.value.trim() }
+            if (!changes.title || !changes.image || !changes.contact) { alert(lang === 'ru' ? 'Проверьте название, фото и контактные данные.' : '제목, 사진, 연락처를 확인해 주세요.'); return }
             try {
               await F.setDoc(F.doc(F.db, 'artistWorks', editingArtistWork.id), { ...changes, updatedAt: new Date().toISOString() }, { merge: true })
               setEditingArtistWork(null)
@@ -1404,9 +1404,9 @@ const deleteArticle = async (article) => {
             <label>{lang === 'ru' ? 'Название на русском' : '러시아어 작품명'}<input className="field" name="titleRu" defaultValue={editingArtistWork.titleRu || ''} /></label>
             <label>{lang === 'ru' ? 'Описание' : '설명'}<textarea className="field" name="description" rows={3} defaultValue={editingArtistWork.description || ''} /></label>
             <label>{lang === 'ru' ? 'Описание на русском' : '러시아어 설명'}<textarea className="field" name="descriptionRu" rows={3} defaultValue={editingArtistWork.descriptionRu || ''} /></label>
-            <label>{lang === 'ru' ? 'Цена (₩)' : '가격 (₩)'}<input className="field" name="price" type="number" min="0" defaultValue={editingArtistWork.price || 0} /></label>
             <label>{lang === 'ru' ? 'Категория' : '카테고리'}<select className="field" name="category" defaultValue={editingArtistWork.category || 'accessory'}>{[['accessory','Аксессуары / 액세서리'],['bag','Сумки / 가방'],['home','Для дома / 홈'],['clothes','Одежда / 의류'],['knit','Вязание / 뜨개'],['embroidery','Вышивка / 자수']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select></label>
-            <label>{lang === 'ru' ? 'Ссылка на фотографию' : '사진 URL'}<input className="field" name="image" defaultValue={editingArtistWork.image || ''} required /></label>
+            <label>{lang === 'ru' ? 'Контакты для связи' : '연락처'}<input className="field" name="contact" defaultValue={editingArtistWork.contact || ''} required /></label>
+            <label>{lang === 'ru' ? 'Ссылка на основную фотографию' : '대표 사진 URL'}<input className="field" name="image" defaultValue={editingArtistWork.image || ''} required /></label>
             <div className="acts" style={{ marginTop: 16 }}><button className="btn">{lang === 'ru' ? 'Сохранить' : '저장'}</button><button className="btn ghost" type="button" onClick={() => setEditingArtistWork(null)}>{lang === 'ru' ? 'Отмена' : '취소'}</button></div>
           </form>
         </div>
@@ -1420,7 +1420,7 @@ const deleteArticle = async (article) => {
             </div>
             <p className="muted" style={{ marginBottom: 12 }}>{lang === 'ru' ? 'Так работа будет выглядеть в разделе «Работы мастеров».' : '작가 작품 페이지에 표시될 모습입니다.'}</p>
             <article className="box" style={{ padding: 14 }}>
-              <img src={previewWork.image} alt={lang === 'ru' ? previewWork.titleRu : previewWork.title} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: 8 }} />
+              {(previewWork.images?.length ? previewWork.images : (previewWork.image ? [previewWork.image] : [])).map((url, index) => <img key={url + index} src={url} alt={lang === 'ru' ? 'Фото работы ' + (index + 1) : '작품 사진 ' + (index + 1)} style={{ width: '100%', maxHeight: 360, objectFit: 'contain', borderRadius: 8, marginBottom: 8 }} />)
               <h3 style={{ marginTop: 10 }}>{lang === 'ru' ? (previewWork.titleRu || previewWork.title) : (previewWork.title || previewWork.titleRu)}</h3>
               <p className="muted" style={{ marginTop: 8, marginBottom: 6 }}>{lang === 'ru' ? 'Описание' : '설명'}</p>
               <p>{lang === 'ru' ? (previewWork.descriptionRu || previewWork.description || 'Описание не добавлено') : (previewWork.description || previewWork.descriptionRu || '설명이 없습니다')}</p>
@@ -1432,7 +1432,7 @@ const deleteArticle = async (article) => {
                 knit: lang === 'ru' ? 'Вязание' : '뜨개질',
                 embroidery: lang === 'ru' ? 'Вышивка' : '자수'
               }[previewWork.category] || previewWork.category || '—'}</p>
-              <b>{Number(previewWork.price || 0).toLocaleString('ko-KR')} ₩</b>
+              {previewWork.contact && <p style={{ marginTop: 12 }}><b>{lang === 'ru' ? 'Контакты для связи: ' : '연락처: '}</b>{previewWork.contact}</p>}
               <p className="muted">{previewWork.artistName || previewWork.artistUid}</p>
             </article>
             <div className="acts" style={{ marginTop: 16 }}>
