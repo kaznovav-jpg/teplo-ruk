@@ -12,6 +12,7 @@ export default function Admin() {
   const [activeSection, setActiveSection] = useState('overview')
   const [managedUsers, setManagedUsers] = useState([])
   const [messageReports, setMessageReports] = useState([])
+  const [reportConversationNames, setReportConversationNames] = useState({})
   const [reportReplyDrafts, setReportReplyDrafts] = useState({})
   const [usersLoading, setUsersLoading] = useState(false)
   const [userWarningDrafts, setUserWarningDrafts] = useState({})
@@ -126,8 +127,28 @@ export default function Admin() {
   useEffect(() => {
     if (activeSection !== 'messageReports' || !isAdmin || !isFirebase) return
     loadManagedUsers()
-    return F.onSnapshot(F.query(F.collection(F.db, 'messageReports'), F.orderBy('createdAt', 'desc')), (snap) => {
-      setMessageReports(snap.docs.map((item) => ({ ...item.data(), id: item.id })))
+    return F.onSnapshot(F.query(F.collection(F.db, 'messageReports'), F.orderBy('createdAt', 'desc')), async (snap) => {
+      const reports = snap.docs.map((item) => ({ ...item.data(), id: item.id }))
+      setMessageReports(reports)
+      const conversationIds = [...new Set(reports.map((report) => report.conversationId).filter(Boolean))]
+      if (!conversationIds.length || !F.auth.currentUser) {
+        setReportConversationNames({})
+        return
+      }
+      try {
+        const token = await F.auth.currentUser.getIdToken()
+        const response = await fetch('/api/admin-report-names', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ conversationIds })
+        })
+        const result = await response.json().catch(() => ({}))
+        if (!response.ok) throw new Error(result.error || 'Не удалось загрузить имена участников')
+        setReportConversationNames(result.names || {})
+      } catch (error) {
+        console.error('Report participant names load error:', error)
+        setReportConversationNames({})
+      }
     }, (error) => console.error('Message reports load error:', error))
   }, [activeSection, isAdmin, isFirebase])
 
@@ -865,8 +886,8 @@ const deleteArticle = async (article) => {
               <strong>{lang === 'ru' ? 'Жалоба' : '신고'} · {report.status === 'reviewed' ? (lang === 'ru' ? 'Рассмотрена' : '검토 완료') : (lang === 'ru' ? 'Новая' : '신규')}</strong>
               <small className="muted">{report.createdAt ? new Date(report.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR') : ''}</small>
             </div>
-            <p style={{ marginTop: 8 }}>{lang === 'ru' ? 'Отправитель жалобы' : '신고자'}: <strong>{managedUsers.find((item) => item.uid === report.reporterUid)?.name || (lang === 'ru' ? 'Участник' : '회원')}</strong> <small className="muted">({report.reporterUid})</small></p>
-            <p>{lang === 'ru' ? 'На пользователя' : '신고 대상'}: <strong>{managedUsers.find((item) => item.uid === report.reportedUid)?.name || (lang === 'ru' ? 'Участник' : '회원')}</strong> <small className="muted">({report.reportedUid})</small></p>
+            <p style={{ marginTop: 8 }}>{lang === 'ru' ? 'Отправитель жалобы' : '신고자'}: <strong>{managedUsers.find((item) => item.uid === report.reporterUid)?.name || reportConversationNames[report.conversationId]?.[report.reporterUid] || (lang === 'ru' ? 'Участник' : '회원')}</strong> <small className="muted">({report.reporterUid})</small></p>
+            <p>{lang === 'ru' ? 'На пользователя' : '신고 대상'}: <strong>{managedUsers.find((item) => item.uid === report.reportedUid)?.name || reportConversationNames[report.conversationId]?.[report.reportedUid] || (lang === 'ru' ? 'Участник' : '회원')}</strong> <small className="muted">({report.reportedUid})</small></p>
             <p style={{ marginTop: 8 }}><strong>{lang === 'ru' ? 'Причина' : '신고 사유'}:</strong> {report.reason}</p>
             {report.messageText && <blockquote style={{ marginTop: 8, padding: 12, background: '#FAF7F2', borderLeft: '3px solid #B8593B', whiteSpace: 'pre-wrap' }}>{report.messageText}</blockquote>}
             <label style={{ display: 'grid', gap: 6, marginTop: 14 }}>
