@@ -9,6 +9,7 @@ import MyPage, { CancelOrderPage } from './pages/MyPage.jsx'
 import Messages from './pages/Messages.jsx'
 import Admin from './pages/Admin.jsx'
 import { Sitemap, Info, NotFound } from './pages/Misc.jsx'
+import SellerTerms from './pages/SellerTerms.jsx'
 
 export default function App() {
 return (
@@ -38,6 +39,7 @@ return (
         <Route path="admin" element={<Admin />} />
         <Route path="sitemap" element={<Sitemap />} />
         <Route path="info" element={<Info />} />
+        <Route path="maker-terms" element={<SellerTerms />} />
         <Route path="*" element={<NotFound />} />
       </Route>
         </Routes>
