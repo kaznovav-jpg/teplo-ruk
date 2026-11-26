@@ -245,10 +245,6 @@ export default function Admin() {
 
   const sendCustomOrderReply = async (request) => {
     const message = String(customOrderReplies[request.id] || '').trim()
-    if (!request.email) {
-      alert(lang === 'ru' ? 'У этой заявки нет адреса электронной почты.' : '이 문의에는 이메일 주소가 없습니다.')
-      return
-    }
     if (!message) {
       alert(lang === 'ru' ? 'Напишите текст ответа.' : '답변 내용을 입력해 주세요.')
       return
@@ -269,12 +265,12 @@ export default function Admin() {
       const result = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(result.error || 'EMAIL_SEND_FAILED')
       setCustomOrderReplies((prev) => ({ ...prev, [request.id]: '' }))
-      alert(lang === 'ru' ? 'Письмо успешно отправлено клиенту.' : '고객에게 이메일을 성공적으로 보냈습니다.')
+      alert(lang === 'ru' ? 'Ответ сохранён в личном кабинете покупателя.' : '답변이 고객 마이페이지에 저장되었습니다.')
     } catch (error) {
       console.error('Custom order reply error:', error)
       alert(lang === 'ru'
-        ? `Не удалось отправить письмо: ${error.message}`
-        : `이메일 전송 실패: ${error.message}`)
+        ? `Не удалось сохранить ответ: ${error.message}`
+        : `답변 저장 실패: ${error.message}`)
     } finally {
       setSendingCustomOrderId(null)
     }
@@ -2564,7 +2560,7 @@ const deleteArticle = async (article) => {
                 <p style={{ whiteSpace: 'pre-wrap', margin: '8px 0 14px' }}>{request.details}</p>
                 <div style={{ display: 'grid', gap: 8, margin: '14px 0' }}>
                   <label>
-                    {lang === 'ru' ? 'Ваш ответ клиенту' : '고객에게 보낼 답변'}
+                    {lang === 'ru' ? 'Ответ покупателю (будет виден в личном кабинете)' : '고객 답변 (마이페이지에 표시됩니다)'}
                     <textarea
                       className="field"
                       rows={4}
@@ -2578,13 +2574,13 @@ const deleteArticle = async (article) => {
                   <button
                     type="button"
                     className="btn"
-                    disabled={!request.email || sendingCustomOrderId === request.id || !(customOrderReplies[request.id] || '').trim()}
+                    disabled={sendingCustomOrderId === request.id || !(customOrderReplies[request.id] || '').trim()}
                     onClick={() => sendCustomOrderReply(request)}
                     style={{ justifySelf: 'start' }}
                   >
                     {sendingCustomOrderId === request.id
                       ? (lang === 'ru' ? 'Отправка…' : '전송 중…')
-                      : (lang === 'ru' ? 'Отправить письмо клиенту' : '고객에게 이메일 보내기')}
+                      : (lang === 'ru' ? 'Сохранить ответ в личном кабинете' : '마이페이지에 답변 저장')}
                   </button>
                 </div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
