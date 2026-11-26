@@ -15,7 +15,7 @@ export function Sitemap() {
     ['홈', '/'], ['공예 종류', '/category?c=all', CATS.map((c) => [c[1], '/category?c=' + c[0]])], ['클래스', '/classes'], ['작가 작품', '/artists'], ['일정·시간표', '/schedule'],
     ['아티클·블로그', '/articles', ['정보', '트렌드', '리뷰'].map((c) => [c, '/articles?cat=' + c])], ['포토 포럼·커뮤니티', '/community', BOARDS.map((b) => [b[1], '/community?board=' + b[0]])],
     ['마이페이지', '/mypage', [['로그인', '/mypage?tab=login'], ['회원가입', '/mypage?tab=signup'], ['장바구니', '/cart']]],
-    ['이용 안내', '/info?t=이용약관', [['이용약관', '/info?t=이용약관'], ['개인정보처리방침', '/info?t=개인정보처리방침'], ['배송·교환 안내', '/info?t=배송·교환 안내'], ['주문제작 문의', '/info?t=주문제작 문의']]],
+    ['이용 안내', '/info?t=이용약관', [['이용약관', '/info?t=이용약관'], ['개인정보처리방침', '/info?t=개인정보처리방침'], ['배송·교환 안내', '/info?t=배송·교환 안내'], ['주문제작 문의', '/info?t=주문제작 문의'], ['작가 입점·상품 등록 안내', '/maker-terms']]],
   ]
   return <div className="wrap sec smap"><h1 style={{ fontSize: '1.8rem', marginBottom: 16 }}>사이트 안내</h1><ul>{T.map((x) => <Node key={x[1]} t={x[0]} to={x[1]} kids={x[2]} />)}</ul></div>
 }
