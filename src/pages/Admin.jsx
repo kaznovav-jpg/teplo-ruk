@@ -12,6 +12,7 @@ export default function Admin() {
   const [activeSection, setActiveSection] = useState('overview')
   const [managedUsers, setManagedUsers] = useState([])
   const [messageReports, setMessageReports] = useState([])
+  const [reportReplyDrafts, setReportReplyDrafts] = useState({})
   const [usersLoading, setUsersLoading] = useState(false)
   const [userWarningDrafts, setUserWarningDrafts] = useState({})
   const [userActionBusy, setUserActionBusy] = useState(null)
@@ -867,11 +868,32 @@ const deleteArticle = async (article) => {
             <p>{lang === 'ru' ? 'На пользователя' : '신고 대상'}: <code>{report.reportedUid}</code></p>
             <p style={{ marginTop: 8 }}><strong>{lang === 'ru' ? 'Причина' : '신고 사유'}:</strong> {report.reason}</p>
             {report.messageText && <blockquote style={{ marginTop: 8, padding: 12, background: '#FAF7F2', borderLeft: '3px solid #B8593B', whiteSpace: 'pre-wrap' }}>{report.messageText}</blockquote>}
-            {report.status !== 'reviewed' && <button type="button" className="btn" style={{ marginTop: 12 }} onClick={async () => {
+            <label style={{ display: 'grid', gap: 6, marginTop: 14 }}>
+              <strong>{lang === 'ru' ? 'Ответ администрации (необязательно)' : '관리자 답변 (선택)'}</strong>
+              <textarea className="field" rows={3} maxLength={1000} value={reportReplyDrafts[report.id] ?? report.response ?? ''} onChange={(event) => setReportReplyDrafts((prev) => ({ ...prev, [report.id]: event.target.value }))} placeholder={lang === 'ru' ? 'Напишите ответ отправителю жалобы…' : '신고자에게 보낼 답변을 입력하세요…'} />
+            </label>
+            {report.status !== 'reviewed' || !report.responseSentAt ? <button type="button" className="btn" style={{ marginTop: 12 }} onClick={async () => {
+              const reply = String(reportReplyDrafts[report.id] ?? report.response ?? '').trim().slice(0, 1000)
               try {
-                await F.updateDoc(F.doc(F.db, 'messageReports', report.id), { status: 'reviewed' })
-              } catch (error) { console.error('Report review error:', error); alert(lang === 'ru' ? 'Не удалось обновить статус жалобы.' : '신고 상태를 변경하지 못했습니다.') }
-            }}>{lang === 'ru' ? 'Отметить рассмотренной' : '검토 완료로 표시'}</button>}
+                await F.updateDoc(F.doc(F.db, 'messageReports', report.id), {
+                  status: 'reviewed',
+                  reviewedAt: new Date(),
+                  response: reply,
+                  responseSentAt: new Date()
+                })
+                await F.addDoc(F.collection(F.db, 'userNotifications'), {
+                  uid: report.reporterUid,
+                  title: lang === 'ru' ? 'Ваша жалоба рассмотрена' : '신고가 검토되었습니다',
+                  message: reply
+                    ? (lang === 'ru' ? 'Администрация рассмотрела вашу жалобу. Ответ: ' : '관리자가 신고를 검토했습니다. 답변: ') + reply
+                    : (lang === 'ru' ? 'Администрация рассмотрела вашу жалобу. Спасибо, что помогаете поддерживать безопасное общение.' : '관리자가 신고를 검토했습니다. 안전한 소통을 위해 알려주셔서 감사합니다.'),
+                  createdAt: new Date(),
+                  read: false
+                })
+                setReportReplyDrafts((prev) => ({ ...prev, [report.id]: reply }))
+                alert(lang === 'ru' ? 'Жалоба отмечена рассмотренной. Уведомление отправлено пользователю.' : '신고가 검토 완료로 표시되었고 사용자에게 알림을 보냈습니다.')
+              } catch (error) { console.error('Report review/response error:', error); alert(lang === 'ru' ? 'Не удалось сохранить решение или отправить уведомление.' : '검토 결과 또는 알림을 저장하지 못했습니다.') }
+            }}>{lang === 'ru' ? (report.status === 'reviewed' ? 'Отправить ответ повторно' : 'Отметить рассмотренной и отправить ответ') : (report.status === 'reviewed' ? '답변 다시 보내기' : '검토 완료 및 답변 보내기')}</button> : <p className="muted" style={{ marginTop: 10 }}>{lang === 'ru' ? 'Уведомление о рассмотрении уже отправлено.' : '검토 완료 알림이 이미 전송되었습니다.'}</p>}
           </article>)}
         </div> : <p className="muted">{lang === 'ru' ? 'Жалоб пока нет.' : '접수된 신고가 없습니다.'}</p>}
       </>}
