@@ -49,7 +49,7 @@ function AuthForms({ tab, go }) {
         {tab !== 'find' && <label>비밀번호{tab === 'signup' ? ' (8자 이상)' : ''}<input className="field" type="password" name="pw" required minLength={tab === 'signup' ? 8 : undefined} autoComplete={tab === 'login' ? 'current-password' : 'new-password'} /></label>}
         {tab === 'signup' && <label>비밀번호 확인<input className="field" type="password" name="pw2" required minLength={8} /></label>}
         {tab === 'signup' && <label style={{ display: 'flex', gap: 8, alignItems: 'center', minHeight: 44 }}><input type="checkbox" required style={{ width: 20, height: 20, accentColor: 'var(--pt)' }} />이용약관과 개인정보 수집에 동의합니다.</label>}
-        <button className="btn">{{ login: '로그인', signup: '가입하기', find: '안내 메일 받기' }[tab]}</button>
+        <button className="btn" type="submit" disabled={submitting} aria-busy={submitting} style={submitting ? { opacity: 0.7, cursor: 'wait' } : undefined}>{submitting ? (isRu ? 'Обрабатывается… Пожалуйста, подождите' : '처리 중… 잠시만 기다려 주세요') : {{ login: '로그인', signup: '가입하기', find: '안내 메일 받기' }[tab]}</button>
         {pendingVerification && <button type="button" className="btn ghost" onClick={async (e) => { const form = e.currentTarget.form; try { await resendVerification(form.email.value.trim(), form.pw.value); toast('인증 메일을 다시 보냈어요. 받은편지함과 스팸함을 확인해 주세요.') } catch (err) { console.error(err); toast(err?.message || '인증 메일을 보내지 못했어요.') } }}>{'인증 메일 다시 보내기'}</button>}
         <p style={{ textAlign: 'center' }}>
           {tab === 'login' ? <><Link className="more" to="/mypage?tab=signup">회원가입</Link> · <Link className="more" to="/mypage?tab=find">비밀번호 찾기</Link></> : <Link className="more" to="/mypage?tab=login">{tab === 'signup' ? '이미 회원이에요' : '로그인으로 돌아가기'}</Link>}
