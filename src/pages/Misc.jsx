@@ -55,16 +55,16 @@ export function Info() {
           }
           try {
             await F.addDoc(F.collection(F.db, 'customOrders'), request)
-            toast(ru ? 'Ваш запрос успешно отправлен. Мы свяжемся с вами.' : '문의가 정상적으로 접수되었습니다. 연락드리겠습니다.')
+            toast(ru ? 'Запрос отправлен. Ответ появится в разделе «Индивидуальные запросы» личного кабинета.' : '문의가 접수되었습니다. 마이페이지의 주문제작 문의에서 답변을 확인할 수 있습니다.')
             form.reset()
           } catch (error) {
             console.error('Custom order request error:', error)
             toast(ru ? 'Не удалось отправить запрос. Попробуйте ещё раз.' : '문의 전송에 실패했습니다. 다시 시도해 주세요.')
           }
         }}>
-          <label>{ru ? 'Имя' : '이름'}<input className="field" name="name" required maxLength={80} /></label>
+          <label>{ru ? 'Имя' : '이름'}<input className="field" name="name" defaultValue={user?.name || ''} required maxLength={80} /></label>
           <label>{ru ? 'Контактный телефон' : '연락처'}<input className="field" name="phone" type="tel" required maxLength={40} /></label>
-          <label>{ru ? 'Электронная почта' : '이메일'}<input className="field" name="email" type="email" required maxLength={120} /></label>
+          <label>{ru ? 'Электронная почта' : '이메일'}<input className="field" name="email" type="email" defaultValue={user?.email || ''} readOnly required maxLength={120} /></label>
           <label>{ru ? 'Какое изделие вы хотите заказать и ваши пожелания' : '원하는 작품과 요청사항'}<textarea className="field" name="details" rows={5} required maxLength={3000} style={{ padding: 10 }} /></label>
           <button className="btn">{ru ? 'Отправить запрос' : '문의 보내기'}</button>
         </form>
