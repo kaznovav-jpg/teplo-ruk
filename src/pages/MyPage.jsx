@@ -27,9 +27,12 @@ function AuthForms({ tab, go }) {
   const { lang } = useLanguage()
   const isRu = lang === 'ru'
   const [pendingVerification, setPendingVerification] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const submit = async (e) => {
     e.preventDefault()
+    if (submitting) return
     const f = e.target, email = f.email.value.trim()
+    setSubmitting(true)
     try {
       if (tab === 'login') { setPendingVerification(false); await login(email, f.pw.value); toast('로그인되었어요'); go('dash') }
       else if (tab === 'signup') {
@@ -37,6 +40,7 @@ function AuthForms({ tab, go }) {
         await signup(f.nm.value.trim(), email, f.pw.value); toast('인증 메일을 보냈어요. 이메일의 링크를 누른 뒤 로그인해 주세요.'); go('login')
       } else { await resetPw(email); toast('재설정 안내를 보냈어요') }
     } catch (err) { console.error(err); setPendingVerification(err?.code === 'auth/email-not-verified'); toast(errMsg(err, isRu)) }
+    finally { setSubmitting(false) }
   }
   return (
     <div className="wrap sec">
