@@ -278,3 +278,37 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
     min-width: 0;
   }
 }
+
+
+/* Category choices on the craft directory page */
+.category-choices {
+  margin: 8px 0 34px;
+}
+.category-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 7px;
+  min-height: 132px;
+  margin-bottom: 0;
+  color: var(--tx);
+  transition: transform .18s, border-color .18s;
+}
+.category-choice:hover {
+  transform: translateY(-2px);
+  border-color: var(--pt);
+}
+.category-choice-icon {
+  font-size: 1.8rem;
+  line-height: 1.2;
+}
+@media (max-width: 600px) {
+  .category-choices .grid {
+    gap: 12px;
+  }
+  .category-choice {
+    min-height: 116px;
+    padding: 14px;
+  }
+}
