@@ -225,12 +225,13 @@ export function Artists() {
       </article>)}</div> : <p className="muted">{ru ? 'Новые работы мастеров скоро появятся здесь.' : '새로운 작가 작품이 곧 이곳에 소개됩니다.'}</p>}
       {selectedWork && <div className="modal" onClick={(event) => { if (event.target === event.currentTarget) setSelectedWork(null) }}>
         <div role="dialog" aria-modal="true" aria-label={ru ? 'Подробная информация о работе' : '작품 상세 정보'} style={{ maxWidth: 760, maxHeight: '90vh', overflowY: 'auto', textAlign: 'left' }}>
-          <img src={selectedWork.image} alt={ru ? selectedWork.titleRu : selectedWork.title} style={{ width: '100%', maxHeight: '55vh', objectFit: 'contain', borderRadius: 10, background: 'var(--sub)' }} />
+          {(selectedWork.images?.length ? selectedWork.images : (selectedWork.image ? [selectedWork.image] : [])).map((url, index) => <img key={url + index} src={url} alt={ru ? (selectedWork.titleRu || selectedWork.title) + ' — фото ' + (index + 1) : selectedWork.title + ' — 사진 ' + (index + 1)} style={{ width: '100%', maxHeight: '55vh', objectFit: 'contain', borderRadius: 10, background: 'var(--sub)', marginBottom: 10 }} />)}
           <h2 style={{ fontSize: '1.5rem', margin: '16px 0 8px' }}>{ru ? (selectedWork.titleRu || selectedWork.title) : selectedWork.title}</h2>
           <p className="muted">{ru ? 'Мастер' : '작가'}: {selectedWork.artistName}</p>
           <p className="muted" style={{ marginTop: 14, marginBottom: 6 }}>{ru ? 'Описание' : '작품 설명'}</p>
           <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>{ru ? (selectedWork.descriptionRu || selectedWork.description || 'Описание не добавлено') : (selectedWork.description || selectedWork.descriptionRu || '설명이 없습니다')}</p>
           <p className="muted" style={{ marginTop: 12 }}>{ru ? 'Категория' : '카테고리'}: {categoryName(selectedWork.category)}</p>
+          {selectedWork.contact && <p style={{ marginTop: 12, whiteSpace: 'pre-wrap' }}><b>{ru ? 'Контакты для связи' : '연락처'}</b>: {selectedWork.contact}</p>}
           <p style={{ fontSize: '1.25rem', fontWeight: 700, marginTop: 12 }}>{Number(selectedWork.price || 0).toLocaleString('ko-KR')} ₩</p>
           <div className="acts" style={{ justifyContent: 'flex-end', marginTop: 18 }}>
             <button className="btn ghost" onClick={() => setSelectedWork(null)}>{ru ? 'Закрыть' : '닫기'}</button>
