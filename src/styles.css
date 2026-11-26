@@ -265,3 +265,16 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
     font-size: .82rem;
   }
 }
+
+
+/* Comfortable reading margins on mobile screens */
+@media (max-width: 600px) {
+  .wrap {
+    padding-left: 26px;
+    padding-right: 26px;
+  }
+  .mp,
+  .mp > * {
+    min-width: 0;
+  }
+}
