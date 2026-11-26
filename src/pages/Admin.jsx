@@ -253,13 +253,14 @@ export default function Admin() {
       alert(lang === 'ru' ? 'Напишите текст ответа.' : '답변 내용을 입력해 주세요.')
       return
     }
-    if (!user || !isFirebase) {
+    const authUser = F.auth.currentUser
+    if (!user || !isFirebase || !authUser) {
       alert(lang === 'ru' ? 'Необходимо войти в аккаунт администратора.' : '관리자 계정 로그인이 필요합니다.')
       return
     }
     setSendingCustomOrderId(request.id)
     try {
-      const token = await user.getIdToken()
+      const token = await authUser.getIdToken()
       const response = await fetch('/api/send-custom-order-reply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
