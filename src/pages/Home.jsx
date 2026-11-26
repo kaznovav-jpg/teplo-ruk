@@ -33,7 +33,7 @@ export default function Home() {
   }, [])
   const fallbackSlides = ru ? SLIDES_RU : SLIDES_KO
   const slides = Array.isArray(siteSlides) && siteSlides.length
-    ? siteSlides.map((s, index) => [ru ? s.ruTitle : s.koTitle, ru ? s.ruText : s.koText, s.url || '/', String(index), s.image || ''])
+    ? siteSlides.map((s, index) => [ru ? s.ruTitle : s.koTitle, ru ? s.ruText : s.koText, s.url || '/', String(index), s.image || '', ru ? s.ruButton : s.koButton])
     : fallbackSlides.map((s) => [...s, ''])
   const t = (ko, russian) => ru ? russian : ko
   const [i, setI] = useState(0), [hov, setHov] = useState(false), [tab, setTab] = useState('new'), [rv, setRv] = useState(0)
@@ -56,7 +56,7 @@ export default function Home() {
         <div className="slides" style={{ transform: `translateX(-${i * 100}%)` }}>
           {slides.map((s) => (
             <div key={s[3]} className="slide" style={{ backgroundImage: `url(${s[4] || `https://picsum.photos/seed/${s[3]}/1600/700`})` }}>
-              <div className="wrap"><h1>{s[0]}</h1><p>{s[1]}</p><Link className="btn" to={s[2]}>{t('보러 가기', 'Смотреть')}</Link></div>
+              <div className="wrap"><h1>{s[0]}</h1><p>{s[1]}</p><Link className="btn" to={s[2]}>{s[5] || t('보러 가기', 'Смотреть')}</Link></div>
             </div>
           ))}
         </div>
