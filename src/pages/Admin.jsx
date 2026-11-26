@@ -125,6 +125,7 @@ export default function Admin() {
 
   useEffect(() => {
     if (activeSection !== 'messageReports' || !isAdmin || !isFirebase) return
+    loadManagedUsers()
     return F.onSnapshot(F.query(F.collection(F.db, 'messageReports'), F.orderBy('createdAt', 'desc')), (snap) => {
       setMessageReports(snap.docs.map((item) => ({ ...item.data(), id: item.id })))
     }, (error) => console.error('Message reports load error:', error))
@@ -864,8 +865,8 @@ const deleteArticle = async (article) => {
               <strong>{lang === 'ru' ? 'Жалоба' : '신고'} · {report.status === 'reviewed' ? (lang === 'ru' ? 'Рассмотрена' : '검토 완료') : (lang === 'ru' ? 'Новая' : '신규')}</strong>
               <small className="muted">{report.createdAt ? new Date(report.createdAt).toLocaleString(lang === 'ru' ? 'ru-RU' : 'ko-KR') : ''}</small>
             </div>
-            <p style={{ marginTop: 8 }}>{lang === 'ru' ? 'Отправитель жалобы' : '신고자'}: <code>{report.reporterUid}</code></p>
-            <p>{lang === 'ru' ? 'На пользователя' : '신고 대상'}: <code>{report.reportedUid}</code></p>
+            <p style={{ marginTop: 8 }}>{lang === 'ru' ? 'Отправитель жалобы' : '신고자'}: <strong>{managedUsers.find((item) => item.uid === report.reporterUid)?.name || (lang === 'ru' ? 'Участник' : '회원')}</strong> <small className="muted">({report.reporterUid})</small></p>
+            <p>{lang === 'ru' ? 'На пользователя' : '신고 대상'}: <strong>{managedUsers.find((item) => item.uid === report.reportedUid)?.name || (lang === 'ru' ? 'Участник' : '회원')}</strong> <small className="muted">({report.reportedUid})</small></p>
             <p style={{ marginTop: 8 }}><strong>{lang === 'ru' ? 'Причина' : '신고 사유'}:</strong> {report.reason}</p>
             {report.messageText && <blockquote style={{ marginTop: 8, padding: 12, background: '#FAF7F2', borderLeft: '3px solid #B8593B', whiteSpace: 'pre-wrap' }}>{report.messageText}</blockquote>}
             <label style={{ display: 'grid', gap: 6, marginTop: 14 }}>
