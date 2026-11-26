@@ -472,7 +472,21 @@ setAuthReady(true)
       busy.current = true
       try {
         const c = await F.createUserWithEmailAndPassword(F.auth, email, pw)
-        await F.updateProfile(c.user, { displayName: name })
+        const cleanName = String(name || '').normalize('NFKC').trim().replace(/\\s+/g, ' ')
+        if (!cleanName || cleanName.length > 40) throw new Error('Имя должно содержать от 1 до 40 символов.')
+        await F.updateProfile(c.user, { displayName: cleanName })
+        const token = await c.user.getIdToken()
+        const nameResponse = await fetch('/api/username', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ name: cleanName })
+        })
+        const nameResult = await nameResponse.json().catch(() => ({}))
+        if (!nameResponse.ok) {
+          await c.user.delete().catch(() => {})
+          await F.signOut(F.auth).catch(() => {})
+          throw new Error(nameResult.error || 'Не удалось проверить имя пользователя.')
+        }
         await F.sendEmailVerification(c.user)
         // Do not create the Firestore profile or sign the user in until the email is verified.
         await F.signOut(F.auth)
