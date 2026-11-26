@@ -265,10 +265,12 @@ service cloud.firestore {
         && resource.data.uid == request.auth.uid;
     }
 
-    // Заявку может создать и читать только сам пользователь; проверять и менять статус может администратор.
-    // Индивидуальные заказы: отправка доступна посетителям, чтение и изменение — только администратору.
+    // Индивидуальные запросы: пользователь создаёт и читает только собственные заявки; администратор управляет ими.
     match /customOrders/{requestId} {
-      allow create: if request.resource.data.keys().hasAll(['name', 'phone', 'email', 'details', 'status', 'at'])
+      allow create: if isActiveUser()
+        && request.resource.data.keys().hasAll(['uid', 'name', 'phone', 'email', 'details', 'status', 'at'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email == request.auth.token.email
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.name.size() <= 80
@@ -283,7 +285,8 @@ service cloud.firestore {
         && request.resource.data.details.size() <= 3000
         && request.resource.data.status == 'new'
         && request.resource.data.at is string;
-      allow read, update, delete: if isAdmin();
+      allow read: if isAdmin() || (isActiveUser() && resource.data.uid == request.auth.uid);
+      allow update, delete: if isAdmin();
     }
 
     match /masterApplications/{uid} {
