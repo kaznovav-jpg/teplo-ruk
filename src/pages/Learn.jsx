@@ -176,8 +176,7 @@ export function Learn() {
 export function Artists() {
   useTitle('작가 작품')
   const { lang } = useLanguage()
-  const { artistWorks, artists, products, artistCollections, user, toast } = useApp()
-  const nav = useNavigate()
+  const { artistWorks, artists, products, artistCollections } = useApp()
   const pageData = { ...D, products }
   const artistList = (artists?.length ? artists : D.artists).filter(Boolean)
   const collectionList = (artistCollections?.length ? artistCollections : D.extras.collections).filter(Boolean)
@@ -233,31 +232,7 @@ export function Artists() {
           <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>{ru ? (selectedWork.descriptionRu || selectedWork.description || 'Описание не добавлено') : (selectedWork.description || selectedWork.descriptionRu || '설명이 없습니다')}</p>
           <p className="muted" style={{ marginTop: 12 }}>{ru ? 'Категория' : '카테고리'}: {categoryName(selectedWork.category)}</p>
           <p style={{ fontSize: '1.25rem', fontWeight: 700, marginTop: 12 }}>{Number(selectedWork.price || 0).toLocaleString('ko-KR')} ₩</p>
-          <div className="acts" style={{ justifyContent: 'space-between', flexWrap: 'wrap', marginTop: 18 }}>
-            <button className="btn" disabled={!!user?.uid && selectedWork.artistUid === user.uid} onClick={async () => {
-              if (!user?.uid) { nav('/mypage?tab=login'); return }
-              const artistUid = selectedWork.artistUid
-              if (!artistUid) { toast(ru ? 'Не удалось определить аккаунт мастера. Пожалуйста, сообщите администратору.' : '작가 계정을 확인할 수 없습니다. 관리자에게 문의해 주세요.'); return }
-              if (artistUid === user.uid) { toast(ru ? 'Это ваша работа.' : '내 작품입니다.'); return }
-              const participants = [user.uid, artistUid].sort()
-              const conversationId = participants.map((uid) => encodeURIComponent(uid)).join('__')
-              const now = new Date().toISOString()
-              try {
-                const conversationRef = F.doc(F.db, 'conversations', conversationId)
-                const existing = await F.getDoc(conversationRef)
-                if (!existing.exists()) {
-                  await F.setDoc(conversationRef, {
-                    participants,
-                    names: { [user.uid]: user.name || '', [artistUid]: selectedWork.artistName || '' },
-                    createdAt: now, updatedAt: now, lastMessage: '', lastSenderUid: user.uid
-                  })
-                }
-                nav('/messages?c=' + encodeURIComponent(conversationId))
-              } catch (error) {
-                console.error('Contact artist error:', error)
-                toast(ru ? 'Не удалось открыть переписку. Попробуйте позже.' : '쪽지를 열지 못했습니다. 다시 시도해 주세요.')
-              }
-            }}>{ru ? 'Написать мастеру' : '작가에게 쪽지 보내기'}</button>
+          <div className="acts" style={{ justifyContent: 'flex-end', marginTop: 18 }}>
             <button className="btn ghost" onClick={() => setSelectedWork(null)}>{ru ? 'Закрыть' : '닫기'}</button>
           </div>
         </div>
